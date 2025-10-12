@@ -1,93 +1,111 @@
-# 10x Astro Starter
+# ClassicInsight
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+## Table of Contents
+
+- [Project Description](#project-description)
+- [Tech Stack](#tech-stack)
+- [Getting Started Locally](#getting-started-locally)
+- [Available Scripts](#available-scripts)
+- [Project Scope](#project-scope)
+- [Project Status](#project-status)
+- [License](#license)
+
+## Project Description
+
+ClassicInsight is a Minimum Viable Product (MVP) web application designed for literature and philosophy enthusiasts. Its primary goal is to facilitate the exploration, analysis, and comparison of philosophical works and literary classics. The application allows users to create and manage notes, which can then be enriched by artificial intelligence with related quotes, summaries, and key ideas. A key feature is the visualization of connections between notes and concepts in the form of an interactive mind map.
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+The project is built with a modern, component-based architecture. The main technologies used are:
 
-## Prerequisites
+- **Framework**: [Astro 5](https://astro.build/)
+- **UI Library**: [React 19](https://react.dev/)
+- **Language**: [TypeScript 5](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **UI Components**: [Shadcn/ui](https://ui.shadcn.com/)
+- **Database**: [Supabase](https://supabase.com/) (as inferred from project structure guidelines)
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+## Getting Started Locally
 
-## Getting Started
+To set up and run the project on your local machine, follow these steps.
 
-1. Clone the repository:
+### Prerequisites
 
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+- [Node.js](https://nodejs.org/) (LTS version recommended)
+- [npm](https://www.npmjs.com/) (comes with Node.js)
 
-2. Install dependencies:
+### Installation & Setup
 
-```bash
-npm install
-```
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/marcinczerny/classic-insights.git
+    cd classic-insights
+    ```
 
-3. Run the development server:
+2.  **Install dependencies:**
+    ```sh
+    npm install
+    ```
 
-```bash
-npm run dev
-```
+3.  **Set up environment variables:**
+    The project requires a connection to a Supabase backend. Create a `.env` file in the root of the project by copying the example structure below.
 
-4. Build for production:
+    ```env
+    # .env
 
-```bash
-npm run build
-```
+    # Public Supabase URL
+    PUBLIC_SUPABASE_URL="your_supabase_project_url"
+
+    # Public Supabase Anon Key
+    PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+    ```
+
+4.  **Run the development server:**
+    ```sh
+    npm run dev
+    ```
+    The application will be available at `http://localhost:4321`.
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+The following scripts are available in the `package.json`:
 
-## Project Structure
+| Script       | Description                                        |
+| ------------ | -------------------------------------------------- |
+| `npm run dev`    | Starts the development server with hot-reloading.  |
+| `npm run build`  | Builds the application for production.             |
+| `npm run preview`| Serves the production build locally for preview.   |
+| `npm run lint`   | Lints the codebase for errors.                     |
+| `npm run lint:fix`| Lints the codebase and automatically fixes issues. |
+| `npm run format` | Formats the code using Prettier.                   |
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+## Project Scope
 
-## AI Development Support
+This project is currently being developed as an MVP. The scope is defined as follows:
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+### Key Features (MVP)
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+-   **User Management**: Secure user registration, login, logout, and password reset.
+-   **Note Management**: Create, read, update, and delete text-based notes with Markdown support.
+-   **Entity Tagging**: Add entities (e.g., Author, Work, Idea) as tags to notes.
+-   **AI Enrichment**: Manually trigger AI analysis on a note to get suggestions for related quotes, summaries, and new graph nodes.
+-   **Mind Map Visualization**: View notes, entities, and their relationships as an interactive graph.
+-   **Search**: Filter notes based on their assigned tags.
 
-### Cursor IDE
+### Out of Scope for MVP
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
+The following features are not planned for the initial release but may be considered in the future:
 
-### GitHub Copilot
+-   Social features like sharing notes or graphs.
+-   Advanced multimedia support (images, audio).
+-   Fully automated AI text synthesis.
+-   Importing notes from external applications.
+-   Real-time collaboration.
+-   A public API.
 
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
+## Project Status
 
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+**In Development**: This project is actively under development and is currently focused on delivering the core features defined in the MVP scope.
 
 ## License
 
