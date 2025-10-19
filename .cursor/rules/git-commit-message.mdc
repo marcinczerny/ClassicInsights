@@ -1,0 +1,150 @@
+---
+alwaysApply: false
+---
+
+## Cursor Rule for Conventional Commit 1.0.0
+
+**Goal:** Generate a $\text{git}$ commit message (or multiple messages) strictly following the **Conventional Commits 1.0.0** specification, ensuring atomicity and cohesion.
+
+### 1a\. Read staged diff from staged-changes.diff
+
+
+### 1b\. Analyze Staged Changes and Cohesion
+
+a. Examine all staged files and the nature of the modifications ($\text{diffs}$).
+b. **Cohesion Check:** Determine if all changes serve a *single logical purpose* (e.g., one `feat`, one `fix`, one `refactor`).
+c. **Single Commit Scenario:** If changes are cohesive, proceed to Steps 2-4 to generate *one* commit for *all* staged files.
+d. **Multiple Commit Scenario:** If changes are *not* cohesive (e.g., a `docs` change mixed with a `fix`, or a `feat` alongside a `ci` change), the response **MUST** be split into logical groups. In this case, follow the format described in **Step 5**.
+
+### 2\. Construct the Header (Required)
+
+The header **MUST** be on a single line and follow this structure:
+$$\text{<type>(\text{[optional scope]}){\text{[!]}}: \text{<description>}}$$
+
+  * **`<type>` (Required):** A noun indicating the nature of the change. Use the most appropriate **type** from the list below.
+      * **`feat`**: A new feature is introduced.
+      * **`fix`**: A bug fix is implemented.
+      * **`docs`**: Documentation-only changes.
+      * **`style`**: Changes that do not affect code meaning (whitespace, formatting, semicolons, etc.).
+      * **`refactor`**: A code change that neither fixes a bug nor adds a feature (e.g., restructuring).
+      * **`perf`**: A code change that improves performance.
+      * **`test`**: Adding missing tests or correcting existing tests.
+      * **`build`**: Changes that affect the build system or external dependencies (e.g., $\text{npm}$, $\text{pip}$, $\text{webpack}$).
+      * **`ci`**: Changes to CI configuration files and scripts (e.g., $\text{.github/workflows}$, $\text{jenkinsfile}$).
+      * **`chore`**: Other changes that don't modify source code or tests (e.g., updating $\text{.gitignore}$).
+  * **`([optional scope])` (Optional):** A phrase describing a section of the codebase enclosed in parentheses, e.g., `feat(parser):`.
+  * **`[!]` (Optional Breaking Change Indicator):** If the change is a **BREAKING CHANGE**, append a $\text{!}$ immediately before the colon and space (e.g., `feat(api)!:`).
+  * **`  :   ` (Required Separator):** A colon and a space **MUST** follow the `<type>` or `([optional scope])`.
+  * **`<description>` (Required):** A short, concise summary of the code changes.
+      * **MUST** be in the **imperative, present tense** (e.g., "change," not "changed" or "changes").
+      * **SHOULD** be kept to **50 characters or less**.
+      * **SHOULD NOT** be capitalized (unless it's a proper noun).
+      * **MUST NOT** end with a period.
+
+-----
+
+### 3\. Construct the Body (Optional)
+
+The $\text{<body>}$ **MAY** be provided to give additional contextual information.
+
+  * **MUST** begin **one blank line** after the $\text{<description>}$.
+  * **SHOULD** be written in the **imperative, present tense**.
+  * **SHOULD** include the motivation for the change and contrast it with previous behavior.
+  * **SHOULD** wrap at **72 characters** if possible.
+
+-----
+
+### 4\. Construct the Footer(s) (Optional)
+
+The $\text{<footer>}$ **MAY** be provided.
+
+  * **MUST** begin **one blank line** after the $\text{<body>}$ (or $\text{<description>}$ if no $\text{<body>}$).
+  * **SHOULD** contain additional issue references (e.g., `Closes #123`, `Fixes #456`).
+
+#### **Breaking Changes in Footer (Optional/Alternative)**
+
+If a breaking change occurred and was **not** indicated by $\text{!}$ in the header, or to provide more detail:
+
+  * **MUST** start with the uppercase text **`BREAKING CHANGE:`** followed by a space.
+  * **MUST** include a description of the API change, why it was made, and how to migrate (e.g., `BREAKING CHANGE: environment variables now take precedence over config files.`).
+  * Alternatively, use **`BREAKING-CHANGE:`** (with a hyphen) for a footer token following the Git trailer convention.
+
+-----
+
+### 5\. Output Format for Multiple Commits (If Step 1.d applies)
+
+If changes are split into multiple logical groups, the response **MUST NOT** be a single message. Instead, the response **MUST** consist of a list of proposed commits.
+
+Each proposal must be clearly separated and include:
+
+1.  **Files:** A list of files that should be included *only* in this commit.
+2.  **Commit Message:** The full message (header, body, footer) generated according to Steps 2-4 for *this specific group* of files.
+
+#### Example Output for Multiple Commits
+
+Assume the user staged changes to `README.md` (updating documentation) and `src/utils.js` (fixing a bug).
+
+**Proposal to split into 2 commits:**
+
+-----
+
+**Commit 1: `fix(utils): correct calculation error`**
+
+**Files:**
+
+  * `src/utils.js`
+
+**Commit Message:**
+
+```
+fix(utils): correct off-by-one error in calculation loop
+
+The previous implementation incorrectly iterated one time too many,
+leading to potential index out of bounds errors.
+```
+
+-----
+
+**Commit 2: `docs: update setup instructions in README`**
+
+**Files:**
+
+  * `README.md`
+
+**Commit Message:**
+
+```
+docs: update setup instructions in README
+
+Clarify the required environment variables needed to run
+the application locally.
+```
+
+-----
+
+### Example Outputs (For a Single Commit)
+
+#### Style 1: Simple Feature
+
+```
+feat: add basic user login component
+```
+
+#### Style 2: Bug Fix with Issue Reference
+
+```
+fix(auth): correct user validation logic
+
+Resolves #99
+```
+
+#### Style 3: Breaking Change (using \!)
+
+```
+feat(db)!: use PostgreSQL over SQLite3
+
+The database schema has changed entirely to support new
+transaction models. This is a major version bump.
+
+BREAKING CHANGE: Users must now run the 'db:migrate' script.
+```
