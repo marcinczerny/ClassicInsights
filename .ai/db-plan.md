@@ -79,11 +79,13 @@ CREATE TABLE entities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL,
+  description TEXT CHECK (length(description) <= 1000), -- Opcjonalny opis bytu
   type entity_type NOT NULL DEFAULT 'other',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(user_id, name)
 );
+```
 ```
 
 ### Tabela: `note_entities`
