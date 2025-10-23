@@ -1,0 +1,19 @@
+@baseUrl = http://localhost:3001/api
+
+### GET all notes (default parameters)
+GET {{baseUrl}}/notes
+
+### GET notes with pagination
+GET {{baseUrl}}/notes?page=2&limit=5
+
+### GET notes with sorting
+GET {{baseUrl}}/notes?sort=title&order=asc
+
+### GET notes with search term
+GET {{baseUrl}}/notes?search=your_search_term
+
+### GET notes filtered by entities (provide comma-separated UUIDs)
+GET {{baseUrl}}/notes?entities=uuid1,uuid2
+
+### GET notes with combined parameters
+GET {{baseUrl}}/notes?page=1&limit=10&sort=updated_at&order=desc&search=important
