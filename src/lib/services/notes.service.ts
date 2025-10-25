@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { CreateNoteCommand, NoteDTO, NotesListResponseDTO, UpdateNoteCommand } from "@/types";
+import type { CreateNoteCommand, NoteDTO, NotesListResponseDTO, UpdateNoteCommand, NoteEntityAssociationDTO } from "@/types";
 import type { GetNotesParams } from "../validation";
 
 async function _validateEntities(
@@ -323,6 +323,71 @@ export async function deleteNote(supabase: SupabaseClient, noteId: string, userI
       }
     }
   }
+}
+
+export async function addEntityToNote(
+  supabase: SupabaseClient,
+  noteId: string,
+  entityId: string,
+  userId: string,
+): Promise<NoteEntityAssociationDTO> {
+  // 1. Verify that the note and entity both exist and belong to the user.
+  // We can do this by checking them individually.
+  const { error: noteError } = await supabase
+    .from("notes")
+    .select("id")
+    .eq("id", noteId)
+    .eq("user_id", userId)
+    .single();
+
+  if (noteError) {
+    throw new Error("Note not found or you do not have permission to access it.");
+  }
+
+  const { error: entityError } = await supabase
+    .from("entities")
+    .select("id")
+    .eq("id", entityId)
+    .eq("user_id", userId)
+    .single();
+
+  if (entityError) {
+    throw new Error("Entity not found or you do not have permission to access it.");
+  }
+
+  // 2. Check if the association already exists to prevent duplicates.
+  const { data: existingLink, error: linkCheckError } = await supabase
+    .from("note_entities")
+    .select()
+    .eq("note_id", noteId)
+    .eq("entity_id", entityId)
+    .maybeSingle();
+
+  if (linkCheckError) {
+    console.error("Error checking for existing note-entity link:", linkCheckError);
+    throw new Error("Failed to check for existing association.");
+  }
+
+  if (existingLink) {
+    throw new Error("This entity is already associated with the note.");
+  }
+
+  // 3. Insert the new association.
+  const { data: newAssociation, error: insertError } = await supabase
+    .from("note_entities")
+    .insert({
+      note_id: noteId,
+      entity_id: entityId,
+    })
+    .select()
+    .single();
+
+  if (insertError) {
+    console.error("Error creating note-entity association:", insertError);
+    throw new Error("Failed to create the association.");
+  }
+
+  return newAssociation;
 }
 
 export async function findNoteById(

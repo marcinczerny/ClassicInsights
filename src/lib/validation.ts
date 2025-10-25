@@ -30,3 +30,7 @@ export const updateNoteSchema = createNoteSchema.partial().refine(
     message: "At least one field to update must be provided.",
   }
 );
+
+export const addEntityToNoteSchema = z.object({
+  entity_id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
+});
