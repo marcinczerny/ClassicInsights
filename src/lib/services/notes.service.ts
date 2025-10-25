@@ -1,6 +1,31 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { CreateNoteCommand, NoteDTO, NotesListResponseDTO } from "@/types";
+import type { CreateNoteCommand, NoteDTO, NotesListResponseDTO, UpdateNoteCommand } from "@/types";
 import type { GetNotesParams } from "../validation";
+
+async function _validateEntities(
+  supabase: SupabaseClient,
+  entityIds: string[],
+  userId: string,
+): Promise<void> {
+  if (!entityIds || entityIds.length === 0) {
+    return;
+  }
+
+  const { data: entities, error: entityError } = await supabase
+    .from("entities")
+    .select("id")
+    .in("id", entityIds)
+    .eq("user_id", userId);
+
+  if (entityError) {
+    console.error("Error verifying entities:", entityError);
+    throw new Error("Failed to verify entities.");
+  }
+
+  if (entities.length !== entityIds.length) {
+    throw new Error("One or more entities not found or do not belong to the user.");
+  }
+}
 
 export async function getNotes(
   supabase: SupabaseClient,
@@ -85,21 +110,8 @@ export async function createNote(
   }
 
   // 2. Verify entity ownership if entity_ids are provided
-  if (entity_ids && entity_ids.length > 0) {
-    const { data: entities, error: entityError } = await supabase
-      .from("entities")
-      .select("id")
-      .in("id", entity_ids)
-      .eq("user_id", userId);
-
-    if (entityError) {
-      console.error("Error verifying entities:", entityError);
-      throw new Error("Failed to verify entities.");
-    }
-
-    if (entities.length !== entity_ids.length) {
-      throw new Error("One or more entities not found or do not belong to the user.");
-    }
+  if (entity_ids) {
+    await _validateEntities(supabase, entity_ids, userId);
   }
 
   // 3. Create the note
@@ -149,6 +161,112 @@ export async function createNote(
   }
 
   return fullNote;
+}
+
+export async function updateNote(
+  supabase: SupabaseClient,
+  noteId: string,
+  userId: string,
+  command: UpdateNoteCommand,
+): Promise<NoteDTO> {
+  const { title, content, entity_ids } = command;
+
+  // 1. Verify note exists and belongs to the user
+  const { data: existingNote, error: fetchError } = await supabase
+    .from("notes")
+    .select("id, title")
+    .eq("id", noteId)
+    .eq("user_id", userId)
+    .single();
+
+  if (fetchError || !existingNote) {
+    throw new Error("Note not found or you do not have permission to edit it.");
+  }
+
+  // 2. Check for duplicate title if it's being changed
+  if (title && title !== existingNote.title) {
+    const { data: duplicateNote, error: duplicateError } = await supabase
+      .from("notes")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("title", title)
+      .neq("id", noteId)
+      .maybeSingle();
+
+    if (duplicateError) {
+      console.error("Error checking for duplicate title:", duplicateError);
+      throw new Error("Failed to check for duplicate title.");
+    }
+
+    if (duplicateNote) {
+      throw new Error("A note with this title already exists.");
+    }
+  }
+  
+  // 3. Verify entity ownership if entity_ids are provided
+  if (entity_ids) {
+    await _validateEntities(supabase, entity_ids, userId);
+  }
+
+  // 4. Update the note and its entity associations in a transaction
+  // Supabase SDK doesn't directly support transactions in edge functions.
+  // We will perform operations sequentially and handle potential inconsistencies.
+  // A robust implementation would use a database function (RPC).
+
+  // 4a. Update note details
+  if (title !== undefined || content !== undefined) {
+    const { error: updateError } = await supabase
+      .from("notes")
+      .update({ title, content: content ?? undefined })
+      .eq("id", noteId);
+
+    if (updateError) {
+      console.error("Error updating note:", updateError);
+      throw new Error("Failed to update the note.");
+    }
+  }
+
+  // 4b. Update entity links if provided
+  if (entity_ids) {
+    // Delete existing links
+    const { error: deleteError } = await supabase
+      .from("note_entities")
+      .delete()
+      .eq("note_id", noteId);
+
+    if (deleteError) {
+      console.error("Error removing old entity links:", deleteError);
+      throw new Error("Failed to update entity links (delete step).");
+    }
+
+    // Insert new links
+    if (entity_ids.length > 0) {
+      const newLinks = entity_ids.map((entity_id) => ({
+        note_id: noteId,
+        entity_id: entity_id,
+      }));
+      const { error: insertError } = await supabase.from("note_entities").insert(newLinks);
+
+      if (insertError) {
+        console.error("Error adding new entity links:", insertError);
+        throw new Error("Failed to update entity links (insert step).");
+      }
+    }
+  }
+
+  // 5. Fetch and return the updated note DTO
+  const { data: updatedNote, error: finalFetchError } = await supabase
+    .from("notes")
+    .select("*, entities(*)")
+    .eq("id", noteId)
+    .single();
+
+  if (finalFetchError) {
+    console.error("Error fetching updated note:", finalFetchError);
+    throw new Error("Failed to fetch the updated note.");
+  }
+
+  return updatedNote;
 }
 
 export async function findNoteById(

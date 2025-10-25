@@ -23,3 +23,10 @@ export const createNoteSchema = z.object({
 export const getNoteSchema = z.object({
   id: z.string().uuid({ message: "Note ID must be a valid UUID." }),
 });
+
+export const updateNoteSchema = createNoteSchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  {
+    message: "At least one field to update must be provided.",
+  }
+);
