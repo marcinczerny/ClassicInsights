@@ -61,3 +61,53 @@ Content-Type: application/json
 
 # @name getNotes
 GET http://localhost:4321/api/notes?page=1&limit=5&sort=title&order=asc
+
+###
+# ============================================================================
+# NOTE-SPECIFIC ENDPOINTS
+# ============================================================================
+
+@noteId = 00000000-0000-0000-0000-000000000000
+@entityId = 00000000-0000-0000-0000-000000000000
+@anotherEntityId = 00000000-0000-0000-0000-000000000001
+
+### GET a single note by ID
+# @name getNoteById
+GET {{baseUrl}}/notes/{{noteId}}
+
+### PATCH (update) a note by ID
+# @name updateNote
+PATCH {{baseUrl}}/notes/{{noteId}}
+Content-Type: application/json
+
+{
+    "title": "Updated Note Title via PATCH",
+    "content": "This is the updated content for the note.",
+    "entity_ids": ["{{entityId}}", "{{anotherEntityId}}"]
+}
+
+### PATCH (update) only the title of a note
+# @name updateNoteTitle
+PATCH {{baseUrl}}/notes/{{noteId}}
+Content-Type: application/json
+
+{
+    "title": "Updated Note Title Only"
+}
+
+### DELETE a note by ID
+# @name deleteNote
+DELETE {{baseUrl}}/notes/{{noteId}}
+
+### POST (add) an entity to a note
+# @name addEntityToNote
+POST {{baseUrl}}/notes/{{noteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{entityId}}"
+}
+
+### DELETE an entity from a note
+# @name removeEntityFromNote
+DELETE {{baseUrl}}/notes/{{noteId}}/entities/{{entityId}}
