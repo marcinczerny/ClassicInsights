@@ -167,4 +167,55 @@ Content-Type: application/json
 
 ### DELETE an entity by ID
 # @name deleteEntity
-DELETE {{baseUrl}}/entities/{{createdEntityId}}
+DELETE {{baseUrl}}/entities/9de7f17e-a3c2-4b88-94c1-9746c2b8
+###
+# ============================================================================
+# RELATIONSHIP MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@sourceEntityId = ea230e96-2789-4f25-b0ed-c815bb3b4326
+@targetEntityId = 9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8
+@createdRelationshipId = 
+
+### POST (create) a new relationship
+# @name createRelationship
+POST {{baseUrl}}/relationships
+Content-Type: application/json
+
+{
+    "source_entity_id": "{{sourceEntityId}}",
+    "target_entity_id": "{{targetEntityId}}",
+    "type": "is_related_to"
+}
+
+### POST (create) a self-referencing relationship (should fail)
+# @name createSelfRelationship
+POST {{baseUrl}}/relationships
+Content-Type: application/json
+
+{
+    "source_entity_id": "{{sourceEntityId}}",
+    "target_entity_id": "{{sourceEntityId}}",
+    "type": "is_related_to"
+}
+
+### GET all relationships for the user
+# @name getRelationships
+GET {{baseUrl}}/relationships
+
+### GET relationships with filtering
+# @name getRelationshipsFiltered
+GET {{baseUrl}}/relationships?source_entity_id={{sourceEntityId}}&type=is_related_to
+
+### PATCH (update) a relationship's type
+# @name updateRelationship
+PATCH {{baseUrl}}/relationships/{{createdRelationshipId}}
+Content-Type: application/json
+
+{
+    "type": "criticizes"
+}
+
+### DELETE a relationship by ID
+# @name deleteRelationship
+DELETE {{baseUrl}}/relationships/{{createdRelationshipId}}
