@@ -36,7 +36,7 @@ Content-Type: application/json
 {
     "title": "Note with Entities",
     "content": "This note should be linked to existing entities.",
-    "entity_ids": [] 
+    "entity_ids": ["ea230e96-2789-4f25-b0ed-c815bb3b4326"] 
 }
 
 ###
@@ -67,9 +67,9 @@ GET {{{{baseUrl}}}}/api/notes?page=1&limit=5&sort=title&order=asc
 # NOTE-SPECIFIC ENDPOINTS
 # ============================================================================
 
-@noteId = e30c7b7a-9694-46a5-9262-738278044eff
-@entityId = 00000000-0000-0000-0000-000000000000
-@anotherEntityId = 00000000-0000-0000-0000-000000000001
+@noteId = f6541be6-ef08-43bc-9d96-4ba20f6be97a
+@entityId = ea230e96-2789-4f25-b0ed-c815bb3b4326
+@anotherEntityId = 9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8
 
 ### GET a single note by ID
 # @name getNoteById
@@ -117,7 +117,7 @@ DELETE {{baseUrl}}/notes/{{noteId}}/entities/{{entityId}}
 # ENTITY MANAGEMENT ENDPOINTS
 # ============================================================================
 
-@createdEntityId = 
+@createdEntityId = ea230e96-2789-4f25-b0ed-c815bb3b4326
 
 ### GET all entities (default parameters)
 # @name getEntities
@@ -125,7 +125,7 @@ GET {{baseUrl}}/entities
 
 ### GET entities with search and sort
 # @name getEntitiesFiltered
-GET {{baseUrl}}/entities?search=pla&sort=name&order=asc
+GET {{baseUrl}}/entities?search=tale&sort=name&order=asc
 
 ### GET entities filtered by type
 # @name getEntitiesByType

@@ -3,6 +3,7 @@ import { handleSupabaseError } from "@/db/supabase.client";
 import type { Enums } from "@/db/database.types";
 import type { EntityWithCountDTO } from "@/types";
 import type { CreateEntityCommand, EntityDTO } from "@/types";
+import type { EntityWithNotesDTO } from "@/types";
 
 export type GetEntitiesOptions = {
 	search?: string;
@@ -100,4 +101,32 @@ export const createEntity = async (
 	}
 
 	return newEntity;
+};
+
+export const getEntityById = async (
+	supabase: SupabaseClient,
+	userId: string,
+	entityId: string,
+): Promise<EntityWithNotesDTO | null> => {
+	const { data, error } = await supabase
+		.from("entities")
+		.select("*, notes(id, title, created_at)")
+		.eq("id", entityId)
+		.eq("user_id", userId)
+		.single();
+
+	// PGRST116: The query returned no rows. This is not an error in this case, it just means not found.
+	if (error && error.code !== "PGRST116") {
+		return handleSupabaseError(error);
+	}
+
+	if (!data) {
+		return null;
+	}
+
+	// Ensure notes is always an array
+	return {
+		...data,
+		notes: data.notes || [],
+	};
 };

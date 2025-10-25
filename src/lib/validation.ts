@@ -70,3 +70,7 @@ export const createEntitySchema = z.object({
 	type: z.enum(entityTypes),
 	description: z.string().max(1000).optional(),
 });
+
+export const getEntitySchema = z.object({
+  id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
+});
