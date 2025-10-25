@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@/db/supabase.client";
 import { handleSupabaseError } from "@/db/supabase.client";
 import type { Enums } from "@/db/database.types";
 import type { EntityWithCountDTO } from "@/types";
+import type { CreateEntityCommand, EntityDTO } from "@/types";
 
 export type GetEntitiesOptions = {
 	search?: string;
@@ -65,4 +66,38 @@ export const getEntities = async (
 				: 0,
 		})) || []
 	);
+};
+
+export const createEntity = async (
+	supabase: SupabaseClient,
+	userId: string,
+	data: CreateEntityCommand,
+): Promise<EntityDTO> => {
+	const { name, type, description } = data;
+
+	const { data: newEntity, error } = await supabase
+		.from("entities")
+		.insert({
+			user_id: userId,
+			name,
+			type,
+			description: description || null,
+		})
+		.select()
+		.single();
+
+	const UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505"; // Postgres unique constraint violation
+	if (error) {
+		if (error.code === UNIQUE_CONSTRAINT_VIOLATION_CODE) {
+			// unique constraint violation
+			throw new Error(`An entity with the name "${name}" already exists.`);
+		}
+		return handleSupabaseError(error);
+	}
+
+	if (!newEntity) {
+		throw new Error("Failed to create entity.");
+	}
+
+	return newEntity;
 };
