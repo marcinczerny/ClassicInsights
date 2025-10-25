@@ -269,6 +269,49 @@ export async function updateNote(
   return updatedNote;
 }
 
+/**
+ * Checks for and deletes orphan entities. An orphan entity is one that is no longer
+ * associated with any notes after a deletion operation.
+ * @param supabase The Supabase client instance.
+ * @param entityIdsToCheck An array of entity IDs to check for orphan status.
+ */
+async function _handleOrphanEntities(
+  supabase: SupabaseClient,
+  entityIdsToCheck: string[],
+): Promise<void> {
+  if (entityIdsToCheck.length === 0) {
+    return;
+  }
+
+  // For each entity, check if it's linked to any other notes
+  const { data: remainingLinks, error: linksCheckError } = await supabase
+    .from("note_entities")
+    .select("entity_id")
+    .in("entity_id", entityIdsToCheck);
+
+  if (linksCheckError) {
+    console.error("Error checking for remaining entity links:", linksCheckError);
+    // This is a partial success state as the primary operation (note/link deletion) succeeded.
+    // A transactional approach (e.g., RPC) would be more robust.
+    throw new Error("Failed to check for orphan entities.");
+  }
+
+  const stillLinkedEntityIds = new Set(remainingLinks.map((link) => link.entity_id));
+  const orphanEntityIds = entityIdsToCheck.filter((id) => !stillLinkedEntityIds.has(id));
+
+  if (orphanEntityIds.length > 0) {
+    const { error: orphanDeleteError } = await supabase
+      .from("entities")
+      .delete()
+      .in("id", orphanEntityIds);
+
+    if (orphanDeleteError) {
+      console.error("Error deleting orphan entities:", orphanDeleteError);
+      throw new Error("Failed to delete orphan entities.");
+    }
+  }
+}
+
 export async function deleteNote(supabase: SupabaseClient, noteId: string, userId: string): Promise<void> {
   // 1. Get the list of associated entities before deleting the note
   const { data: noteEntities, error: entitiesFetchError } = await supabase
@@ -293,36 +336,42 @@ export async function deleteNote(supabase: SupabaseClient, noteId: string, userI
   }
 
   // 3. Check for and delete orphan entities
-  if (entityIdsToCheck.length > 0) {
-    // For each entity, check if it's linked to any other notes
-    const { data: remainingLinks, error: linksCheckError } = await supabase
-      .from("note_entities")
-      .select("entity_id")
-      .in("entity_id", entityIdsToCheck);
+  await _handleOrphanEntities(supabase, entityIdsToCheck);
+}
 
-    if (linksCheckError) {
-      console.error("Error checking for remaining entity links:", linksCheckError);
-      // Note: The primary note was deleted, but cleanup failed. This is a partial success state.
-      // A transactional approach (e.g., RPC) would be more robust.
-      throw new Error("Failed to check for orphan entities after note deletion.");
-    }
-    
-    const linkedEntityIds = new Set(remainingLinks.map(link => link.entity_id));
-    const orphanEntityIds = entityIdsToCheck.filter(id => !linkedEntityIds.has(id));
+export async function removeEntityFromNote(
+  supabase: SupabaseClient,
+  noteId: string,
+  entityId: string,
+  userId: string,
+): Promise<void> {
+  // 1. Verify the note belongs to the user to enforce ownership.
+  // We don't need the note data, just confirmation it exists for this user.
+  const { error: noteCheckError } = await supabase
+    .from("notes")
+    .select("id")
+    .eq("id", noteId)
+    .eq("user_id", userId)
+    .single();
 
-    if (orphanEntityIds.length > 0) {
-      const { error: orphanDeleteError } = await supabase
-        .from("entities")
-        .delete()
-        .in("id", orphanEntityIds);
-
-      if (orphanDeleteError) {
-        console.error("Error deleting orphan entities:", orphanDeleteError);
-        // Similar to the above, this is a partial failure state.
-        throw new Error("Failed to delete orphan entities.");
-      }
-    }
+  if (noteCheckError) {
+    throw new Error("Note not found or you do not have permission to modify it.");
   }
+
+  // 2. Delete the specific association.
+  const { error: deleteError } = await supabase
+    .from("note_entities")
+    .delete()
+    .eq("note_id", noteId)
+    .eq("entity_id", entityId);
+
+  if (deleteError) {
+    console.error("Error removing entity association:", deleteError);
+    throw new Error("Failed to remove entity from note.");
+  }
+
+  // 3. Check if the removed entity has become an orphan.
+  await _handleOrphanEntities(supabase, [entityId]);
 }
 
 export async function addEntityToNote(

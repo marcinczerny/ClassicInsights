@@ -34,3 +34,8 @@ export const updateNoteSchema = createNoteSchema.partial().refine(
 export const addEntityToNoteSchema = z.object({
   entity_id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
 });
+
+export const removeEntityFromNoteSchema = z.object({
+  id: z.string().uuid({ message: "Note ID must be a valid UUID." }),
+  entityId: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
+});
