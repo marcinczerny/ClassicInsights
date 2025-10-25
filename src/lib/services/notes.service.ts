@@ -150,3 +150,29 @@ export async function createNote(
 
   return fullNote;
 }
+
+export async function findNoteById(
+  supabase: SupabaseClient,
+  noteId: string,
+  userId: string
+): Promise<NoteDTO | null> {
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*, entities(*)")
+    .eq("id", noteId)
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    const NO_ROWS_FOUND_CODE = "PGRST116";
+    // If no note matches the given ID and user, return null as a non-exceptional case
+    if (error.code === NO_ROWS_FOUND_CODE) {
+      return null;
+    }
+    // TODO: Add proper error logging
+    console.error("Error fetching note by ID:", error);
+    throw new Error("Failed to fetch note from the database.");
+  }
+
+  return data;
+}

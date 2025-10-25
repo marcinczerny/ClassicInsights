@@ -60,14 +60,14 @@ Content-Type: application/json
 ###
 
 # @name getNotes
-GET http://localhost:4321/api/notes?page=1&limit=5&sort=title&order=asc
+GET {{{{baseUrl}}}}/api/notes?page=1&limit=5&sort=title&order=asc
 
 ###
 # ============================================================================
 # NOTE-SPECIFIC ENDPOINTS
 # ============================================================================
 
-@noteId = 00000000-0000-0000-0000-000000000000
+@noteId = 38d152d0-9301-46e0-9942-74196edc277b
 @entityId = 00000000-0000-0000-0000-000000000000
 @anotherEntityId = 00000000-0000-0000-0000-000000000001
 

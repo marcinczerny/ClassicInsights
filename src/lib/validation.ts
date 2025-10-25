@@ -19,3 +19,7 @@ export const createNoteSchema = z.object({
   content: z.string().max(10000).optional(),
   entity_ids: z.array(z.string().uuid()).optional(),
 });
+
+export const getNoteSchema = z.object({
+  id: z.string().uuid({ message: "Note ID must be a valid UUID." }),
+});
