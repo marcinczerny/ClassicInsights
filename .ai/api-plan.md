@@ -378,14 +378,15 @@ Remove an entity from a note.
 
 #### GET /api/entities
 
-Get a list of entities for the current user.
+Get a paginated list of entities for the current user.
 
 **Authentication**: Required
 
 **Query Parameters**:
+- `page` (integer, optional, default: 1): Page number
+- `limit` (integer, optional, default: 50, max: 100): Number of items per page
 - `search` (string, optional): Search term to filter entities by name (for autocomplete)
 - `type` (string, optional): Filter by entity type (person, work, epoch, idea, school, system, other)
-- `limit` (integer, optional, default: 50, max: 100): Number of items to return
 - `sort` (string, optional, default: "name"): Sort field (name, created_at, type)
 - `order` (string, optional, default: "asc"): Sort order (asc, desc)
 
@@ -403,9 +404,15 @@ Get a list of entities for the current user.
       "description": "string",
       "created_at": "ISO 8601 timestamp",
       "updated_at": "ISO 8601 timestamp",
-      "note_count": 5  // number of notes this entity is attached to
+      "note_count": 5
     }
-  ]
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 50,
+    "total": 250,
+    "total_pages": 5
+  }
 }
 ```
 

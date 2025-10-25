@@ -8,8 +8,9 @@ import type { EntityWithNotesDTO, UpdateEntityCommand } from "@/types";
 export type GetEntitiesOptions = {
 	search?: string;
 	type?: Enums<"entity_type">;
+	page?: number;
 	limit?: number;
-	sort?: "name" | "created_at" | "type" | "note_count";
+	sort?: "name" | "created_at" | "type";
 	order?: "asc" | "desc";
 };
 
@@ -17,18 +18,22 @@ export const getEntities = async (
 	supabase: SupabaseClient,
 	userId: string,
 	options: GetEntitiesOptions = {},
-): Promise<EntityWithCountDTO[]> => {
+): Promise<{ data: EntityWithCountDTO[], count: number }> => {
 	const {
 		search,
 		type,
+		page = 1,
 		limit = 50,
 		sort = "name",
 		order = "asc",
 	} = options;
 
+	const rangeFrom = (page - 1) * limit;
+	const rangeTo = page * limit - 1;
+
 	let query = supabase
 		.from("entities")
-		.select("*, note_entities(count)")
+		.select("*, note_entities(count)", { count: "exact" })
 		.eq("user_id", userId);
 
 	if (search) {
@@ -39,25 +44,18 @@ export const getEntities = async (
 		query = query.eq("type", type);
 	}
 
-	if (sort === "note_count") {
-		// Ordering by count of a related table is not directly supported in PostgREST.
-		// This would typically be handled by a database function (RPC) or a more complex query.
-		// For now, we will sort on other columns. The plan mentions an RPC,
-		// which would be the correct way to implement this.
-		// We'll stick to simpler sorting for now and can add the RPC later.
-	} else if (sort) {
-		query = query.order(sort, { ascending: order === "asc" });
-	}
+	const sortField = sort ?? "created_at";
+	query = query.order(sortField, { ascending: order === "asc" });
 
-	query = query.limit(limit);
+	query = query.range(rangeFrom, rangeTo);
 
-	const { data, error } = await query;
+	const { data, error, count } = await query;
 
 	if (error) {
 		return handleSupabaseError(error);
 	}
 
-	return (
+	const entities =
 		data?.map((entity) => ({
 			...entity,
 			// The count is returned as an array with a single object: [{ count: 5 }]
@@ -65,8 +63,9 @@ export const getEntities = async (
 			note_count: Array.isArray(entity.note_entities)
 				? entity.note_entities[0]?.count ?? 0
 				: 0,
-		})) || []
-	);
+		})) || [];
+	
+	return { data: entities, count: count ?? 0 };
 };
 
 export const createEntity = async (

@@ -25,11 +25,20 @@ export const GET: APIRoute = async (context) => {
 		}
 
 		const options = validationResult.data;
+		const { page, limit } = options;
 
-		const entities = await getEntities(locals.supabase, userId, options);
+		const { data: entities, count: total } = await getEntities(locals.supabase, userId, options);
+
+		const totalPages = Math.ceil(total / limit);
 
 		const response: EntitiesListResponseDTO = {
 			data: entities,
+			pagination: {
+				page,
+				limit,
+				total,
+				total_pages: totalPages,
+			},
 		};
 
 		return new Response(JSON.stringify(response), {

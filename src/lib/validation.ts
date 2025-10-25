@@ -55,11 +55,12 @@ export const entityTypes = [
 ] as const;
 
 export const getEntitiesSchema = z.object({
+	page: z.coerce.number().int().min(1).default(1),
+	limit: z.coerce.number().int().positive().max(100).optional().default(50),
 	search: z.string().optional(),
 	type: z.enum(entityTypes).optional(),
-	limit: z.coerce.number().int().positive().max(100).optional().default(50),
 	sort: z
-		.enum(["name", "created_at", "type", "note_count"])
+		.enum(["name", "created_at", "type"])
 		.optional()
 		.default("name"),
 	order: z.enum(["asc", "desc"]).optional().default("asc"),

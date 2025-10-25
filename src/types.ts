@@ -119,6 +119,7 @@ export type UpdateEntityCommand = {
  */
 export type EntitiesListResponseDTO = {
   data: EntityWithCountDTO[];
+  pagination: PaginationDTO;
 };
 
 // ============================================================================
