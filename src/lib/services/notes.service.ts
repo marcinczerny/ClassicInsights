@@ -269,6 +269,62 @@ export async function updateNote(
   return updatedNote;
 }
 
+export async function deleteNote(supabase: SupabaseClient, noteId: string, userId: string): Promise<void> {
+  // 1. Get the list of associated entities before deleting the note
+  const { data: noteEntities, error: entitiesFetchError } = await supabase
+    .from("note_entities")
+    .select("entity_id")
+    .eq("note_id", noteId);
+
+  if (entitiesFetchError) {
+    console.error("Error fetching entities for note:", entitiesFetchError);
+    throw new Error("Failed to fetch associated entities before deletion.");
+  }
+
+  const entityIdsToCheck = noteEntities.map((ne) => ne.entity_id);
+
+  // 2. Delete the note. RLS ensures the user can only delete their own notes.
+  // The 'note_entities' entries are deleted automatically due to CASCADE constraint.
+  const { error: deleteError } = await supabase.from("notes").delete().eq("id", noteId).eq("user_id", userId);
+
+  if (deleteError) {
+    console.error("Error deleting note:", deleteError);
+    throw new Error("Failed to delete the note.");
+  }
+
+  // 3. Check for and delete orphan entities
+  if (entityIdsToCheck.length > 0) {
+    // For each entity, check if it's linked to any other notes
+    const { data: remainingLinks, error: linksCheckError } = await supabase
+      .from("note_entities")
+      .select("entity_id")
+      .in("entity_id", entityIdsToCheck);
+
+    if (linksCheckError) {
+      console.error("Error checking for remaining entity links:", linksCheckError);
+      // Note: The primary note was deleted, but cleanup failed. This is a partial success state.
+      // A transactional approach (e.g., RPC) would be more robust.
+      throw new Error("Failed to check for orphan entities after note deletion.");
+    }
+    
+    const linkedEntityIds = new Set(remainingLinks.map(link => link.entity_id));
+    const orphanEntityIds = entityIdsToCheck.filter(id => !linkedEntityIds.has(id));
+
+    if (orphanEntityIds.length > 0) {
+      const { error: orphanDeleteError } = await supabase
+        .from("entities")
+        .delete()
+        .in("id", orphanEntityIds);
+
+      if (orphanDeleteError) {
+        console.error("Error deleting orphan entities:", orphanDeleteError);
+        // Similar to the above, this is a partial failure state.
+        throw new Error("Failed to delete orphan entities.");
+      }
+    }
+  }
+}
+
 export async function findNoteById(
   supabase: SupabaseClient,
   noteId: string,

@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { getNoteSchema, updateNoteSchema } from "@/lib/validation";
-import { findNoteById, updateNote } from "@/lib/services/notes.service";
+import { findNoteById, updateNote, deleteNote } from "@/lib/services/notes.service";
 import { DEFAULT_USER_ID } from "@/db/supabase.client";
 
 export const prerender = false;
@@ -126,6 +126,58 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
         error: { code: errorCode, message: errorMessage },
       }),
       { status: statusCode, headers: { "Content-Type": "application/json" } },
+    );
+  }
+};
+
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  const userId = DEFAULT_USER_ID; // TODO: Replace with actual user session
+
+  const validationResult = getNoteSchema.safeParse(params);
+
+  if (!validationResult.success) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid note ID.",
+          details: validationResult.error.format(),
+        },
+      }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+  
+  const { id: noteId } = validationResult.data;
+
+  try {
+    // First, verify the note exists and belongs to the user to return a 404 if not found.
+    const note = await findNoteById(locals.supabase, noteId, userId);
+    if (!note) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "NOT_FOUND",
+            message: "Note not found or you do not have permission to delete it.",
+          },
+        }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    await deleteNote(locals.supabase, noteId, userId);
+
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    console.error(error); // TODO: Add proper error logging
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "An unexpected error occurred while deleting the note.",
+        },
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };
