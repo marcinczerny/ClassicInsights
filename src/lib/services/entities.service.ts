@@ -3,7 +3,7 @@ import { handleSupabaseError } from "@/db/supabase.client";
 import type { Enums } from "@/db/database.types";
 import type { EntityWithCountDTO } from "@/types";
 import type { CreateEntityCommand, EntityDTO } from "@/types";
-import type { EntityWithNotesDTO } from "@/types";
+import type { EntityWithNotesDTO, UpdateEntityCommand } from "@/types";
 
 export type GetEntitiesOptions = {
 	search?: string;
@@ -103,6 +103,8 @@ export const createEntity = async (
 	return newEntity;
 };
 
+const POSTGRES_ERROR_NOT_FOUND = "PGRST116";
+
 export const getEntityById = async (
 	supabase: SupabaseClient,
 	userId: string,
@@ -116,7 +118,7 @@ export const getEntityById = async (
 		.single();
 
 	// PGRST116: The query returned no rows. This is not an error in this case, it just means not found.
-	if (error && error.code !== "PGRST116") {
+	if (error && error.code !== POSTGRES_ERROR_NOT_FOUND) {
 		return handleSupabaseError(error);
 	}
 
@@ -129,4 +131,33 @@ export const getEntityById = async (
 		...data,
 		notes: data.notes || [],
 	};
+};
+
+export const updateEntity = async (
+	supabase: SupabaseClient,
+	userId: string,
+	entityId: string,
+	data: UpdateEntityCommand,
+): Promise<EntityDTO> => {
+	const UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
+
+	const { data: updatedEntity, error } = await supabase
+		.from("entities")
+		.update(data)
+		.eq("id", entityId)
+		.eq("user_id", userId)
+		.select()
+		.single();
+
+	if (error) {
+		if (error.code === UNIQUE_CONSTRAINT_VIOLATION_CODE) {
+			throw new Error(`An entity with the name "${data.name}" already exists.`);
+		}
+		if (error.code === POSTGRES_ERROR_NOT_FOUND) {
+			throw new Error("Entity not found or user does not have permission to update it.");
+		}
+		return handleSupabaseError(error);
+	}
+
+	return updatedEntity;
 };

@@ -1,5 +1,6 @@
-import { getEntityById } from "@/lib/services/entities.service";
-import { getEntitySchema } from "@/lib/validation";
+import { getEntityById, updateEntity } from "@/lib/services/entities.service";
+import { getEntitySchema, updateEntitySchema } from "@/lib/validation";
+import type { UpdateEntityCommand } from "@/types";
 import type { APIRoute } from "astro";
 import { DEFAULT_USER_ID } from "@/db/supabase.client";
 
@@ -37,6 +38,71 @@ export const GET: APIRoute = async ({ params, locals }) => {
 		});
 	} catch (error) {
 		console.error("Error fetching entity:", error);
+		return new Response(
+			JSON.stringify({ message: "Internal Server Error" }),
+			{ status: 500 },
+		);
+	}
+};
+
+export const PATCH: APIRoute = async ({ params, request, locals }) => {
+	const userId = DEFAULT_USER_ID;
+
+	const idValidationResult = getEntitySchema.safeParse(params);
+
+	if (!idValidationResult.success) {
+		return new Response(
+			JSON.stringify({
+				message: "Invalid entity ID format",
+				errors: idValidationResult.error.flatten(),
+			}),
+			{ status: 400 },
+		);
+	}
+
+	const { id: entityId } = idValidationResult.data;
+
+	try {
+		const body = await request.json();
+		const bodyValidationResult = updateEntitySchema.safeParse(body);
+
+		if (!bodyValidationResult.success) {
+			return new Response(
+				JSON.stringify({
+					message: "Invalid request body",
+					errors: bodyValidationResult.error.flatten(),
+				}),
+				{ status: 400 },
+			);
+		}
+
+		const updateCommand: UpdateEntityCommand = bodyValidationResult.data;
+
+		const updatedEntity = await updateEntity(
+			locals.supabase,
+			userId,
+			entityId,
+			updateCommand,
+		);
+
+		return new Response(JSON.stringify(updatedEntity), {
+			status: 200,
+			headers: { "Content-Type": "application/json" },
+		});
+	} catch (error) {
+		if (error instanceof Error) {
+			if (error.message.includes("already exists")) {
+				return new Response(JSON.stringify({ message: error.message }), {
+					status: 409,
+				});
+			}
+			if (error.message.includes("not found")) {
+				return new Response(JSON.stringify({ message: error.message }), {
+					status: 404,
+				});
+			}
+		}
+		console.error("Error updating entity:", error);
 		return new Response(
 			JSON.stringify({ message: "Internal Server Error" }),
 			{ status: 500 },
