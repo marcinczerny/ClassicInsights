@@ -17,3 +17,47 @@ GET {{baseUrl}}/notes?entities=uuid1,uuid2
 
 ### GET notes with combined parameters
 GET {{baseUrl}}/notes?page=1&limit=10&sort=updated_at&order=desc&search=important
+
+###
+# @name createNote
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "New Note from HTTP file",
+    "content": "This is the content of the new note."
+}
+
+###
+# @name createNoteWithEntities
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with Entities",
+    "content": "This note should be linked to existing entities.",
+    "entity_ids": [] 
+}
+
+###
+# @name createNoteInvalid
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "content": "This note has no title and should fail."
+}
+
+###
+# @name createDuplicateNote
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "New Note from HTTP file"
+}
+
+###
+
+# @name getNotes
+GET http://localhost:4321/api/notes?page=1&limit=5&sort=title&order=asc
