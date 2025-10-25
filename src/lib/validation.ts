@@ -13,3 +13,9 @@ export const getNotesSchema = z.object({
 });
 
 export type GetNotesParams = z.infer<typeof getNotesSchema>;
+
+export const createNoteSchema = z.object({
+  title: z.string().min(1, "Title is required.").max(255),
+  content: z.string().max(10000).optional(),
+  entity_ids: z.array(z.string().uuid()).optional(),
+});
