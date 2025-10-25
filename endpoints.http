@@ -185,7 +185,7 @@ Content-Type: application/json
 {
     "source_entity_id": "{{sourceEntityId}}",
     "target_entity_id": "{{targetEntityId}}",
-    "type": "is_related_to"
+    "type": "influenced_by"
 }
 
 ### POST (create) a self-referencing relationship (should fail)
@@ -196,16 +196,24 @@ Content-Type: application/json
 {
     "source_entity_id": "{{sourceEntityId}}",
     "target_entity_id": "{{sourceEntityId}}",
-    "type": "is_related_to"
+    "type": "influenced_by"
 }
 
-### GET all relationships for the user
+### GET all relationships for the user (default pagination)
 # @name getRelationships
 GET {{baseUrl}}/relationships
 
+### GET relationships with pagination
+# @name getRelationshipsPaginated
+GET {{baseUrl}}/relationships?page=1&limit=10
+
 ### GET relationships with filtering
 # @name getRelationshipsFiltered
-GET {{baseUrl}}/relationships?source_entity_id={{sourceEntityId}}&type=is_related_to
+GET {{baseUrl}}/relationships?source_entity_id={{sourceEntityId}}&type=influenced_by
+
+### GET relationships with filtering and pagination
+# @name getRelationshipsFilteredPaginated
+GET {{baseUrl}}/relationships?source_entity_id={{sourceEntityId}}&page=1&limit=5
 
 ### PATCH (update) a relationship's type
 # @name updateRelationship
@@ -219,3 +227,57 @@ Content-Type: application/json
 ### DELETE a relationship by ID
 # @name deleteRelationship
 DELETE {{baseUrl}}/relationships/{{createdRelationshipId}}
+
+### POST (create) a duplicate relationship (should fail)
+# @name createDuplicateRelationship
+POST {{baseUrl}}/relationships
+Content-Type: application/json
+
+{
+    "source_entity_id": "{{sourceEntityId}}",
+    "target_entity_id": "{{targetEntityId}}",
+    "type": "influenced_by"
+}
+
+### POST (create) relationship with non-existent entity (should fail)
+# @name createRelationshipNonExistent
+POST {{baseUrl}}/relationships
+Content-Type: application/json
+
+{
+    "source_entity_id": "00000000-0000-0000-0000-000000000000",
+    "target_entity_id": "{{targetEntityId}}",
+    "type": "is_student_of"
+}
+
+### POST (create) relationship with invalid type (should fail)
+# @name createRelationshipInvalidType
+POST {{baseUrl}}/relationships
+Content-Type: application/json
+
+{
+    "source_entity_id": "{{sourceEntityId}}",
+    "target_entity_id": "{{targetEntityId}}",
+    "type": "invalid_type"
+}
+
+### GET relationships second page
+# @name getRelationshipsSecondPage
+GET {{baseUrl}}/relationships?page=2&limit=5
+
+### GET relationships filtered by target entity
+# @name getRelationshipsByTarget
+GET {{baseUrl}}/relationships?target_entity_id={{targetEntityId}}
+
+### PATCH relationship with invalid ID (should fail)
+# @name updateRelationshipInvalidId
+PATCH {{baseUrl}}/relationships/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+    "type": "criticizes"
+}
+
+### DELETE relationship with invalid ID (should fail)
+# @name deleteRelationshipInvalidId
+DELETE {{baseUrl}}/relationships/00000000-0000-0000-0000-000000000000

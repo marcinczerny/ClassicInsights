@@ -217,6 +217,7 @@ export type UpdateRelationshipCommand = {
  */
 export type RelationshipsListResponseDTO = {
   data: RelationshipWithEntitiesDTO[];
+  pagination: PaginationDTO;
 };
 
 // ============================================================================

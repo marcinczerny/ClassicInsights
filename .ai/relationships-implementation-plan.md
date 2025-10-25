@@ -20,13 +20,20 @@ Ten dokument opisuje plan wdrożenia punktów końcowych API REST do zarządzani
 - **Metoda HTTP**: `GET`
 - **Struktura URL**: `/api/relationships`
 - **Parametry zapytania (Query Params)**:
+  - `page` (integer, opcjonalny, domyślnie: 1, min: 1): Numer strony do pobrania.
+  - `limit` (integer, opcjonalny, domyślnie: 20, min: 1, max: 100): Liczba wyników na stronę.
   - `source_entity_id` (uuid, opcjonalny): Filtruj wg encji źródłowej.
   - `target_entity_id` (uuid, opcjonalny): Filtruj wg encji docelowej.
-  - `type` (string, opcjonalny): Filtruj wg typu relacji (wartość z enuma `relationship_type`).
-  - `limit` (integer, opcjonalny, domyślnie: 100, max: 500): Liczba wyników do zwrócenia.
+  - `type` (string, opcjonalny): Filtruj wg typu relacji. Dozwolone wartości:
+    - `"criticizes"`
+    - `"is_student_of"`
+    - `"expands_on"`
+    - `"influenced_by"`
+    - `"is_example_of"`
+    - `"is_related_to"`
 
 #### Szczegóły odpowiedzi
-- **200 OK**: Zwraca obiekt `RelationshipsListResponseDTO` zawierający listę relacji.
+- **200 OK**: Zwraca obiekt `RelationshipsListResponseDTO` zawierający listę relacji z metadanymi paginacji.
   ```json
   {
     "data": [
@@ -35,12 +42,18 @@ Ten dokument opisuje plan wdrożenia punktów końcowych API REST do zarządzani
         "user_id": "uuid",
         "source_entity_id": "uuid",
         "target_entity_id": "uuid",
-        "type": "is_related_to",
+        "type": "influenced_by",
         "created_at": "timestamp",
         "source_entity": { "id": "uuid", "name": "string", "type": "person", "description": "string" },
-        "target_entity": { "id": "uuid", "name": "string", "type": "idea", "description": "string" }
+        "target_entity": { "id": "uuid", "name": "string", "type": "work", "description": "string" }
       }
-    ]
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 45,
+      "total_pages": 3
+    }
   }
   ```
 - **400 Bad Request**: Nieprawidłowe parametry zapytania.
@@ -48,11 +61,16 @@ Ten dokument opisuje plan wdrożenia punktów końcowych API REST do zarządzani
 
 #### Przepływ danych
 1.  Endpoint w `index.ts` odbiera żądanie.
-2.  Waliduje opcjonalne parametry zapytania przy użyciu schemy Zod.
-3.  Wywołuje metodę `relationshipsService.getRelationships(userId, filters)`.
-4.  Serwis konstruuje zapytanie do Supabase, pobierając relacje i łącząc je z tabelą `entities` dwukrotnie (dla `source_entity` i `target_entity`).
+2.  Waliduje parametry zapytania przy użyciu schemy Zod (`getRelationshipsQuerySchema`).
+3.  Wywołuje metodę `relationshipsService.getRelationships(userId, params)`.
+4.  Serwis:
+    - Oblicza `offset` na podstawie `page` i `limit`.
+    - Konstruuje zapytanie do Supabase z opcją `{ count: "exact" }`, pobierając relacje i łącząc je z tabelą `entities` dwukrotnie (dla `source_entity` i `target_entity`).
+    - Stosuje filtry dla `source_entity_id`, `target_entity_id` i `type` (jeśli podane).
+    - Stosuje paginację za pomocą `.range(offset, offset + limit - 1)`.
+    - Oblicza `total_pages` na podstawie `count` i `limit`.
 5.  Serwis mapuje wyniki do typu `RelationshipWithEntitiesDTO`.
-6.  Endpoint zwraca dane w formacie `RelationshipsListResponseDTO`.
+6.  Endpoint zwraca dane w formacie `RelationshipsListResponseDTO` z obiektem `pagination`.
 
 ### `POST /api/relationships`
 
@@ -64,9 +82,16 @@ Ten dokument opisuje plan wdrożenia punktów końcowych API REST do zarządzani
   {
     "source_entity_id": "uuid",
     "target_entity_id": "uuid",
-    "type": "is_student_of"
+    "type": "influenced_by"
   }
   ```
+  Dozwolone wartości dla `type`:
+  - `"criticizes"`
+  - `"is_student_of"`
+  - `"expands_on"`
+  - `"influenced_by"`
+  - `"is_example_of"`
+  - `"is_related_to"`
 
 #### Szczegóły odpowiedzi
 - **201 Created**: Zwraca nowo utworzony obiekt `RelationshipDTO`.
@@ -146,7 +171,8 @@ Ten dokument opisuje plan wdrożenia punktów końcowych API REST do zarządzani
 
 ## 6. Rozważania dotyczące wydajności
 - Zapytanie `GET` do pobierania relacji powinno być zoptymalizowane. Użycie `JOIN` z tabelą `entities` jest konieczne. Należy zadbać o odpowiednie indeksy na kluczach obcych (`source_entity_id`, `target_entity_id`, `user_id`), które są już zdefiniowane w planie bazy danych.
-- Domyślny, rozsądny `limit` (np. 100) dla `GET` zapobiegnie zwracaniu zbyt dużych ilości danych na raz.
+- Paginacja z domyślnym limitem 20 i maksymalnym 100 zapobiega zwracaniu zbyt dużych ilości danych na raz.
+- Użycie `{ count: "exact" }` w zapytaniu Supabase pozwala na obliczenie całkowitej liczby wyników dla metadanych paginacji.
 
 ## 7. Etapy wdrożenia
 1.  **Stworzenie plików**: Utwórz pliki `src/lib/services/relationships.service.ts`, `src/lib/validation/relationships.validation.ts`, `src/pages/api/relationships/index.ts` oraz `src/pages/api/relationships/[id].ts`.
