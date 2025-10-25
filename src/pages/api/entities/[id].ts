@@ -1,5 +1,5 @@
-import { getEntityById, updateEntity } from "@/lib/services/entities.service";
-import { getEntitySchema, updateEntitySchema } from "@/lib/validation";
+import { deleteEntity, getEntityById, updateEntity } from "@/lib/services/entities.service";
+import { deleteEntitySchema, getEntitySchema, updateEntitySchema } from "@/lib/validation";
 import type { UpdateEntityCommand } from "@/types";
 import type { APIRoute } from "astro";
 import { DEFAULT_USER_ID } from "@/db/supabase.client";
@@ -103,6 +103,42 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 			}
 		}
 		console.error("Error updating entity:", error);
+		return new Response(
+			JSON.stringify({ message: "Internal Server Error" }),
+			{ status: 500 },
+		);
+	}
+};
+
+export const DELETE: APIRoute = async ({ params, locals }) => {
+	const userId = DEFAULT_USER_ID;
+
+	const validationResult = deleteEntitySchema.safeParse(params);
+
+	if (!validationResult.success) {
+		return new Response(
+			JSON.stringify({
+				message: "Invalid entity ID format",
+				errors: validationResult.error.flatten(),
+			}),
+			{ status: 400 },
+		);
+	}
+
+	const { id: entityId } = validationResult.data;
+
+	try {
+		const result = await deleteEntity(locals.supabase, userId, entityId);
+
+		if (!result.success) {
+			return new Response(JSON.stringify({ message: "Entity not found" }), {
+				status: 404,
+			});
+		}
+
+		return new Response(null, { status: 204 });
+	} catch (error) {
+		console.error("Error deleting entity:", error);
 		return new Response(
 			JSON.stringify({ message: "Internal Server Error" }),
 			{ status: 500 },

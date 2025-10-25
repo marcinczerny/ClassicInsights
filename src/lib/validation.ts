@@ -81,3 +81,7 @@ export const updateEntitySchema = createEntitySchema.partial().refine(
     message: "At least one field to update must be provided.",
   }
 );
+
+export const deleteEntitySchema = z.object({
+  id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
+});

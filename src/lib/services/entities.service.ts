@@ -161,3 +161,25 @@ export const updateEntity = async (
 
 	return updatedEntity;
 };
+
+export const deleteEntity = async (
+	supabase: SupabaseClient,
+	userId: string,
+	entityId: string,
+): Promise<{ success: boolean }> => {
+	const { error, count } = await supabase
+		.from("entities")
+		.delete({ count: "exact" })
+		.eq("id", entityId)
+		.eq("user_id", userId);
+
+	if (error) {
+		return handleSupabaseError(error);
+	}
+
+	if (count === 0) {
+		return { success: false };
+	}
+
+	return { success: true };
+};
