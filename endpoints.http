@@ -24,8 +24,8 @@ POST {{baseUrl}}/notes
 Content-Type: application/json
 
 {
-    "title": "New Note from HTTP file",
-    "content": "This is the content of the new note."
+    "title": "New Note from HTTP file 2",
+    "content": "This is the content of the new note. - to be deleted"
 }
 
 ###
@@ -67,7 +67,7 @@ GET {{{{baseUrl}}}}/api/notes?page=1&limit=5&sort=title&order=asc
 # NOTE-SPECIFIC ENDPOINTS
 # ============================================================================
 
-@noteId = 38d152d0-9301-46e0-9942-74196edc277b
+@noteId = e30c7b7a-9694-46a5-9262-738278044eff
 @entityId = 00000000-0000-0000-0000-000000000000
 @anotherEntityId = 00000000-0000-0000-0000-000000000001
 
@@ -111,3 +111,60 @@ Content-Type: application/json
 ### DELETE an entity from a note
 # @name removeEntityFromNote
 DELETE {{baseUrl}}/notes/{{noteId}}/entities/{{entityId}}
+
+###
+# ============================================================================
+# ENTITY MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@createdEntityId = 
+
+### GET all entities (default parameters)
+# @name getEntities
+GET {{baseUrl}}/entities
+
+### GET entities with search and sort
+# @name getEntitiesFiltered
+GET {{baseUrl}}/entities?search=pla&sort=name&order=asc
+
+### GET entities filtered by type
+# @name getEntitiesByType
+GET {{baseUrl}}/entities?type=person
+
+### POST (create) a new entity
+# @name createEntity
+POST {{baseUrl}}/entities
+Content-Type: application/json
+
+{
+    "name": "Platon",
+    "type": "person",
+    "description": "Starożytny filozof grecki, uczeń Sokratesa."
+}
+
+### POST (create) an invalid entity (missing name)
+# @name createEntityInvalid
+POST {{baseUrl}}/entities
+Content-Type: application/json
+
+{
+    "type": "work",
+    "description": "This should fail validation."
+}
+
+### GET a single entity by ID
+# @name getEntityById
+GET {{baseUrl}}/entities/{{createdEntityId}}
+
+### PATCH (update) an entity by ID
+# @name updateEntity
+PATCH {{baseUrl}}/entities/{{createdEntityId}}
+Content-Type: application/json
+
+{
+    "description": "Uczeń Sokratesa i nauczyciel Arystotelesa."
+}
+
+### DELETE an entity by ID
+# @name deleteEntity
+DELETE {{baseUrl}}/entities/{{createdEntityId}}
