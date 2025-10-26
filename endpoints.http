@@ -71,7 +71,7 @@ Content-Type: application/json
             "relationship_type": "criticizes"
         },
         {
-            "entity_id": "9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8",
+            "entity_id": "12977a74-1785-4a47-8d8f-8f5029d736c5",
             "relationship_type": "expands_on"
         }
     ]
@@ -204,13 +204,13 @@ GET {{baseUrl}}/notes/{{noteId}}
 
 ### PATCH (update) a note by ID (legacy format with entity_ids)
 # @name updateNote
-PATCH {{baseUrl}}/notes/{{noteId}}
+PATCH {{baseUrl}}/notes/27b51ab0-1360-4740-a52a-53e15c4b1c5b
 Content-Type: application/json
 
 {
     "title": "Updated Note Title via PATCH",
     "content": "This is the updated content for the note.",
-    "entity_ids": ["{{entityId}}", "{{anotherEntityId}}"]
+    "entity_ids": ["{{entityId}}"]
 }
 
 ### PATCH (update) a note with typed relationships
@@ -227,7 +227,7 @@ Content-Type: application/json
             "relationship_type": "influenced_by"
         },
         {
-            "entity_id": "{{anotherEntityId}}",
+            "entity_id": "12977a74-1785-4a47-8d8f-8f5029d736c5",
             "relationship_type": "is_example_of"
         }
     ]
@@ -776,3 +776,74 @@ Content-Type: application/json
 # @name deleteProfile
 # WARNING: This will permanently delete the account and all associated data
 # DELETE {{baseUrl}}/profile
+
+###
+# ============================================================================
+# AI SUGGESTIONS ENDPOINTS
+# ============================================================================
+
+@aiNoteId = f6541be6-ef08-43bc-9d96-4ba20f6be97a
+@suggestionId = 
+
+### POST (trigger) AI analysis for a note
+# @name analyzeNote
+# Assumes user has agreed to AI data processing.
+# Will return mock suggestions for now.
+POST {{baseUrl}}/notes/{{aiNoteId}}/analyze
+
+### POST (trigger) AI analysis for a note belonging to another user (should fail)
+# @name analyzeNoteForbidden
+# Assuming the note ID belongs to a different user
+POST {{baseUrl}}/notes/00000000-0000-0000-0000-000000000000/analyze
+
+### POST (trigger) AI analysis for non-existent note (should fail)
+# @name analyzeNoteNotFound
+POST {{baseUrl}}/notes/11111111-1111-1111-1111-111111111111/analyze
+
+### GET all suggestions for a note
+# @name getSuggestions
+GET {{baseUrl}}/notes/{{aiNoteId}}/suggestions
+
+### GET pending suggestions for a note
+# @name getPendingSuggestions
+GET {{baseUrl}}/notes/{{aiNoteId}}/suggestions?status=pending
+
+### GET accepted suggestions for a note
+# @name getAcceptedSuggestions
+GET {{baseUrl}}/notes/{{aiNoteId}}/suggestions?status=accepted
+
+### PATCH (accept) a suggestion
+# @name acceptSuggestion
+PATCH {{baseUrl}}/suggestions/{{suggestionId}}
+Content-Type: application/json
+
+{
+    "status": "accepted"
+}
+
+### PATCH (reject) a suggestion
+# @name rejectSuggestion
+PATCH {{baseUrl}}/suggestions/{{suggestionId}}
+Content-Type: application/json
+
+{
+    "status": "rejected"
+}
+
+### PATCH a suggestion with an invalid status (should fail)
+# @name updateSuggestionInvalidStatus
+PATCH {{baseUrl}}/suggestions/{{suggestionId}}
+Content-Type: application/json
+
+{
+    "status": "maybe"
+}
+
+### PATCH a non-existent suggestion (should fail)
+# @name updateSuggestionNotFound
+PATCH {{baseUrl}}/suggestions/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+    "status": "accepted"
+}
