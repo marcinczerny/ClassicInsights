@@ -62,26 +62,23 @@ export async function updateProfile(
 }
 
 /**
- * Deletes the user account and all associated data
- * Note: This requires Supabase admin client or RPC function
- * Currently throws an error as admin client is not configured
+ * Deletes the user account and all associated data using RPC function
+ * Calls the delete_user_account() RPC which deletes the user from auth.users
+ * Database CASCADE constraints automatically delete all related data:
+ * - Profile record
+ * - All notes
+ * - All entities
+ * - All relationships
+ * - All note_entities associations
+ * AI-related data (ai_suggestions, ai_error_logs) is anonymized (SET NULL)
  *
  * @param supabase - Supabase client instance
- * @param userId - User ID whose account to delete
- * @throws Error indicating admin client is required
+ * @throws Error if RPC call fails or user is not authenticated
  */
-export async function deleteAccount(
-	supabase: SupabaseClient,
-	userId: string
-): Promise<void> {
-	// NOTE: This requires either:
-	// 1. Supabase admin client with service role key
-	// 2. Supabase RPC function for account deletion
-	// For now, we'll throw an error indicating this needs to be configured
+export async function deleteAccount(supabase: SupabaseClient): Promise<void> {
+	const { error } = await supabase.rpc("delete_user_account");
 
-	// TODO: Implement using one of these approaches:
-	// Option A: supabase.auth.admin.deleteUser(userId) - requires admin client
-	// Option B: supabase.rpc('delete_user_account', { user_id: userId })
-
-	throw new Error("Account deletion requires admin privileges - not yet configured");
+	if (error) {
+		handleSupabaseError(error);
+	}
 }

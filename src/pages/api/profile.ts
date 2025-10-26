@@ -1,5 +1,9 @@
 import type { APIContext } from "astro";
-import { getProfile, updateProfile } from "../../lib/services/profile.service.ts";
+import {
+	getProfile,
+	updateProfile,
+	deleteAccount,
+} from "../../lib/services/profile.service.ts";
 import { DEFAULT_USER_ID } from "../../db/supabase.client.ts";
 import type { ErrorDTO, ProfileDTO } from "../../types.ts";
 import { updateProfileSchema } from "../../lib/validation/profile.validation.ts";
@@ -159,6 +163,61 @@ export async function PATCH(context: APIContext): Promise<Response> {
 				error: {
 					code: "INTERNAL_ERROR",
 					message: "A database error occurred. Please try again later.",
+				},
+			} satisfies ErrorDTO),
+			{ status: 500, headers: { "Content-Type": "application/json" } }
+		);
+	}
+}
+
+/**
+ * DELETE /api/profile
+ * Deletes the authenticated user's account and all associated data
+ * This is an irreversible operation that removes:
+ * - User profile
+ * - All notes
+ * - All entities
+ * - All relationships
+ * - All note-entity associations
+ * AI-related data is anonymized (user_id set to NULL)
+ *
+ * @returns 204 - Account deleted successfully (no content)
+ * @returns 401 - User not authenticated
+ * @returns 500 - Internal server error
+ */
+export async function DELETE(context: APIContext): Promise<Response> {
+	const supabase = context.locals.supabase;
+
+	// TODO: Replace with actual authentication when implemented
+	// const user = context.locals.user;
+	// if (!user) {
+	//   return new Response(
+	//     JSON.stringify({
+	//       error: {
+	//         code: "UNAUTHORIZED",
+	//         message: "User not authenticated",
+	//       },
+	//     } satisfies ErrorDTO),
+	//     { status: 401, headers: { "Content-Type": "application/json" } }
+	//   );
+	// }
+
+	// Note: For DELETE, the RPC function uses auth.uid() internally,
+	// so we don't need to pass userId. The function validates authentication.
+
+	try {
+		await deleteAccount(supabase);
+
+		// Return 204 No Content on successful deletion
+		return new Response(null, { status: 204 });
+	} catch (error) {
+		console.error("Error deleting account:", error);
+
+		return new Response(
+			JSON.stringify({
+				error: {
+					code: "INTERNAL_ERROR",
+					message: "Failed to delete account. Please try again later.",
 				},
 			} satisfies ErrorDTO),
 			{ status: 500, headers: { "Content-Type": "application/json" } }
