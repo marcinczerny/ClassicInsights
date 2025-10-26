@@ -281,3 +281,52 @@ Content-Type: application/json
 ### DELETE relationship with invalid ID (should fail)
 # @name deleteRelationshipInvalidId
 DELETE {{baseUrl}}/relationships/00000000-0000-0000-0000-000000000000
+
+###
+# ============================================================================
+# PROFILE MANAGEMENT ENDPOINTS
+# ============================================================================
+
+### GET current user's profile
+# @name getProfile
+GET {{baseUrl}}/profile
+
+### PATCH (update) profile - accept AI data processing
+# @name updateProfileAccept
+PATCH {{baseUrl}}/profile
+Content-Type: application/json
+
+{
+    "has_agreed_to_ai_data_processing": true
+}
+
+### PATCH (update) profile - reject AI data processing
+# @name updateProfileReject
+PATCH {{baseUrl}}/profile
+Content-Type: application/json
+
+{
+    "has_agreed_to_ai_data_processing": false
+}
+
+### PATCH profile with empty body (should fail)
+# @name updateProfileEmpty
+PATCH {{baseUrl}}/profile
+Content-Type: application/json
+
+{
+}
+
+### PATCH profile with invalid type (should fail)
+# @name updateProfileInvalidType
+PATCH {{baseUrl}}/profile
+Content-Type: application/json
+
+{
+    "has_agreed_to_ai_data_processing": "yes"
+}
+
+### DELETE current user's account (DESTRUCTIVE - use with caution!)
+# @name deleteProfile
+# WARNING: This will permanently delete the account and all associated data
+# DELETE {{baseUrl}}/profile
