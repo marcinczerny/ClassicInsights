@@ -1,6 +1,23 @@
 @baseUrl = http://localhost:3001/api
 
 ### GET all notes (default parameters)
+# Expected response includes relationship_type for each entity in the note
+# Example response:
+# {
+#   "data": [{
+#     "id": "uuid",
+#     "title": "Note Title",
+#     "content": "...",
+#     "entities": [{
+#       "id": "entity-uuid",
+#       "name": "Entity Name",
+#       "type": "person",
+#       "description": "...",
+#       "relationship_type": "criticizes"  <-- NEW FIELD
+#     }]
+#   }],
+#   "pagination": { ... }
+# }
 GET {{baseUrl}}/notes
 
 ### GET notes with pagination
@@ -30,12 +47,13 @@ Content-Type: application/json
 
 ###
 # @name createNoteWithEntities
+# LEGACY FORMAT - deprecated but still supported
 POST {{baseUrl}}/notes
 Content-Type: application/json
 
 {
-    "title": "Note with Entities",
-    "content": "This note should be linked to existing entities.",
+    "title": "Note with Entities (Legacy Format)",
+    "content": "This note uses the deprecated entity_ids format. All relationships will default to 'is_related_to'.",
     "entity_ids": ["ea230e96-2789-4f25-b0ed-c815bb3b4326"]
 }
 
@@ -60,12 +78,85 @@ Content-Type: application/json
 }
 
 ###
+# @name createNoteWithDefaultRelationshipType
+# When relationship_type is omitted, it defaults to 'is_related_to'
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with Default Relationship Type",
+    "content": "This entity association will default to 'is_related_to'.",
+    "entities": [
+        {
+            "entity_id": "ea230e96-2789-4f25-b0ed-c815bb3b4326"
+        }
+    ]
+}
+
+###
+# @name createNoteWithMultipleRelationshipTypes
+# Demonstrates various relationship types
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note Demonstrating All Relationship Types",
+    "content": "This note shows different ways entities can relate to notes.",
+    "entities": [
+        {
+            "entity_id": "ea230e96-2789-4f25-b0ed-c815bb3b4326",
+            "relationship_type": "criticizes"
+        },
+        {
+            "entity_id": "9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8",
+            "relationship_type": "is_student_of"
+        }
+    ]
+}
+
+###
 # @name createNoteInvalid
+# Should fail - missing required title field
 POST {{baseUrl}}/notes
 Content-Type: application/json
 
 {
     "content": "This note has no title and should fail."
+}
+
+###
+# @name createNoteWithInvalidRelationshipType
+# Should fail - invalid relationship_type value
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with Invalid Relationship Type",
+    "content": "This should fail validation.",
+    "entities": [
+        {
+            "entity_id": "ea230e96-2789-4f25-b0ed-c815bb3b4326",
+            "relationship_type": "invalid_type"
+        }
+    ]
+}
+
+###
+# @name createNoteWithBothFormats
+# Should fail - cannot provide both 'entities' and 'entity_ids'
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with Both Formats",
+    "content": "This should fail validation - cannot mix formats.",
+    "entities": [
+        {
+            "entity_id": "ea230e96-2789-4f25-b0ed-c815bb3b4326",
+            "relationship_type": "criticizes"
+        }
+    ],
+    "entity_ids": ["9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8"]
 }
 
 ###
@@ -93,6 +184,22 @@ GET {{{{baseUrl}}}}/api/notes?page=1&limit=5&sort=title&order=asc
 
 ### GET a single note by ID
 # @name getNoteById
+# Expected response includes relationship_type for each entity
+# Example response:
+# {
+#   "id": "uuid",
+#   "title": "Note Title",
+#   "content": "...",
+#   "created_at": "...",
+#   "updated_at": "...",
+#   "entities": [{
+#     "id": "entity-uuid",
+#     "name": "Plato",
+#     "type": "person",
+#     "description": "Ancient Greek philosopher",
+#     "relationship_type": "criticizes"  <-- Shows how this note relates to the entity
+#   }]
+# }
 GET {{baseUrl}}/notes/{{noteId}}
 
 ### PATCH (update) a note by ID (legacy format with entity_ids)
@@ -135,6 +242,30 @@ Content-Type: application/json
     "title": "Updated Note Title Only"
 }
 
+### PATCH (update) note - replace relationships with new types
+# @name updateNoteReplaceRelationships
+PATCH {{baseUrl}}/notes/{{noteId}}
+Content-Type: application/json
+
+{
+    "entities": [
+        {
+            "entity_id": "{{entityId}}",
+            "relationship_type": "expands_on"
+        }
+    ]
+}
+
+### PATCH (update) note - clear all entity relationships
+# @name updateNoteClearRelationships
+PATCH {{baseUrl}}/notes/{{noteId}}
+Content-Type: application/json
+
+{
+    "title": "Note with No Entities",
+    "entities": []
+}
+
 ### DELETE a note by ID
 # @name deleteNote
 DELETE {{baseUrl}}/notes/{{noteId}}
@@ -156,6 +287,46 @@ Content-Type: application/json
 {
     "entity_id": "{{entityId}}",
     "relationship_type": "criticizes"
+}
+
+### POST (add) entity with 'influenced_by' relationship
+# @name addEntityInfluencedBy
+POST {{baseUrl}}/notes/{{noteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{anotherEntityId}}",
+    "relationship_type": "influenced_by"
+}
+
+### POST (add) entity with 'is_example_of' relationship
+# @name addEntityIsExampleOf
+POST {{baseUrl}}/notes/{{noteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{entityId}}",
+    "relationship_type": "is_example_of"
+}
+
+### POST (add) duplicate entity (should fail with 409)
+# @name addDuplicateEntity
+POST {{baseUrl}}/notes/{{noteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{entityId}}",
+    "relationship_type": "criticizes"
+}
+
+### POST (add) entity with invalid relationship type (should fail)
+# @name addEntityInvalidType
+POST {{baseUrl}}/notes/{{noteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{entityId}}",
+    "relationship_type": "not_a_valid_type"
 }
 
 ### DELETE an entity from a note
@@ -204,6 +375,22 @@ Content-Type: application/json
 
 ### GET a single entity by ID
 # @name getEntityById
+# Expected response includes relationship_type for each note
+# Example response:
+# {
+#   "id": "uuid",
+#   "name": "Plato",
+#   "type": "person",
+#   "description": "...",
+#   "created_at": "...",
+#   "updated_at": "...",
+#   "notes": [{
+#     "id": "note-uuid",
+#     "title": "Note Title",
+#     "created_at": "...",
+#     "relationship_type": "criticizes"  <-- Shows how this note relates to the entity
+#   }]
+# }
 GET {{baseUrl}}/entities/{{createdEntityId}}
 
 ### PATCH (update) an entity by ID
@@ -331,6 +518,215 @@ Content-Type: application/json
 ### DELETE relationship with invalid ID (should fail)
 # @name deleteRelationshipInvalidId
 DELETE {{baseUrl}}/relationships/00000000-0000-0000-0000-000000000000
+
+###
+# ============================================================================
+# RELATIONSHIP TYPE TESTING - Comprehensive Test Suite
+# ============================================================================
+# Tests for all available relationship_type enum values
+
+@testNoteId = f6541be6-ef08-43bc-9d96-4ba20f6be97a
+@testEntityId1 = ea230e96-2789-4f25-b0ed-c815bb3b4326
+@testEntityId2 = 9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8
+
+### Create note with 'criticizes' relationship
+# @name testCriticizes
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Test: Criticizes Relationship",
+    "content": "This note criticizes the entity.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "criticizes"
+        }
+    ]
+}
+
+### Create note with 'is_student_of' relationship
+# @name testIsStudentOf
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Test: Is Student Of Relationship",
+    "content": "This note represents a student-teacher relationship.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "is_student_of"
+        }
+    ]
+}
+
+### Create note with 'expands_on' relationship
+# @name testExpandsOn
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Test: Expands On Relationship",
+    "content": "This note expands on the entity's ideas.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "expands_on"
+        }
+    ]
+}
+
+### Create note with 'influenced_by' relationship
+# @name testInfluencedBy
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Test: Influenced By Relationship",
+    "content": "This note shows influence from the entity.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "influenced_by"
+        }
+    ]
+}
+
+### Create note with 'is_example_of' relationship
+# @name testIsExampleOf
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Test: Is Example Of Relationship",
+    "content": "This note is an example of the entity's concept.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "is_example_of"
+        }
+    ]
+}
+
+### Create note with 'is_related_to' relationship (default)
+# @name testIsRelatedTo
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Test: Is Related To Relationship",
+    "content": "This note has a general relationship with the entity.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "is_related_to"
+        }
+    ]
+}
+
+### Create note with mixed relationship types
+# @name testMixedRelationships
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Test: Multiple Different Relationships",
+    "content": "This note demonstrates multiple entities with different relationship types.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "criticizes"
+        },
+        {
+            "entity_id": "{{testEntityId2}}",
+            "relationship_type": "influenced_by"
+        }
+    ]
+}
+
+### Add entity with each relationship type to existing note
+# @name testAddCriticizes
+POST {{baseUrl}}/notes/{{testNoteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{testEntityId1}}",
+    "relationship_type": "criticizes"
+}
+
+### Add entity with 'expands_on' type
+# @name testAddExpandsOn
+POST {{baseUrl}}/notes/{{testNoteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{testEntityId2}}",
+    "relationship_type": "expands_on"
+}
+
+### Update note - change relationship types for existing entities
+# @name testUpdateChangeTypes
+PATCH {{baseUrl}}/notes/{{testNoteId}}
+Content-Type: application/json
+
+{
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "is_student_of"
+        },
+        {
+            "entity_id": "{{testEntityId2}}",
+            "relationship_type": "influenced_by"
+        }
+    ]
+}
+
+### Edge case: Empty entities array (removes all relationships)
+# @name testEmptyEntitiesArray
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with No Entities",
+    "content": "This note starts with no entity relationships.",
+    "entities": []
+}
+
+### Edge case: Entity without relationship_type (should default to 'is_related_to')
+# @name testOmittedRelationshipType
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with Omitted Relationship Type",
+    "content": "The relationship type should default to 'is_related_to'.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}"
+        }
+    ]
+}
+
+### Edge case: Mix of specified and omitted relationship types
+# @name testMixedSpecifiedOmitted
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with Mixed Relationship Type Specification",
+    "content": "Some entities have explicit types, others default.",
+    "entities": [
+        {
+            "entity_id": "{{testEntityId1}}",
+            "relationship_type": "criticizes"
+        },
+        {
+            "entity_id": "{{testEntityId2}}"
+        }
+    ]
+}
 
 ###
 # ============================================================================

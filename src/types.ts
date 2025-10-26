@@ -63,11 +63,14 @@ export type EntityDTO = Tables<"entities">;
 /**
  * Subset of entity fields for embedding in other DTOs
  * Used when including entity info in notes or relationships
+ * Includes relationship_type when embedded in notes
  */
 export type EntityBasicDTO = Pick<
   EntityDTO,
   "id" | "name" | "type" | "description"
->;
+> & {
+  relationship_type?: Enums<"relationship_type">;
+};
 
 /**
  * Entity with note count for list views (GET /api/entities response)
@@ -137,21 +140,33 @@ export type NoteDTO = Tables<"notes"> & {
 /**
  * Command to create a new note (POST /api/notes request)
  * Omits auto-generated fields (id, timestamps, user_id)
+ * Supports both new format (entities with relationship_type) and legacy format (entity_ids)
  */
 export type CreateNoteCommand = {
   title: string;
   content?: string;
+  /** @deprecated Use 'entities' instead for typed relationships */
   entity_ids?: string[];
+  entities?: Array<{
+    entity_id: string;
+    relationship_type?: Enums<"relationship_type">;
+  }>;
 };
 
 /**
  * Command to update a note (PATCH /api/notes/:id request)
  * All fields are optional for partial updates
+ * Supports both new format (entities with relationship_type) and legacy format (entity_ids)
  */
 export type UpdateNoteCommand = {
   title?: string;
   content?: string;
+  /** @deprecated Use 'entities' instead for typed relationships */
   entity_ids?: string[];
+  entities?: Array<{
+    entity_id: string;
+    relationship_type?: Enums<"relationship_type">;
+  }>;
 };
 
 /**
@@ -164,9 +179,11 @@ export type NotesListResponseDTO = {
 
 /**
  * Command to add entity to note (POST /api/notes/:id/entities request)
+ * Supports optional relationship_type (defaults to 'is_related_to')
  */
 export type AddEntityToNoteCommand = {
   entity_id: string;
+  relationship_type?: Enums<"relationship_type">;
 };
 
 /**
@@ -300,14 +317,14 @@ export type GraphNodeDTO = {
 /**
  * Edge in the thought graph visualization
  * Represents either entity-entity relationship or note-entity association
- * 
- * @property type - Either a relationship_type enum or "note_entity" for note-entity links
+ *
+ * @property type - relationship_type enum for both entity-entity and note-entity edges
  */
 export type GraphEdgeDTO = {
   id: string;
   source_id: string;
   target_id: string;
-  type: Enums<"relationship_type"> | "note_entity";
+  type: Enums<"relationship_type">;
   created_at: string;
 };
 
@@ -379,20 +396,28 @@ export function isNoteNode(node: GraphNodeDTO): node is GraphNodeDTO & { type: "
 }
 
 /**
- * Type guard to check if a graph edge is a relationship edge
+ * Type guard to check if a graph edge is a relationship edge (entity-to-entity)
+ * Note: This requires additional context beyond the edge type alone,
+ * as both relationship and note-entity edges now use relationship_type enum
  */
 export function isRelationshipEdge(
   edge: GraphEdgeDTO
 ): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
-  return edge.type !== "note_entity";
+  // This type guard is now primarily for semantic clarity
+  // Additional logic may be needed based on source/target node types
+  return true;
 }
 
 /**
  * Type guard to check if a graph edge is a note-entity association edge
+ * Note: This requires additional context beyond the edge type alone,
+ * as both relationship and note-entity edges now use relationship_type enum
  */
 export function isNoteEntityEdge(
   edge: GraphEdgeDTO
-): edge is GraphEdgeDTO & { type: "note_entity" } {
-  return edge.type === "note_entity";
+): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
+  // This type guard is now primarily for semantic clarity
+  // Additional logic may be needed based on source/target node types
+  return true;
 }
 

@@ -10,13 +10,20 @@ The Entities Management endpoints provide a full CRUD (Create, Read, Update, Del
 
 To encapsulate database logic and promote code reuse, a new service file will be created at `src/lib/services/entities.service.ts`. This service will handle all interactions with the Supabase `entities`, `notes`, and `note_entities` tables.
 
+**Note on `note_entities` Table Structure:**
+The `note_entities` junction table has been enhanced with the following columns:
+- `note_id` (UUID, PRIMARY KEY part)
+- `entity_id` (UUID, PRIMARY KEY part)
+- `type` (relationship_type enum, NOT NULL, DEFAULT 'is_related_to') - defines the relationship type between note and entity
+- `created_at` (TIMESTAMPTZ, NOT NULL, DEFAULT NOW()) - timestamp when the association was created
+
 **Key Functions:**
 
 - `getEntities(supabase: SupabaseClient, userId: string, options: GetEntitiesOptions)`: Fetches a list of entities with filtering, sorting, and searching. Calculates `note_count` for each entity.
 - `createEntity(supabase: SupabaseClient, userId: string, data: CreateEntityCommand)`: Creates a new entity for the user.
-- `getEntityById(supabase: SupabaseClient, userId: string, entityId: string)`: Fetches a single entity by its ID and joins its associated notes.
+- `getEntityById(supabase: SupabaseClient, userId: string, entityId: string)`: Fetches a single entity by its ID and joins its associated notes with relationship types from `note_entities`.
 - `updateEntity(supabase: SupabaseClient, userId: string, entityId: string, data: UpdateEntityCommand)`: Updates an existing entity.
-- `deleteEntity(supabase: SupabaseClient, userId: string, entityId: string)`: Deletes an entity and its associations.
+- `deleteEntity(supabase: SupabaseClient, userId: string, entityId: string)`: Deletes an entity and its associations (cascade deletes from `note_entities` and `relationships`).
 
 ---
 
@@ -142,12 +149,14 @@ To encapsulate database logic and promote code reuse, a new service file will be
 1. Authenticate the user.
 2. Validate the `id` URL parameter is a valid UUID.
 3. Call `entities.service.ts#getEntityById` with the user ID and entity ID.
-4. The service function will query the `entities` table, filtering by `id` and `user_id` to enforce ownership. It will also join data from `note_entities` and `notes` to retrieve the list of associated notes.
+4. The service function will query the `entities` table, filtering by `id` and `user_id` to enforce ownership. It will also join data from `note_entities` and `notes` to retrieve the list of associated notes with their relationship types.
 5. If no entity is found, the service should return `null`.
 6. The endpoint checks the service result. If `null`, it returns a 404. Otherwise, it returns the entity data.
 
 #### **Implementation Steps**
-1. Implement `getEntityById` in `entities.service.ts`. The Supabase query should look like: `supabase.from('entities').select('*, notes(id, title, created_at)').eq('id', entityId).eq('user_id', userId).single()`.
+1. Implement `getEntityById` in `entities.service.ts`. The Supabase query should look like: `supabase.from('entities').select('*, note_entities(type, notes(id, title, created_at))').eq('id', entityId).eq('user_id', userId).single()`.
+   - Note: The `note_entities` table now includes `type` (relationship_type enum) and `created_at` columns.
+   - The join through `note_entities` allows access to the relationship type between the entity and each note.
 2. Create `src/pages/api/entities/[id].ts`.
 3. Implement the `GET` handler.
 4. Authenticate the user.
