@@ -1,5 +1,28 @@
 import { z } from "zod";
 
+// ============================================================================
+// RELATIONSHIP TYPE SCHEMA
+// ============================================================================
+
+/**
+ * Relationship type enum schema
+ * Used for both entity-entity relationships and note-entity associations
+ */
+export const relationshipTypeSchema = z.enum([
+  "criticizes",
+  "is_student_of",
+  "expands_on",
+  "influenced_by",
+  "is_example_of",
+  "is_related_to",
+]);
+
+export type RelationshipType = z.infer<typeof relationshipTypeSchema>;
+
+// ============================================================================
+// NOTE SCHEMAS
+// ============================================================================
+
 export const getNotesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -14,25 +37,64 @@ export const getNotesSchema = z.object({
 
 export type GetNotesParams = z.infer<typeof getNotesSchema>;
 
-export const createNoteSchema = z.object({
-  title: z.string().min(1, "Title is required.").max(255),
-  content: z.string().max(10000).optional(),
-  entity_ids: z.array(z.string().uuid()).optional(),
+/**
+ * Entity reference with optional relationship type
+ * Used in new format for creating/updating notes with typed relationships
+ */
+export const entityReferenceSchema = z.object({
+  entity_id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
+  relationship_type: relationshipTypeSchema.optional(),
 });
+
+/**
+ * Create note command schema
+ * Supports both new format (entities with relationship_type) and legacy format (entity_ids)
+ */
+export const createNoteSchema = z
+  .object({
+    title: z.string().min(1, "Title is required.").max(255),
+    content: z.string().max(10000).optional(),
+    // New format with relationship types
+    entities: z.array(entityReferenceSchema).optional(),
+    // Legacy format (deprecated)
+    entity_ids: z.array(z.string().uuid()).optional(),
+  })
+  .refine((data) => !data.entities || !data.entity_ids, {
+    message: "Cannot provide both 'entities' and 'entity_ids'",
+  });
 
 export const getNoteSchema = z.object({
   id: z.string().uuid({ message: "Note ID must be a valid UUID." }),
 });
 
-export const updateNoteSchema = createNoteSchema.partial().refine(
-  (data) => Object.keys(data).length > 0,
-  {
+/**
+ * Update note command schema
+ * Supports both new format (entities with relationship_type) and legacy format (entity_ids)
+ * All fields are optional for partial updates
+ */
+export const updateNoteSchema = z
+  .object({
+    title: z.string().min(1, "Title is required.").max(255).optional(),
+    content: z.string().max(10000).optional(),
+    // New format with relationship types
+    entities: z.array(entityReferenceSchema).optional(),
+    // Legacy format (deprecated)
+    entity_ids: z.array(z.string().uuid()).optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field to update must be provided.",
-  }
-);
+  })
+  .refine((data) => !data.entities || !data.entity_ids, {
+    message: "Cannot provide both 'entities' and 'entity_ids'",
+  });
 
+/**
+ * Add entity to note command schema
+ * Supports optional relationship_type (defaults to 'is_related_to' in service layer)
+ */
 export const addEntityToNoteSchema = z.object({
   entity_id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
+  relationship_type: relationshipTypeSchema.optional(),
 });
 
 export const removeEntityFromNoteSchema = z.object({
@@ -86,3 +148,13 @@ export const updateEntitySchema = createEntitySchema.partial().refine(
 export const deleteEntitySchema = z.object({
   id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
 });
+
+// ============================================================================
+// COMMON VALIDATION SCHEMAS
+// ============================================================================
+
+/**
+ * UUID validation schema
+ * Reusable schema for validating UUID parameters
+ */
+export const uuidSchema = z.string().uuid({ message: "Must be a valid UUID." });

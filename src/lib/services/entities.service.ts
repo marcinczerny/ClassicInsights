@@ -111,7 +111,14 @@ export const getEntityById = async (
 ): Promise<EntityWithNotesDTO | null> => {
 	const { data, error } = await supabase
 		.from("entities")
-		.select("*, notes(id, title, created_at)")
+		.select(`
+			*,
+			note_entities(
+				type,
+				created_at,
+				notes(id, title, created_at)
+			)
+		`)
 		.eq("id", entityId)
 		.eq("user_id", userId)
 		.single();
@@ -125,11 +132,17 @@ export const getEntityById = async (
 		return null;
 	}
 
-	// Ensure notes is always an array
-	return {
+	// Transform the response to include relationship_type in notes
+	const transformedData = {
 		...data,
-		notes: data.notes || [],
+		notes: (data.note_entities || []).map((ne: any) => ({
+			...ne.notes,
+			relationship_type: ne.type,
+		})),
+		note_entities: undefined,
 	};
+
+	return transformedData;
 };
 
 export const updateEntity = async (

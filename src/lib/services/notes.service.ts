@@ -37,7 +37,13 @@ export async function getNotes(
 
   let query = supabase
     .from("notes")
-    .select("*, entities(*)", { count: "exact" })
+    .select(`
+      *,
+      note_entities(
+        type,
+        entities(id, name, type, description)
+      )
+    `, { count: "exact" })
     .eq("user_id", userId);
 
   if (search) {
@@ -66,16 +72,25 @@ export async function getNotes(
   const { data, error, count } = await query;
 
   if (error) {
-    // TODO: Add proper error handling/logging
     console.error("Error fetching notes:", error);
     throw new Error("Failed to fetch notes from the database.");
   }
+
+  // Transform the response to match NoteDTO format with relationship_type
+  const transformedData = (data || []).map((note: any) => ({
+    ...note,
+    entities: (note.note_entities || []).map((ne: any) => ({
+      ...ne.entities,
+      relationship_type: ne.type,
+    })),
+    note_entities: undefined, // Remove the junction table data
+  }));
 
   const total = count ?? 0;
   const total_pages = Math.ceil(total / limit);
 
   return {
-    data: data || [],
+    data: transformedData,
     pagination: {
       page,
       limit,
@@ -90,7 +105,7 @@ export async function createNote(
   userId: string,
   command: CreateNoteCommand,
 ): Promise<NoteDTO> {
-  const { title, content, entity_ids } = command;
+  const { title, content, entities, entity_ids } = command;
 
   // 1. Check for duplicate title for the same user
   const { data: existingNote, error: existingNoteError } = await supabase
@@ -109,8 +124,11 @@ export async function createNote(
     throw new Error("A note with this title already exists.");
   }
 
-  // 2. Verify entity ownership if entity_ids are provided
-  if (entity_ids) {
+  // 2. Verify entity ownership for both new and legacy formats
+  if (entities && entities.length > 0) {
+    const entityIds = entities.map((e) => e.entity_id);
+    await _validateEntities(supabase, entityIds, userId);
+  } else if (entity_ids && entity_ids.length > 0) {
     await _validateEntities(supabase, entity_ids, userId);
   }
 
@@ -130,11 +148,13 @@ export async function createNote(
     throw new Error("Failed to create the note.");
   }
 
-  // 4. Link entities to the new note
-  if (entity_ids && entity_ids.length > 0) {
-    const noteEntityLinks = entity_ids.map((entity_id) => ({
+  // 4. Link entities to the new note with relationship types
+  if (entities && entities.length > 0) {
+    // New format: with relationship types
+    const noteEntityLinks = entities.map((e) => ({
       note_id: newNote.id,
-      entity_id,
+      entity_id: e.entity_id,
+      type: (e.relationship_type || "is_related_to") as "criticizes" | "is_student_of" | "expands_on" | "influenced_by" | "is_example_of" | "is_related_to",
     }));
 
     const { error: linkError } = await supabase
@@ -143,24 +163,55 @@ export async function createNote(
 
     if (linkError) {
       console.error("Error linking entities to note:", linkError);
-      // TODO: Implement transaction to roll back note creation
+      throw new Error("Failed to link entities to the note.");
+    }
+  } else if (entity_ids && entity_ids.length > 0) {
+    // Legacy format: default to 'is_related_to'
+    const noteEntityLinks = entity_ids.map((entity_id) => ({
+      note_id: newNote.id,
+      entity_id,
+      type: "is_related_to" as const,
+    }));
+
+    const { error: linkError } = await supabase
+      .from("note_entities")
+      .insert(noteEntityLinks);
+
+    if (linkError) {
+      console.error("Error linking entities to note:", linkError);
       throw new Error("Failed to link entities to the note.");
     }
   }
 
-  // 5. Fetch and return the complete note DTO
+  // 5. Fetch and return the complete note DTO with relationship types
   const { data: fullNote, error: fetchError } = await supabase
     .from("notes")
-    .select("*, entities(*)")
+    .select(`
+      *,
+      note_entities(
+        type,
+        entities(id, name, type, description)
+      )
+    `)
     .eq("id", newNote.id)
     .single();
-  
+
   if (fetchError) {
     console.error("Error fetching created note:", fetchError);
     throw new Error("Failed to fetch the created note.");
   }
 
-  return fullNote;
+  // Transform the response to match NoteDTO format
+  const transformedNote = {
+    ...fullNote,
+    entities: (fullNote.note_entities || []).map((ne: any) => ({
+      ...ne.entities,
+      relationship_type: ne.type,
+    })),
+    note_entities: undefined,
+  };
+
+  return transformedNote;
 }
 
 export async function updateNote(
@@ -169,7 +220,7 @@ export async function updateNote(
   userId: string,
   command: UpdateNoteCommand,
 ): Promise<NoteDTO> {
-  const { title, content, entity_ids } = command;
+  const { title, content, entities, entity_ids } = command;
 
   // 1. Verify note exists and belongs to the user
   const { data: existingNote, error: fetchError } = await supabase
@@ -202,18 +253,20 @@ export async function updateNote(
       throw new Error("A note with this title already exists.");
     }
   }
-  
-  // 3. Verify entity ownership if entity_ids are provided
-  if (entity_ids) {
+
+  // 3. Verify entity ownership for both new and legacy formats
+  if (entities && entities.length > 0) {
+    const entityIds = entities.map((e) => e.entity_id);
+    await _validateEntities(supabase, entityIds, userId);
+  } else if (entity_ids && entity_ids.length > 0) {
     await _validateEntities(supabase, entity_ids, userId);
   }
 
-  // 4. Update the note and its entity associations in a transaction
-  // Supabase SDK doesn't directly support transactions in edge functions.
-  // We will perform operations sequentially and handle potential inconsistencies.
-  // A robust implementation would use a database function (RPC).
+  // 4. Update the note and its entity associations
+  // Note: Supabase SDK doesn't directly support transactions.
+  // We perform operations sequentially.
 
-  // 4a. Update note details
+  // 4a. Update note details if provided
   if (title !== undefined || content !== undefined) {
     const { error: updateError } = await supabase
       .from("notes")
@@ -226,8 +279,8 @@ export async function updateNote(
     }
   }
 
-  // 4b. Update entity links if provided
-  if (entity_ids) {
+  // 4b. Update entity links with relationship types if provided
+  if (entities !== undefined) {
     // Delete existing links
     const { error: deleteError } = await supabase
       .from("note_entities")
@@ -239,11 +292,37 @@ export async function updateNote(
       throw new Error("Failed to update entity links (delete step).");
     }
 
-    // Insert new links
+    // Insert new links with relationship types
+    if (entities.length > 0) {
+      const newLinks = entities.map((e) => ({
+        note_id: noteId,
+        entity_id: e.entity_id,
+        type: (e.relationship_type || "is_related_to") as "criticizes" | "is_student_of" | "expands_on" | "influenced_by" | "is_example_of" | "is_related_to",
+      }));
+      const { error: insertError } = await supabase.from("note_entities").insert(newLinks);
+
+      if (insertError) {
+        console.error("Error adding new entity links:", insertError);
+        throw new Error("Failed to update entity links (insert step).");
+      }
+    }
+  } else if (entity_ids !== undefined) {
+    // Legacy format: delete and re-insert with default relationship type
+    const { error: deleteError } = await supabase
+      .from("note_entities")
+      .delete()
+      .eq("note_id", noteId);
+
+    if (deleteError) {
+      console.error("Error removing old entity links:", deleteError);
+      throw new Error("Failed to update entity links (delete step).");
+    }
+
     if (entity_ids.length > 0) {
       const newLinks = entity_ids.map((entity_id) => ({
         note_id: noteId,
         entity_id: entity_id,
+        type: "is_related_to" as const,
       }));
       const { error: insertError } = await supabase.from("note_entities").insert(newLinks);
 
@@ -254,10 +333,16 @@ export async function updateNote(
     }
   }
 
-  // 5. Fetch and return the updated note DTO
+  // 5. Fetch and return the updated note DTO with relationship types
   const { data: updatedNote, error: finalFetchError } = await supabase
     .from("notes")
-    .select("*, entities(*)")
+    .select(`
+      *,
+      note_entities(
+        type,
+        entities(id, name, type, description)
+      )
+    `)
     .eq("id", noteId)
     .single();
 
@@ -266,7 +351,17 @@ export async function updateNote(
     throw new Error("Failed to fetch the updated note.");
   }
 
-  return updatedNote;
+  // Transform the response to match NoteDTO format
+  const transformedNote = {
+    ...updatedNote,
+    entities: (updatedNote.note_entities || []).map((ne: any) => ({
+      ...ne.entities,
+      relationship_type: ne.type,
+    })),
+    note_entities: undefined,
+  };
+
+  return transformedNote;
 }
 
 /**
@@ -379,6 +474,7 @@ export async function addEntityToNote(
   noteId: string,
   entityId: string,
   userId: string,
+  relationshipType?: "criticizes" | "is_student_of" | "expands_on" | "influenced_by" | "is_example_of" | "is_related_to",
 ): Promise<NoteEntityAssociationDTO> {
   // 1. Verify that the note and entity both exist and belong to the user.
   // We can do this by checking them individually.
@@ -421,12 +517,13 @@ export async function addEntityToNote(
     throw new Error("This entity is already associated with the note.");
   }
 
-  // 3. Insert the new association.
+  // 3. Insert the new association with relationship type.
   const { data: newAssociation, error: insertError } = await supabase
     .from("note_entities")
     .insert({
       note_id: noteId,
       entity_id: entityId,
+      type: (relationshipType || "is_related_to"),
     })
     .select()
     .single();
@@ -446,7 +543,13 @@ export async function findNoteById(
 ): Promise<NoteDTO | null> {
   const { data, error } = await supabase
     .from("notes")
-    .select("*, entities(*)")
+    .select(`
+      *,
+      note_entities(
+        type,
+        entities(id, name, type, description)
+      )
+    `)
     .eq("id", noteId)
     .eq("user_id", userId)
     .single();
@@ -457,10 +560,19 @@ export async function findNoteById(
     if (error.code === NO_ROWS_FOUND_CODE) {
       return null;
     }
-    // TODO: Add proper error logging
     console.error("Error fetching note by ID:", error);
     throw new Error("Failed to fetch note from the database.");
   }
 
-  return data;
+  // Transform the response to match NoteDTO format with relationship_type
+  const transformedNote = {
+    ...data,
+    entities: (data.note_entities || []).map((ne: any) => ({
+      ...ne.entities,
+      relationship_type: ne.type,
+    })),
+    note_entities: undefined,
+  };
+
+  return transformedNote;
 }

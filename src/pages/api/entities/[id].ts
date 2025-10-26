@@ -3,21 +3,27 @@ import { deleteEntitySchema, getEntitySchema, updateEntitySchema } from "@/lib/v
 import type { UpdateEntityCommand } from "@/types";
 import type { APIRoute } from "astro";
 import { DEFAULT_USER_ID } from "@/db/supabase.client";
+import { handleServiceError, createErrorResponse, createNotFoundResponse } from "@/lib/errors";
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ params, locals }) => {
+	// TODO: Replace with actual authentication
+	// const session = await locals.supabase.auth.getSession();
+	// if (!session.data.session) {
+	//   return createUnauthorizedResponse();
+	// }
+	// const userId = session.data.session.user.id;
 	const userId = DEFAULT_USER_ID;
 
 	const validationResult = getEntitySchema.safeParse(params);
 
 	if (!validationResult.success) {
-		return new Response(
-			JSON.stringify({
-				message: "Invalid entity ID format",
-				errors: validationResult.error.flatten(),
-			}),
-			{ status: 400 },
+		return createErrorResponse(
+			"VALIDATION_ERROR",
+			"Invalid entity ID",
+			400,
+			validationResult.error.errors
 		);
 	}
 
@@ -27,9 +33,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 		const entity = await getEntityById(locals.supabase, userId, entityId);
 
 		if (!entity) {
-			return new Response(JSON.stringify({ message: "Entity not found" }), {
-				status: 404,
-			});
+			return createNotFoundResponse("Entity");
 		}
 
 		return new Response(JSON.stringify(entity), {
@@ -37,26 +41,27 @@ export const GET: APIRoute = async ({ params, locals }) => {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (error) {
-		console.error("Error fetching entity:", error);
-		return new Response(
-			JSON.stringify({ message: "Internal Server Error" }),
-			{ status: 500 },
-		);
+		return handleServiceError(error);
 	}
 };
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
+	// TODO: Replace with actual authentication
+	// const session = await locals.supabase.auth.getSession();
+	// if (!session.data.session) {
+	//   return createUnauthorizedResponse();
+	// }
+	// const userId = session.data.session.user.id;
 	const userId = DEFAULT_USER_ID;
 
 	const idValidationResult = getEntitySchema.safeParse(params);
 
 	if (!idValidationResult.success) {
-		return new Response(
-			JSON.stringify({
-				message: "Invalid entity ID format",
-				errors: idValidationResult.error.flatten(),
-			}),
-			{ status: 400 },
+		return createErrorResponse(
+			"VALIDATION_ERROR",
+			"Invalid entity ID",
+			400,
+			idValidationResult.error.errors
 		);
 	}
 
@@ -67,12 +72,11 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 		const bodyValidationResult = updateEntitySchema.safeParse(body);
 
 		if (!bodyValidationResult.success) {
-			return new Response(
-				JSON.stringify({
-					message: "Invalid request body",
-					errors: bodyValidationResult.error.flatten(),
-				}),
-				{ status: 400 },
+			return createErrorResponse(
+				"VALIDATION_ERROR",
+				"Invalid request body",
+				400,
+				bodyValidationResult.error.errors
 			);
 		}
 
@@ -90,38 +94,27 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (error) {
-		if (error instanceof Error) {
-			if (error.message.includes("already exists")) {
-				return new Response(JSON.stringify({ message: error.message }), {
-					status: 409,
-				});
-			}
-			if (error.message.includes("not found")) {
-				return new Response(JSON.stringify({ message: error.message }), {
-					status: 404,
-				});
-			}
-		}
-		console.error("Error updating entity:", error);
-		return new Response(
-			JSON.stringify({ message: "Internal Server Error" }),
-			{ status: 500 },
-		);
+		return handleServiceError(error);
 	}
 };
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
+	// TODO: Replace with actual authentication
+	// const session = await locals.supabase.auth.getSession();
+	// if (!session.data.session) {
+	//   return createUnauthorizedResponse();
+	// }
+	// const userId = session.data.session.user.id;
 	const userId = DEFAULT_USER_ID;
 
 	const validationResult = deleteEntitySchema.safeParse(params);
 
 	if (!validationResult.success) {
-		return new Response(
-			JSON.stringify({
-				message: "Invalid entity ID format",
-				errors: validationResult.error.flatten(),
-			}),
-			{ status: 400 },
+		return createErrorResponse(
+			"VALIDATION_ERROR",
+			"Invalid entity ID",
+			400,
+			validationResult.error.errors
 		);
 	}
 
@@ -131,17 +124,11 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 		const result = await deleteEntity(locals.supabase, userId, entityId);
 
 		if (!result.success) {
-			return new Response(JSON.stringify({ message: "Entity not found" }), {
-				status: 404,
-			});
+			return createNotFoundResponse("Entity");
 		}
 
 		return new Response(null, { status: 204 });
 	} catch (error) {
-		console.error("Error deleting entity:", error);
-		return new Response(
-			JSON.stringify({ message: "Internal Server Error" }),
-			{ status: 500 },
-		);
+		return handleServiceError(error);
 	}
 };

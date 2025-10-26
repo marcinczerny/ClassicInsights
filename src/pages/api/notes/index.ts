@@ -2,16 +2,15 @@ import type { APIRoute } from "astro";
 import { createNoteSchema, getNotesSchema } from "@/lib/validation";
 import { createNote, getNotes } from "@/lib/services/notes.service";
 import { DEFAULT_USER_ID } from "@/db/supabase.client";
+import { handleServiceError, createErrorResponse } from "@/lib/errors";
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request, locals }) => {
+  // TODO: Replace with actual authentication
   // const session = await locals.supabase.auth.getSession();
   // if (!session.data.session) {
-  //   return new Response(JSON.stringify({ error: { code: "UNAUTHORIZED", message: "User is not authenticated." } }), {
-  //     status: 401,
-  //     headers: { "Content-Type": "application/json" },
-  //   });
+  //   return createUnauthorizedResponse();
   // }
   // const userId = session.data.session.user.id;
   const userId = DEFAULT_USER_ID;
@@ -22,15 +21,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
   const validationResult = getNotesSchema.safeParse(queryParams);
 
   if (!validationResult.success) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid query parameters.",
-          details: validationResult.error.format(),
-        },
-      }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+    return createErrorResponse(
+      "VALIDATION_ERROR",
+      "Invalid query parameters",
+      400,
+      validationResult.error.errors
     );
   }
 
@@ -41,60 +36,38 @@ export const GET: APIRoute = async ({ request, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // TODO: Add proper error logging
-    console.error(error);
-    return new Response(
-      JSON.stringify({
-        error: { code: "INTERNAL_ERROR", message: "An unexpected error occurred." },
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    );
+    return handleServiceError(error);
   }
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  // TODO: Replace with actual user session
+  // TODO: Replace with actual authentication
+  // const session = await locals.supabase.auth.getSession();
+  // if (!session.data.session) {
+  //   return createUnauthorizedResponse();
+  // }
+  // const userId = session.data.session.user.id;
   const userId = DEFAULT_USER_ID;
 
-  const body = await request.json();
-  const validationResult = createNoteSchema.safeParse(body);
-
-  if (!validationResult.success) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid request body.",
-          details: validationResult.error.format(),
-        },
-      }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
-  }
-
   try {
+    const body = await request.json();
+    const validationResult = createNoteSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return createErrorResponse(
+        "VALIDATION_ERROR",
+        "Invalid request body",
+        400,
+        validationResult.error.errors
+      );
+    }
+
     const newNote = await createNote(locals.supabase, userId, validationResult.data);
     return new Response(JSON.stringify(newNote), {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // TODO: Add proper error logging
-    console.error(error);
-
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
-    let errorCode = 500;
-    if (errorMessage.includes("not found or do not belong to the user")) {
-      errorCode = 400;
-    } else if (errorMessage.includes("A note with this title already exists")) {
-      errorCode = 409;
-    }
-
-    return new Response(
-      JSON.stringify({
-        error: { code: "INTERNAL_ERROR", message: errorMessage },
-      }),
-      { status: errorCode, headers: { "Content-Type": "application/json" } },
-    );
+    return handleServiceError(error);
   }
 };
