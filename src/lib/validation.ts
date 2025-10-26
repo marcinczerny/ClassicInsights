@@ -103,6 +103,53 @@ export const removeEntityFromNoteSchema = z.object({
 });
 
 // ============================================================================
+// AI SUGGESTIONS SCHEMAS
+// ============================================================================
+
+/**
+ * Suggestion status enum schema
+ * Used for filtering suggestions by their status
+ */
+export const suggestionStatusSchema = z.enum([
+  "pending",
+  "accepted",
+  "rejected",
+]);
+
+export type SuggestionStatus = z.infer<typeof suggestionStatusSchema>;
+
+/**
+ * Get suggestions query parameters schema
+ * Used for GET /api/notes/:id/suggestions
+ */
+export const getSuggestionsSchema = z.object({
+  status: suggestionStatusSchema.optional(),
+});
+
+export type GetSuggestionsParams = z.infer<typeof getSuggestionsSchema>;
+
+/**
+ * Get suggestion by ID schema
+ * Used for validating suggestion ID parameter
+ */
+export const getSuggestionSchema = z.object({
+  id: z.string().uuid({ message: "Suggestion ID must be a valid UUID." }),
+});
+
+/**
+ * Update suggestion command schema
+ * Used for PATCH /api/suggestions/:id
+ * Only allows status updates to accepted or rejected
+ */
+export const updateSuggestionSchema = z.object({
+  status: z.enum(["accepted", "rejected"], {
+    errorMap: () => ({ message: "Status must be either 'accepted' or 'rejected'" }),
+  }),
+});
+
+export type UpdateSuggestionCommand = z.infer<typeof updateSuggestionSchema>;
+
+// ============================================================================
 // ENTITY SCHEMAS
 // ============================================================================
 

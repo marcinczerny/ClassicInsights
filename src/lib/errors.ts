@@ -79,6 +79,55 @@ export function handleServiceError(error: unknown): Response {
 
   // Handle custom application errors
   if (error instanceof Error) {
+    // Check for specific error types by name
+    if (error.name === "AIConsentRequiredError") {
+      return createErrorResponse(
+        "AI_CONSENT_REQUIRED",
+        error.message,
+        400
+      );
+    }
+
+    if (error.name === "NoteContentTooShortError") {
+      return createErrorResponse(
+        "NOTE_CONTENT_TOO_SHORT",
+        error.message,
+        422
+      );
+    }
+
+    if (error.name === "NoteNotFoundError") {
+      return createErrorResponse(
+        "NOTE_NOT_FOUND",
+        error.message,
+        404
+      );
+    }
+
+    if (error.name === "ForbiddenAccessError") {
+      return createErrorResponse(
+        "FORBIDDEN_ACCESS",
+        error.message,
+        403
+      );
+    }
+
+    if (error.name === "SuggestionNotFoundError") {
+      return createErrorResponse(
+        "SUGGESTION_NOT_FOUND",
+        error.message,
+        404
+      );
+    }
+
+    if (error.name === "InvalidStateTransitionError") {
+      return createErrorResponse(
+        "INVALID_STATE_TRANSITION",
+        error.message,
+        400
+      );
+    }
+
     // Check for specific error messages
     if (error.message.includes("not found") || error.message.includes("Not found")) {
       return createErrorResponse(
@@ -101,6 +150,14 @@ export function handleServiceError(error: unknown): Response {
         "FORBIDDEN",
         error.message,
         403
+      );
+    }
+
+    if (error.message.includes("AI service error")) {
+      return createErrorResponse(
+        "AI_SERVICE_ERROR",
+        error.message,
+        500
       );
     }
   }
