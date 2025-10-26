@@ -140,7 +140,8 @@ Get a paginated list of notes for the current user.
           "id": "uuid",
           "name": "string",
           "type": "entity_type enum",
-          "description": "string"
+          "description": "string",
+          "relationship_type": "relationship_type enum"  // Type of relationship between note and entity
         }
       ]
     }
@@ -173,9 +174,16 @@ Create a new note.
 {
   "title": "string",           // required, max 255 characters
   "content": "string",          // optional, max 10,000 characters
-  "entity_ids": ["uuid"]        // optional, array of entity IDs to attach
+  "entities": [                 // optional, array of entities to attach with relationship types
+    {
+      "entity_id": "uuid",      // required
+      "relationship_type": "relationship_type enum"  // optional, defaults to 'is_related_to'
+    }
+  ]
 }
 ```
+
+**Note**: For backward compatibility, `entity_ids` (array of UUIDs) is still supported but deprecated. When using `entity_ids`, all relationships will default to 'is_related_to'.
 
 **Success Response** (201 Created):
 ```json
@@ -191,7 +199,8 @@ Create a new note.
       "id": "uuid",
       "name": "string",
       "type": "entity_type enum",
-      "description": "string"
+      "description": "string",
+      "relationship_type": "relationship_type enum"
     }
   ]
 }
@@ -202,7 +211,8 @@ Create a new note.
   - Missing required fields
   - Title exceeds 255 characters
   - Content exceeds 10,000 characters
-  - Invalid entity_ids (not found or not owned by user)
+  - Invalid entity_ids or entities array (not found or not owned by user)
+  - Invalid relationship_type value
 - 401 Unauthorized: User not authenticated
 
 ---
@@ -234,7 +244,8 @@ Get a single note by ID.
       "id": "uuid",
       "name": "string",
       "type": "entity_type enum",
-      "description": "string"
+      "description": "string",
+      "relationship_type": "relationship_type enum"
     }
   ]
 }
@@ -263,9 +274,16 @@ Update an existing note.
 {
   "title": "string",           // optional, max 255 characters
   "content": "string",          // optional, max 10,000 characters
-  "entity_ids": ["uuid"]        // optional, replaces all existing entities
+  "entities": [                 // optional, replaces all existing entities with their relationship types
+    {
+      "entity_id": "uuid",      // required
+      "relationship_type": "relationship_type enum"  // optional, defaults to 'is_related_to'
+    }
+  ]
 }
 ```
+
+**Note**: For backward compatibility, `entity_ids` (array of UUIDs) is still supported but deprecated. When using `entity_ids`, all relationships will default to 'is_related_to'.
 
 **Success Response** (200 OK):
 ```json
@@ -281,7 +299,8 @@ Update an existing note.
       "id": "uuid",
       "name": "string",
       "type": "entity_type enum",
-      "description": "string"
+      "description": "string",
+      "relationship_type": "relationship_type enum"
     }
   ]
 }
@@ -289,6 +308,7 @@ Update an existing note.
 
 **Error Responses**:
 - 400 Bad Request: Invalid request body or validation error
+  - Invalid relationship_type value
 - 401 Unauthorized: User not authenticated
 - 403 Forbidden: Note belongs to another user
 - 404 Not Found: Note not found
@@ -331,7 +351,8 @@ Add an entity to a note (alternative to updating note with entity_ids).
 **Request Body**:
 ```json
 {
-  "entity_id": "uuid"  // required
+  "entity_id": "uuid",  // required
+  "relationship_type": "relationship_type enum"  // optional, defaults to 'is_related_to'
 }
 ```
 
@@ -339,12 +360,13 @@ Add an entity to a note (alternative to updating note with entity_ids).
 ```json
 {
   "note_id": "uuid",
-  "entity_id": "uuid"
+  "entity_id": "uuid",
+  "relationship_type": "relationship_type enum"
 }
 ```
 
 **Error Responses**:
-- 400 Bad Request: Invalid entity_id or entity already attached
+- 400 Bad Request: Invalid entity_id, entity already attached, or invalid relationship_type
 - 401 Unauthorized: User not authenticated
 - 403 Forbidden: Note or entity belongs to another user
 - 404 Not Found: Note or entity not found
@@ -887,7 +909,7 @@ Get a visualization-ready graph of entities and notes, centered on a specified e
       "id": "uuid",
       "source_id": "uuid",   // node id (entity or note)
       "target_id": "uuid",   // node id (entity or note)
-      "type": "relationship_type enum" | "note_entity", // "note_entity" for note-entity connections
+      "type": "relationship_type enum", // For both entity-entity and note-entity relationships
       "created_at": "ISO 8601 timestamp"
     }
   ]
@@ -906,7 +928,7 @@ Get a visualization-ready graph of entities and notes, centered on a specified e
 - If an invalid or unsupported `center_type` is provided, return 400.
 - Traverse the graph up to the specified number of `levels` from the center, including both relationships (entity-entity) and note-entity associations.
 - Always include all relevant note nodes within the graph (even if no entity is specified as center).
-- The structure of edges will reflect both classical entity relationships and associations between notes and entities with `"type": "note_entity"`.
+- The structure of edges will reflect both entity-entity relationships and note-entity relationships, both using the same `relationship_type` enum for the `type` field.
 
 ---
 
@@ -1097,15 +1119,16 @@ Before processing any AI requests:
 - **Creating a note with entities**:
   1. Validate note fields
   2. Insert note record
-  3. Validate all entity_ids exist and belong to user
-  4. Insert note_entities associations
-  5. Return note with attached entities
+  3. Validate all entity_ids (or entities array) exist and belong to user
+  4. Validate relationship_type values if provided
+  5. Insert note_entities associations with relationship types (defaults to 'is_related_to')
+  6. Return note with attached entities including their relationship types
 
 - **Updating a note with entities**:
   1. Validate note exists and belongs to user
   2. Update note fields
-  3. If entity_ids provided: create new ones
-  4. Return updated note with entities
+  3. If entities array (or entity_ids) provided: delete existing associations and create new ones with relationship types
+  4. Return updated note with entities and their relationship types
 
 - **Deleting a note**:
   1. Validate note exists and belongs to user

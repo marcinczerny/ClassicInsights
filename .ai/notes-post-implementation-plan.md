@@ -11,7 +11,12 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom tworzenie nowych no
     {
       "title": "string",
       "content": "string",
-      "entity_ids": ["uuid"]
+      "entities": [
+        {
+          "entity_id": "uuid",
+          "relationship_type": "relationship_type enum"
+        }
+      ]
     }
     ```
 -   **Parametry**:
@@ -19,7 +24,9 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom tworzenie nowych no
         -   `title`: `string` - Tytuł notatki (maksymalnie 255 znaków).
     -   **Opcjonalne**:
         -   `content`: `string` - Treść notatki (maksymalnie 10 000 znaków).
-        -   `entity_ids`: `string[]` - Tablica identyfikatorów UUID istniejących bytów, które mają być powiązane z notatką.
+        -   `entities`: `array` - Tablica obiektów z `entity_id` (UUID) i opcjonalnym `relationship_type` (domyślnie 'is_related_to').
+
+**Uwaga**: Dla wstecznej kompatybilności `entity_ids` (tablica UUID) jest nadal wspierana, ale przestarzała. Wszystkie relacje będą domyślnie ustawione na 'is_related_to'.
 
 ## 3. Wykorzystywane typy
 -   **Command Model (Request)**: `CreateNoteCommand` z `src/types.ts`
@@ -40,7 +47,8 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom tworzenie nowych no
           "id": "uuid",
           "name": "string",
           "type": "entity_type enum",
-          "description": "string"
+          "description": "string",
+          "relationship_type": "relationship_type enum"
         }
       ]
     }
@@ -59,18 +67,19 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom tworzenie nowych no
 5.  Po pomyślnej walidacji, handler wywołuje funkcję `createNote` z serwisu `notes.service.ts`, przekazując ID użytkownika i zwalidowane dane.
 6.  Funkcja `createNote` w serwisie wykonuje następujące operacje:
     a. Sprawdza, czy notatka o podanym tytule już istnieje dla tego użytkownika. Jeśli tak, zwraca błąd.
-    b. Jeśli `entity_ids` zostały dostarczone, weryfikuje, czy wszystkie byty o podanych ID istnieją i należą do uwierzytelnionego użytkownika. Jeśli nie, zwraca błąd.
-    c. Tworzy nowy wpis w tabeli `notes` z `title`, `content` i `user_id`.
-    d. Jeśli `entity_ids` zostały dostarczone, tworzy odpowiednie wpisy w tabeli łączącej `note_entities`, aby powiązać nową notatkę z bytami.
-    e. Pobiera z bazy danych nowo utworzoną notatkę wraz z pełnymi danymi powiązanych bytów (join z `entities`).
-    f. Zwraca obiekt `NoteDTO` do handlera API.
+    b. Jeśli `entities` (lub `entity_ids`) zostały dostarczone, weryfikuje, czy wszystkie byty o podanych ID istnieją i należą do uwierzytelnionego użytkownika. Jeśli nie, zwraca błąd.
+    c. Waliduje typy relacji `relationship_type` (jeśli podane).
+    d. Tworzy nowy wpis w tabeli `notes` z `title`, `content` i `user_id`.
+    e. Jeśli `entities` (lub `entity_ids`) zostały dostarczone, tworzy odpowiednie wpisy w tabeli łączącej `note_entities` z odpowiednimi typami relacji (domyślnie 'is_related_to').
+    f. Pobiera z bazy danych nowo utworzoną notatkę wraz z pełnymi danymi powiązanych bytów i ich typami relacji (join z `entities` i `note_entities`).
+    g. Zwraca obiekt `NoteDTO` do handlera API.
 7.  Handler API otrzymuje `NoteDTO`, ustawia status odpowiedzi na `201 Created` i zwraca obiekt w ciele odpowiedzi.
 
 ## 6. Względy bezpieczeństwa
 -   **Uwierzytelnianie**: Dostęp do punktu końcowego jest chroniony przez middleware Astro, który weryfikuje sesję użytkownika. Każde żądanie bez ważnej sesji zostanie odrzucone.
 -   **Autoryzacja**: Wszystkie operacje na bazie danych są wykonywane w kontekście `user_id` pozyskanego z sesji. Gwarantuje to, że użytkownicy mogą tworzyć notatki tylko na własnym koncie. Polityki Row-Level Security (RLS) w Supabase zapewniają dodatkową warstwę ochrony na poziomie bazy danych.
--   **Walidacja danych wejściowych**: Stosowanie Zod do walidacji schematu `CreateNoteCommand` na brzegu systemu (w handlerze API) chroni przed typowymi atakami, takimi jak XSS czy SQL Injection.
--   **Weryfikacja własności zasobów**: Serwis `notes.service.ts` musi zweryfikować, czy `entity_ids` przekazane w żądaniu należą do tego samego użytkownika, który tworzy notatkę. Zapobiega to nieautoryzowanemu powiązaniu danych między kontami.
+-   **Walidacja danych wejściowych**: Stosowanie Zod do walidacji schematu `CreateNoteCommand` na brzegu systemu (w handlerze API) chroni przed typowymi atakami, takimi jak XSS czy SQL Injection. Walidacja obejmuje również typy relacji `relationship_type`.
+-   **Weryfikacja własności zasobów**: Serwis `notes.service.ts` musi zweryfikować, czy `entity_id` z tablicy `entities` (lub `entity_ids`) przekazane w żądaniu należą do tego samego użytkownika, który tworzy notatkę. Zapobiega to nieautoryzowanemu powiązaniu danych między kontami.
 
 ## 7. Rozważania dotyczące wydajności
 -   Operacje tworzenia notatki i jej powiązań są operacjami zapisu, które powinny być szybkie.
@@ -78,11 +87,11 @@ Ten punkt końcowy umożliwia uwierzytelnionym użytkownikom tworzenie nowych no
 -   Należy upewnić się, że kolumny `user_id` w tabelach `notes` i `entities` są odpowiednio zindeksowane, co jest już przewidziane w planie bazy danych.
 
 ## 8. Etapy wdrożenia
-1.  **Walidacja**: W pliku `src/lib/validation.ts` utwórz nową schemę Zod o nazwie `createNoteSchema` do walidacji ciała żądania `POST /api/notes`, zgodnie ze specyfikacją.
-2.  **Logika serwisowa**: W pliku `src/lib/services/notes.service.ts` zaimplementuj nową asynchroniczną funkcję `createNote(supabase: SupabaseClient, userId: string, command: CreateNoteCommand): Promise<NoteDTO>`. Funkcja ta powinna realizować logikę opisaną w sekcji "Przepływ danych".
+1.  **Walidacja**: W pliku `src/lib/validation.ts` utwórz nową schemę Zod o nazwie `createNoteSchema` do walidacji ciała żądania `POST /api/notes`, zgodnie ze specyfikacją. Schema powinna obsługiwać zarówno nowy format `entities` (z `entity_id` i opcjonalnym `relationship_type`), jak i przestarzały format `entity_ids` dla wstecznej kompatybilności.
+2.  **Logika serwisowa**: W pliku `src/lib/services/notes.service.ts` zaimplementuj nową asynchroniczną funkcję `createNote(supabase: SupabaseClient, userId: string, command: CreateNoteCommand): Promise<NoteDTO>`. Funkcja ta powinna realizować logikę opisaną w sekcji "Przepływ danych", uwzględniając typy relacji.
 3.  **Implementacja handlera API**: W pliku `src/pages/api/notes/index.ts` dodaj lub zmodyfikuj handler `POST`. Powinien on:
     a. Pobierać ID użytkownika z `context.locals`.
     b. Walidować ciało żądania za pomocą `createNoteSchema`.
     c. Wywoływać serwis `notesService.createNote`.
     d. Obsługiwać odpowiedzi sukcesu (zwracając `NoteDTO` i status `201`) oraz błędy (zwracając odpowiednie kody statusu i komunikaty).
-4.  **Testowanie**: Dodaj nowy wpis w pliku `endpoints.http` do testowania nowo utworzonego punktu końcowego, uwzględniając przypadki sukcesu oraz przypadki błędów (np. brak tytułu, nieistniejące `entity_id`).
+4.  **Testowanie**: Dodaj nowy wpis w pliku `endpoints.http` do testowania nowo utworzonego punktu końcowego, uwzględniając przypadki sukcesu (z różnymi typami relacji) oraz przypadki błędów (np. brak tytułu, nieistniejące `entity_id`, nieprawidłowy `relationship_type`).

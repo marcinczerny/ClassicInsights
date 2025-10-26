@@ -89,12 +89,14 @@ CREATE TABLE entities (
 ```
 
 ### Tabela: `note_entities`
-Tabela łącząca, realizująca relację wiele-do-wielu między notatkami (`notes`) a bytami (`entities`).
+Tabela łącząca, realizująca relację wiele-do-wielu między notatkami (`notes`) a bytami (`entities`). Umożliwia definiowanie typu relacji między notatką a bytem.
 
 ```sql
 CREATE TABLE note_entities (
   note_id UUID NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
   entity_id UUID NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+  type relationship_type NOT NULL DEFAULT 'is_related_to',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (note_id, entity_id)
 );
 ```
@@ -176,6 +178,7 @@ CREATE INDEX idx_entities_user_id ON entities(user_id);
 -- Indeksy dla tabeli note_entities
 CREATE INDEX idx_note_entities_note_id ON note_entities(note_id);
 CREATE INDEX idx_note_entities_entity_id ON note_entities(entity_id);
+CREATE INDEX idx_note_entities_type ON note_entities(type);
 
 -- Indeksy dla tabeli relationships
 CREATE INDEX idx_relationships_user_id ON relationships(user_id);

@@ -20,7 +20,7 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
 - **`NotesListResponseDTO`**: Główny typ odpowiedzi.
 - **`NoteDTO`**: Reprezentacja pojedynczej notatki w odpowiedzi.
 - **`PaginationDTO`**: Struktura metadanych paginacji.
-- **`EntityBasicDTO`**: Uproszczona reprezentacja bytu zagnieżdżonego w `NoteDTO`.
+- **`EntityBasicDTO`**: Uproszczona reprezentacja bytu zagnieżdżonego w `NoteDTO` (z polem `relationship_type`).
 
 ## 4. Szczegóły odpowiedzi
 - **Odpowiedź sukcesu (200 OK)**:
@@ -39,7 +39,8 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
             "id": "uuid",
             "name": "string",
             "type": "entity_type enum",
-            "description": "string"
+            "description": "string",
+            "relationship_type": "relationship_type enum"
           }
         ]
       }
@@ -61,7 +62,7 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
 4.  Parametry są walidowane i parsowane przy użyciu dedykowanego schematu Zod z `src/lib/validation.ts`. W przypadku błędu zwracany jest status 400.
 5.  Wywoływana jest funkcja z serwisu, np. `NotesService.getNotes(userId, validatedParams)`, zlokalizowana w `src/lib/services/notes.service.ts`.
 6.  `NotesService` konstruuje zapytanie do Supabase:
-    a. Rozpoczyna od `from('notes').select('*, entities(*)')`.
+    a. Rozpoczyna od `from('notes').select('*, note_entities(type, entities(*))')` aby pobrać byty wraz z typami relacji z tabeli `note_entities`.
     b. Dodaje filtrowanie `search` przy użyciu `.or('title.ilike.%term%,content.ilike.%term%')`.
     c. Jeśli podano `entities`, dodaje warunek filtrujący, który zapewnia, że notatka jest powiązana ze wszystkimi podanymi bytami. Może to wymagać użycia funkcji RPC w PostgreSQL lub bardziej złożonego filtrowania.
     d. Stosuje sortowanie (`.order()`) i paginację (`.range()`).

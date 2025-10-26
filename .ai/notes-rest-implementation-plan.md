@@ -17,8 +17,8 @@ Pobiera szczegóły pojedynczej notatki, włączając w to listę powiązanych z
 - **Ciało żądania**: Brak
 
 ### 1.3. Wykorzystywane typy
-- `NoteDTO`
-- `EntityBasicDTO`
+- `NoteDTO` (includes entities with relationship_type)
+- `EntityBasicDTO` (extended with relationship_type field)
 - `ErrorDTO`
 
 ### 1.4. Szczegóły odpowiedzi
@@ -36,7 +36,8 @@ Pobiera szczegóły pojedynczej notatki, włączając w to listę powiązanych z
         "id": "uuid",
         "name": "string",
         "type": "entity_type enum",
-        "description": "string"
+        "description": "string",
+        "relationship_type": "relationship_type enum"
       }
     ]
   }
@@ -49,7 +50,7 @@ Pobiera szczegóły pojedynczej notatki, włączając w to listę powiązanych z
 3.  Handler sprawdza, czy użytkownik jest uwierzytelniony (`Astro.locals.user`).
 4.  Waliduje parametr `id` przy użyciu `zod`.
 5.  Wywołuje metodę `notesService.findNoteById(id, userId)`.
-6.  Serwis wykonuje zapytanie do bazy Supabase, aby pobrać notatkę i powiązane byty. RLS zapewnia dostęp tylko do danych użytkownika.
+6.  Serwis wykonuje zapytanie do bazy Supabase, aby pobrać notatkę i powiązane byty wraz z typami relacji z tabeli `note_entities`. RLS zapewnia dostęp tylko do danych użytkownika.
 7.  Handler zwraca dane w formacie `NoteDTO` z kodem 200 lub obiekt błędu.
 
 ### 1.6. Względy bezpieczeństwa
@@ -83,13 +84,23 @@ Aktualizuje dane istniejącej notatki. Umożliwia zmianę tytułu, treści oraz 
 - **Parametry URL**:
     - Wymagane: `id` (UUID notatki)
 - **Ciało żądania**:
-    - Opcjonalne: `title` (string, max 255), `content` (string, max 10000), `entity_ids` (array of UUIDs).
+    - Opcjonalne: `title` (string, max 255), `content` (string, max 10000), `entities` (array of objects with entity_id and relationship_type).
   ```json
   {
     "title": "Nowy tytuł notatki",
-    "entity_ids": ["uuid-bytu-1", "uuid-bytu-2"]
+    "entities": [
+      {
+        "entity_id": "uuid-bytu-1",
+        "relationship_type": "criticizes"
+      },
+      {
+        "entity_id": "uuid-bytu-2",
+        "relationship_type": "expands_on"
+      }
+    ]
   }
   ```
+  **Uwaga**: Dla wstecznej kompatybilności `entity_ids` (tablica UUID) jest nadal wspierana, ale przestarzała. Wszystkie relacje będą domyślnie ustawione na 'is_related_to'.
 
 ### 2.3. Wykorzystywane typy
 - `UpdateNoteCommand`
@@ -107,10 +118,11 @@ Aktualizuje dane istniejącej notatki. Umożliwia zmianę tytułu, treści oraz 
 4.  Walidacja ciała żądania przy użyciu `zod` (zgodnie z typem `UpdateNoteCommand`).
 5.  Wywołanie metody `notesService.updateNote(id, data, userId)`.
 6.  Serwis w ramach transakcji:
-    a. Sprawdza, czy wszystkie `entity_ids` (jeśli podano) istnieją i należą do użytkownika.
-    b. Aktualizuje pola `title` i `content` w tabeli `notes`.
-    c. Jeśli podano `entity_ids`, usuwa wszystkie istniejące powiązania w `note_entities` dla danej notatki i wstawia nowe.
-    d. Pobiera zaktualizowaną notatkę z nowymi powiązaniami.
+    a. Sprawdza, czy wszystkie `entity_id` z tablicy `entities` (lub `entity_ids` jeśli podano) istnieją i należą do użytkownika.
+    b. Waliduje typy relacji `relationship_type` (jeśli podano).
+    c. Aktualizuje pola `title` i `content` w tabeli `notes`.
+    d. Jeśli podano `entities` lub `entity_ids`, usuwa wszystkie istniejące powiązania w `note_entities` dla danej notatki i wstawia nowe z odpowiednimi typami relacji.
+    e. Pobiera zaktualizowaną notatkę z nowymi powiązaniami wraz z typami relacji.
 7.  Handler zwraca zaktualizowaną notatkę z kodem 200.
 
 ### 2.6. Względy bezpieczeństwa
@@ -119,7 +131,7 @@ Aktualizuje dane istniejącej notatki. Umożliwia zmianę tytułu, treści oraz 
 ### 2.7. Obsługa błędów
 | Kod | Opis |
 | --- | --- |
-| 400 | Nieprawidłowe ciało żądania (błąd walidacji `zod`) lub któryś z bytów w `entity_ids` nie istnieje. |
+| 400 | Nieprawidłowe ciało żądania (błąd walidacji `zod`), któryś z bytów w `entities` lub `entity_ids` nie istnieje, lub nieprawidłowy `relationship_type`. |
 | 401 | Użytkownik nie jest uwierzytelniony. |
 | 403 | Użytkownik próbuje przypisać byt, który do niego nie należy. |
 | 404 | Notatka o podanym `id` nie istnieje lub nie należy do użytkownika. |
@@ -177,11 +189,14 @@ Dodaje pojedyncze powiązanie między notatką a bytem.
     - Wymagane: `id` (UUID notatki)
 - **Ciało żądania**:
     - Wymagane: `entity_id` (UUID bytu)
+    - Opcjonalne: `relationship_type` (typ relacji)
   ```json
   {
-    "entity_id": "uuid-bytu-do-dodania"
+    "entity_id": "uuid-bytu-do-dodania",
+    "relationship_type": "criticizes"
   }
   ```
+  **Uwaga**: Jeśli `relationship_type` nie jest podany, domyślnie zostanie użyta wartość 'is_related_to'.
 
 ### 4.3. Wykorzystywane typy
 - `AddEntityToNoteCommand`
@@ -193,7 +208,8 @@ Dodaje pojedyncze powiązanie między notatką a bytem.
   ```json
   {
     "note_id": "uuid",
-    "entity_id": "uuid"
+    "entity_id": "uuid",
+    "relationship_type": "relationship_type enum"
   }
   ```
 - **400, 401, 404, 409, 500**: Zwraca obiekt błędu `ErrorDTO`.
@@ -202,14 +218,14 @@ Dodaje pojedyncze powiązanie między notatką a bytem.
 1.  Klient wysyła żądanie `POST`.
 2.  Astro wywołuje handler `POST` w `src/pages/api/notes/[id]/entities.ts`.
 3.  Uwierzytelnianie, walidacja parametru `id` i ciała żądania (`AddEntityToNoteCommand`).
-4.  Wywołanie `notesService.addEntityToNote(noteId, entityId, userId)`.
-5.  Serwis sprawdza, czy notatka i byt istnieją i należą do użytkownika, a następnie wstawia nowy wiersz do tabeli `note_entities`.
-6.  Handler zwraca dane powiązania z kodem 201.
+4.  Wywołanie `notesService.addEntityToNote(noteId, entityId, relationshipType, userId)`.
+5.  Serwis sprawdza, czy notatka i byt istnieją i należą do użytkownika, waliduje `relationship_type` (jeśli podany), a następnie wstawia nowy wiersz do tabeli `note_entities` z odpowiednim typem relacji (domyślnie 'is_related_to').
+6.  Handler zwraca dane powiązania wraz z typem relacji z kodem 201.
 
 ### 4.6. Obsługa błędów
 | Kod | Opis |
 | --- | --- |
-| 400 | Błąd walidacji `zod` dla `id` lub `entity_id`. |
+| 400 | Błąd walidacji `zod` dla `id`, `entity_id` lub `relationship_type`. |
 | 401 | Użytkownik nie jest uwierzytelniony. |
 | 403 | Notatka lub byt należy do innego użytkownika. |
 | 404 | Notatka lub byt nie istnieje. |
@@ -217,8 +233,8 @@ Dodaje pojedyncze powiązanie między notatką a bytem.
 | 500 | Wewnętrzny błąd serwera. |
 
 ### 4.7. Etapy wdrożenia
-1.  **Serwis**: Dodać metodę `addEntityToNote(noteId: string, entityId: string, userId: string): Promise<NoteEntityAssociationDTO>` do `notes.service.ts`.
-2.  **Walidacja**: Stworzyć schemat `zod` dla `AddEntityToNoteCommand`.
+1.  **Serwis**: Dodać metodę `addEntityToNote(noteId: string, entityId: string, relationshipType: string | undefined, userId: string): Promise<NoteEntityAssociationDTO>` do `notes.service.ts`.
+2.  **Walidacja**: Stworzyć schemat `zod` dla `AddEntityToNoteCommand` z opcjonalnym polem `relationship_type`.
 3.  **API Route**: Utworzyć plik `src/pages/api/notes/[id]/entities.ts`.
 4.  **Handler**: Zaimplementować handler `POST`.
 

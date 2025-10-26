@@ -22,6 +22,7 @@ Głównym problemem, na który odpowiada ClassicInsight, jest brak skutecznych n
 ### 3.3. Zarządzanie bytami (tagami)
 - F-008: Użytkownicy mogą dodawać do notatek byty (np. Autor, Dzieło, Idea, Epoka) w formie tagów.
 - F-009: System sugeruje istniejące już byty podczas ich wprowadzania, aby promować ich ponowne użycie i unikać duplikacji w obrębie konta użytkownika.
+- F-023: Użytkownik może zdefiniować typ relacji między notatką a przypisanym do niej bytem, wybierając z tej samej listy typów relacji co przy połączeniach między bytami (np. "krytykuje", "rozwija myśl", "jest przykładem").
 
 ### 3.4. Wzbogacanie notatek przez AI
 - F-010: Użytkownik może manualnie uruchomić analizę AI dla wybranej notatki za pomocą dedykowanego przycisku.
@@ -105,7 +106,8 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
   1. W aplikacji jest dostępny przycisk "Dodaj notatkę".
   2. Formularz dodawania notatki zawiera pole na tytuł, edytor tekstu z obsługą markdown dla treści oraz pole do dodawania tagów.
   3. Podczas wpisywania tagu system podpowiada istniejące już w mojej bazie byty.
-  4. Po zapisaniu notatka pojawia się na mojej liście notatek.
+  4. Dla każdego dodawanego bytu mogę opcjonalnie określić typ relacji z notatką (np. "krytykuje", "rozwija myśl").
+  5. Po zapisaniu notatka pojawia się na mojej liście notatek.
 
 - ID: US-006
 - Tytuł: Przeglądanie listy notatek
@@ -159,6 +161,7 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
   2. Centralnym węzłem grafu jest moja notatka.
   3. Wszystkie byty (tagi) przypisane do notatki są widoczne jako połączone z nią węzły.
   4. Węzły mają różne kolory w zależności od ich typu (np. Autor - niebieski, Dzieło - zielony).
+  5. Krawędzie łączące notatkę z bytami wyświetlają typ relacji (jeśli został zdefiniowany).
 
 - ID: US-012
 - Tytuł: Eksploracja grafu

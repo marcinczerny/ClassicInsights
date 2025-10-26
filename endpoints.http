@@ -36,7 +36,27 @@ Content-Type: application/json
 {
     "title": "Note with Entities",
     "content": "This note should be linked to existing entities.",
-    "entity_ids": ["ea230e96-2789-4f25-b0ed-c815bb3b4326"] 
+    "entity_ids": ["ea230e96-2789-4f25-b0ed-c815bb3b4326"]
+}
+
+###
+# @name createNoteWithEntitiesAndRelationshipTypes
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note with Typed Relationships",
+    "content": "This note demonstrates typed relationships between notes and entities.",
+    "entities": [
+        {
+            "entity_id": "ea230e96-2789-4f25-b0ed-c815bb3b4326",
+            "relationship_type": "criticizes"
+        },
+        {
+            "entity_id": "9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8",
+            "relationship_type": "expands_on"
+        }
+    ]
 }
 
 ###
@@ -75,7 +95,7 @@ GET {{{{baseUrl}}}}/api/notes?page=1&limit=5&sort=title&order=asc
 # @name getNoteById
 GET {{baseUrl}}/notes/{{noteId}}
 
-### PATCH (update) a note by ID
+### PATCH (update) a note by ID (legacy format with entity_ids)
 # @name updateNote
 PATCH {{baseUrl}}/notes/{{noteId}}
 Content-Type: application/json
@@ -84,6 +104,26 @@ Content-Type: application/json
     "title": "Updated Note Title via PATCH",
     "content": "This is the updated content for the note.",
     "entity_ids": ["{{entityId}}", "{{anotherEntityId}}"]
+}
+
+### PATCH (update) a note with typed relationships
+# @name updateNoteWithTypedRelationships
+PATCH {{baseUrl}}/notes/{{noteId}}
+Content-Type: application/json
+
+{
+    "title": "Updated Note with Typed Relationships",
+    "content": "This demonstrates updating a note with relationship types.",
+    "entities": [
+        {
+            "entity_id": "{{entityId}}",
+            "relationship_type": "influenced_by"
+        },
+        {
+            "entity_id": "{{anotherEntityId}}",
+            "relationship_type": "is_example_of"
+        }
+    ]
 }
 
 ### PATCH (update) only the title of a note
@@ -99,13 +139,23 @@ Content-Type: application/json
 # @name deleteNote
 DELETE {{baseUrl}}/notes/{{noteId}}
 
-### POST (add) an entity to a note
+### POST (add) an entity to a note (default relationship type)
 # @name addEntityToNote
 POST {{baseUrl}}/notes/{{noteId}}/entities
 Content-Type: application/json
 
 {
     "entity_id": "{{entityId}}"
+}
+
+### POST (add) an entity to a note with specific relationship type
+# @name addEntityToNoteWithType
+POST {{baseUrl}}/notes/{{noteId}}/entities
+Content-Type: application/json
+
+{
+    "entity_id": "{{entityId}}",
+    "relationship_type": "criticizes"
 }
 
 ### DELETE an entity from a note
