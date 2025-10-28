@@ -55,8 +55,8 @@ export async function generateSuggestions(
 	if (Math.random() > 0.5) {
 		mockSuggestions.push({
 			type: "new_entity",
-			name: "Suggested Person: Plato",
-			content: "Ancient Greek philosopher, student of Socrates and teacher of Aristotle",
+			name: "Suggested Person: Demokryt",
+			content: "Ancient Greek philosopher, creator of atomism",
 			suggested_entity_id: null,
 		});
 	}
@@ -67,7 +67,7 @@ export async function generateSuggestions(
 		type: "existing_entity_link",
 		name: "Link to: Platon",
 		content: "This note discusses topics related to Aristotle",
-		suggested_entity_id: "ea230e96-2789-4f25-b0ed-c815bb3b4326", // Mock UUID
+		suggested_entity_id: "3c7e9fa6-26aa-4c1c-ad74-82b32ab1071f", // Mock UUID
 	});
 
 	return mockSuggestions;

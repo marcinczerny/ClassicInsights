@@ -793,8 +793,8 @@ Content-Type: application/json
 # AI SUGGESTIONS ENDPOINTS
 # ============================================================================
 
-@aiNoteId = f6541be6-ef08-43bc-9d96-4ba20f6be97a
-@suggestionId = 
+@aiNoteId = a02ce9bf-cc05-49fb-af5d-1a88a5c1afc0
+@suggestionId = d35fccec-4e63-4137-a5ea-f72b852469f1
 
 ### POST (trigger) AI analysis for a note
 # @name analyzeNote
