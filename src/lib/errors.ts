@@ -207,3 +207,48 @@ export function createConflictResponse(message: string): Response {
     409
   );
 }
+
+/**
+ * Creates a 403 Forbidden response
+ * @param message - Specific forbidden access message
+ */
+export function createForbiddenResponse(message: string): Response {
+  return createErrorResponse(
+    "FORBIDDEN",
+    message,
+    403
+  );
+}
+
+/**
+ * Creates a 400 Bad Request response for validation errors
+ * @param zodError - Zod validation error
+ */
+export function createValidationErrorResponse(zodError: z.ZodError): Response {
+  const formattedErrors = zodError.errors.reduce((acc, error) => {
+    const field = error.path.join(".");
+    if (!acc[field]) {
+      acc[field] = [];
+    }
+    acc[field].push(error.message);
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  return createErrorResponse(
+    "VALIDATION_ERROR",
+    "Invalid request parameters",
+    400,
+    formattedErrors
+  );
+}
+
+/**
+ * Creates a 500 Internal Server Error response
+ */
+export function createInternalErrorResponse(): Response {
+  return createErrorResponse(
+    "INTERNAL_ERROR",
+    "An unexpected error occurred",
+    500
+  );
+}

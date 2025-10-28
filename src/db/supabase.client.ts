@@ -10,7 +10,7 @@ export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKe
 export type SupabaseClient = SupabaseClientGeneric<Database>;
 
 // NOTE: This is a temporary solution for development purposes.
-export const DEFAULT_USER_ID = "945a7e4e-4576-49f7-b604-b5a1710cb71d";
+export const DEFAULT_USER_ID = "5ca94f3d-a759-46c3-b077-c958f92dd46e";
 
 import type { PostgrestError } from "@supabase/supabase-js";
 

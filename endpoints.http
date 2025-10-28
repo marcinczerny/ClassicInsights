@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3001/api
+@baseUrl = http://localhost:3000/api
 
 ### GET all notes (default parameters)
 # Expected response includes relationship_type for each entity in the note
@@ -101,14 +101,14 @@ Content-Type: application/json
 
 {
     "title": "Note Demonstrating All Relationship Types",
-    "content": "This note shows different ways entities can relate to notes.",
+    "content": "This note shows different ways entities can relate to notes. I extended the note a little bit longer so ai suggestion has something to work on with. That should be it",
     "entities": [
         {
-            "entity_id": "ea230e96-2789-4f25-b0ed-c815bb3b4326",
+            "entity_id": "d1d71fec-6fd7-4530-9795-0178c7df2247",
             "relationship_type": "criticizes"
         },
         {
-            "entity_id": "9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8",
+            "entity_id": "27db413a-93d2-4000-937b-f64a1306065b",
             "relationship_type": "is_student_of"
         }
     ]
@@ -152,7 +152,7 @@ Content-Type: application/json
     "content": "This should fail validation - cannot mix formats.",
     "entities": [
         {
-            "entity_id": "ea230e96-2789-4f25-b0ed-c815bb3b4326",
+            "entity_id": "d1d71fec-6fd7-4530-9795-0178c7df2247",
             "relationship_type": "criticizes"
         }
     ],
@@ -179,8 +179,8 @@ GET {{{{baseUrl}}}}/api/notes?page=1&limit=5&sort=title&order=asc
 # ============================================================================
 
 @noteId = f6541be6-ef08-43bc-9d96-4ba20f6be97a
-@entityId = ea230e96-2789-4f25-b0ed-c815bb3b4326
-@anotherEntityId = 9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8
+@entityId = d1d71fec-6fd7-4530-9795-0178c7df2247
+@anotherEntityId = 27db413a-93d2-4000-937b-f64a1306065b
 
 ### GET a single note by ID
 # @name getNoteById
@@ -363,6 +363,17 @@ Content-Type: application/json
     "description": "Starożytny filozof grecki, uczeń Sokratesa."
 }
 
+### POST (create) a new entity
+# @name createEntity2
+POST {{baseUrl}}/entities
+Content-Type: application/json
+
+{
+    "name": "Sokrates",
+    "type": "person",
+    "description": "Starożytny filozof grecki, twórca metody sokratejskiej."
+}
+
 ### POST (create) an invalid entity (missing name)
 # @name createEntityInvalid
 POST {{baseUrl}}/entities
@@ -410,8 +421,8 @@ DELETE {{baseUrl}}/entities/9de7f17e-a3c2-4b88-94c1-9746c2b8
 # RELATIONSHIP MANAGEMENT ENDPOINTS
 # ============================================================================
 
-@sourceEntityId = ea230e96-2789-4f25-b0ed-c815bb3b4326
-@targetEntityId = 9de7f17e-a3c2-4b88-94c1-9746c2b9e2b8
+@sourceEntityId = d1d71fec-6fd7-4530-9795-0178c7df2247
+@targetEntityId = 27db413a-93d2-4000-937b-f64a1306065b
 @createdRelationshipId = 
 
 ### POST (create) a new relationship
@@ -853,8 +864,8 @@ Content-Type: application/json
 # THOUGHT GRAPH ENDPOINTS
 # ============================================================================
 
-@graphEntityId = ea230e96-2789-4f25-b0ed-c815bb3b4326
-@graphNoteId = f6541be6-ef08-43bc-9d96-4ba20f6be97a
+@graphEntityId = 27db413a-93d2-4000-937b-f64a1306065b
+@graphNoteId = a02ce9bf-cc05-49fb-af5d-1a88a5c1afc0
 
 ### GET graph centered on entity (default levels=2)
 # @name getGraphEntityDefault
