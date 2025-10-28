@@ -847,3 +847,113 @@ Content-Type: application/json
 {
     "status": "accepted"
 }
+
+###
+# ============================================================================
+# THOUGHT GRAPH ENDPOINTS
+# ============================================================================
+
+@graphEntityId = ea230e96-2789-4f25-b0ed-c815bb3b4326
+@graphNoteId = f6541be6-ef08-43bc-9d96-4ba20f6be97a
+
+### GET graph centered on entity (default levels=2)
+# @name getGraphEntityDefault
+# Expected response includes nodes (entities and notes) and edges (relationships and note-entity associations)
+# Example response:
+# {
+#   "nodes": [
+#     {
+#       "id": "uuid",
+#       "type": "entity",
+#       "name": "Plato",
+#       "entity_type": "person",
+#       "description": "Ancient Greek philosopher",
+#       "created_at": "..."
+#     },
+#     {
+#       "id": "uuid",
+#       "type": "note",
+#       "name": "Note Title",
+#       "note_preview": "First 100 chars...",
+#       "created_at": "..."
+#     }
+#   ],
+#   "edges": [
+#     {
+#       "id": "uuid",
+#       "source_id": "uuid",
+#       "target_id": "uuid",
+#       "type": "criticizes",
+#       "created_at": "..."
+#     }
+#   ]
+# }
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}&center_type=entity
+
+### GET graph centered on entity with levels=1
+# @name getGraphEntityLevel1
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}&center_type=entity&levels=1
+
+### GET graph centered on entity with levels=3 (maximum depth)
+# @name getGraphEntityLevel3
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}&center_type=entity&levels=3
+
+### GET graph centered on note (default levels=2)
+# @name getGraphNoteDefault
+GET {{baseUrl}}/graph?center_id={{graphNoteId}}&center_type=note
+
+### GET graph centered on note with levels=1
+# @name getGraphNoteLevel1
+GET {{baseUrl}}/graph?center_id={{graphNoteId}}&center_type=note&levels=1
+
+### GET graph centered on note with levels=3 (maximum depth)
+# @name getGraphNoteLevel3
+GET {{baseUrl}}/graph?center_id={{graphNoteId}}&center_type=note&levels=3
+
+### GET graph - missing center_id (should fail with 400)
+# @name getGraphMissingCenterId
+GET {{baseUrl}}/graph?center_type=entity
+
+### GET graph - missing center_type (should fail with 400)
+# @name getGraphMissingCenterType
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}
+
+### GET graph - invalid center_id format (should fail with 400)
+# @name getGraphInvalidCenterId
+GET {{baseUrl}}/graph?center_id=not-a-uuid&center_type=entity
+
+### GET graph - invalid center_type value (should fail with 400)
+# @name getGraphInvalidCenterType
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}&center_type=invalid_type
+
+### GET graph - levels below minimum (should fail with 400)
+# @name getGraphLevelsBelowMin
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}&center_type=entity&levels=0
+
+### GET graph - levels above maximum (should fail with 400)
+# @name getGraphLevelsAboveMax
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}&center_type=entity&levels=4
+
+### GET graph - levels not an integer (should fail with 400)
+# @name getGraphLevelsNotInteger
+GET {{baseUrl}}/graph?center_id={{graphEntityId}}&center_type=entity&levels=2.5
+
+### GET graph - non-existent entity (should fail with 404)
+# @name getGraphEntityNotFound
+GET {{baseUrl}}/graph?center_id=11111111-1111-1111-1111-111111111111&center_type=entity
+
+### GET graph - non-existent note (should fail with 404)
+# @name getGraphNoteNotFound
+GET {{baseUrl}}/graph?center_id=11111111-1111-1111-1111-111111111111&center_type=note
+
+### GET graph - entity belonging to another user (should fail with 403)
+# @name getGraphEntityForbidden
+# NOTE: This test requires multi-user setup with test data from another user
+# GET {{baseUrl}}/graph?center_id=other-user-entity-id&center_type=entity
+
+### GET graph - note belonging to another user (should fail with 403)
+# @name getGraphNoteForbidden
+# NOTE: This test requires multi-user setup with test data from another user
+# GET {{baseUrl}}/graph?center_id=other-user-note-id&center_type=note
+
+###
