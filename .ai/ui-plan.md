@@ -2,7 +2,7 @@
 
 ## 1. UI Structure Overview
 
-The UI architecture for ClassicInsight is designed as a single-page application (SPA) built with React within an Astro framework. It prioritizes simplicity, clarity, and a focused user experience. The structure is centered around two main workspaces: the **Note Workspace** for content creation and the **Graph Workspace** for knowledge exploration.
+The UI architecture for ClassicInsight is designed as a single-page application (SPA) built with React within an Astro framework. It prioritizes simplicity, clarity, and a focused user experience. The structure is centered around a flexible, integrated workspace that combines a **Note Workspace** for content creation and a **Graph Workspace** for knowledge exploration. Users can view them side-by-side or expand the graph into a full-screen, immersive mode for deep exploration.
 
 The core layout consists of a persistent top navigation bar providing access to major sections and user settings. The main content area dynamically renders the different views based on the user's navigation. State management will be handled by React's Context API for global UI state (like user info) and component-level state (`useState`, `useEffect`) for server-side data fetching and caching, ensuring a lightweight MVP. All asynchronous operations will be clearly communicated to the user via loading indicators, and destructive actions will require confirmation.
 
@@ -44,7 +44,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 - **Path**: `/`
 - **Purpose**: To serve as the user's main hub, displaying all their notes and providing access to the thought graph.
 - **Key Information**: A list of all user notes (title, modification date), a search bar for filtering notes by entities, and a button to create a new note.
-- **Key Components**: `NotesList`, `SearchBar`, `Button`, `GraphPanel` (slide-out).
+- **Key Components**: `NotesList`, `SearchBar`, `Button`, `GraphPanel` (a collapsible and expandable side panel).
 - **UX/Accessibility/Security**: An "empty state" will be shown if the user has no notes, guiding them to create one. The notes list will be paginated to handle large numbers of notes.
 
 #### c. Note Editor View
@@ -84,8 +84,8 @@ The primary user journey is designed to be a seamless flow from content creation
     - `AISuggestionCards` are populated below the note, which the user can accept or reject. Accepting a suggestion might add a new entity to the note.
 
 3.  **Knowledge Exploration**:
-    - From the **Main Dashboard**, the user opens the `GraphPanel`.
-    - The graph is initially centered on the most recent note.
+    - From the **Main Dashboard**, the user views the integrated `GraphPanel` alongside their notes list.
+    - The graph is initially centered on the most recent note. For a more focused experience, the user can expand the panel into a full-screen "explorer mode".
     - The user clicks on an entity node (e.g., "Plato"). The graph re-centers, fetching and displaying connections up to two levels deep via a call to the `/api/graph` endpoint.
     - The user activates "Connect Mode", clicks two entity nodes, and defines the relationship between them in a modal (e.g., Socrates `is_student_of` Plato).
 
@@ -104,6 +104,7 @@ Navigation is designed to be simple and predictable.
 
 -   **`AuthForm`**: A standardized form for sign-in and sign-up, handling validation and submission state.
 -   **`NotesList`**: Displays a list of notes with search and filter capabilities. Handles its own empty and loading states.
+-   **`GraphPanel`**: A container component for the `GraphView`. It manages the layout (e.g., side panel) and includes UI controls like "Collapse" and "Expand", allowing the graph to be viewed side-by-side with notes or in a full-screen, focused mode.
 -   **`GraphView`**: An interactive component responsible for rendering nodes and edges, handling user interactions like panning, zooming, and node selection.
 -   **`EntityTagInput`**: A specialized input for the Note Editor that allows users to add entities, provides autocomplete suggestions from existing entities, and triggers a creation modal for new ones. Includes a dropdown for setting the relationship type.
 -   **`AISuggestionCard`**: A card component to display a single AI suggestion with its type, content, and action buttons (`Accept`/`Reject`).
