@@ -47,7 +47,8 @@ export async function getNotes(
     .eq("user_id", userId);
 
   if (search) {
-    query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+    // Search only by title (case-insensitive partial match)
+    query = query.ilike('title', `%${search}%`);
   }
 
   if (entities && entities.length > 0) {
