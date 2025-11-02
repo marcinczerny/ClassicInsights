@@ -42,12 +42,14 @@ Zainstalowane komponenty shadcn/ui: Input, Card, Skeleton, Popover
 - Lista notatek z paginacją
 - Obsługa błędów z przyciskiem "Spróbuj ponownie"
 
-#### SearchBar (`src/components/dashboard/notes/SearchBar.tsx`)
-- Input z debouncingiem (300ms)
-- Autouzupełnianie na podstawie API `/api/entities`
-- Popover z sugestiami (maksymalnie 5)
-- Przycisk czyszczenia
-- Wyszukiwanie aktywne po wpisaniu minimum 2 znaków
+#### SearchBar (`src/components/dashboard/notes/SearchBar.tsx`) - ✅ PRZEPISANY
+- **Pole wyszukiwania po tytule**: Input z debouncingiem (300ms)
+- **Multi-select encji (tagów)**:
+  - Popover z listą wszystkich encji użytkownika
+  - Wyszukiwanie wewnątrz popovera
+  - Badge'y z wybranymi encjami (z przyciskiem X do usunięcia)
+- Przycisk "Wyczyść wszystkie filtry"
+- Oba filtry działają jednocześnie (AND) - tytuł + wybrane tagi
 
 #### NoteItem (`src/components/dashboard/notes/NoteItem.tsx`)
 - Klikalny przycisk (zamiast linku)
@@ -110,28 +112,38 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - Aktywacja przycisku "Tryb łączenia"
 - Pierwszy klik: wybór węzła źródłowego (wizualne podświetlenie)
 - Drugi klik: otwarcie modala wyboru typu relacji
-- Walidacja: tylko byty (entity) mogą być łączone
+- Walidacja połączeń:
+  - ✅ **entity → entity** (tworzy relationship)
+  - ✅ **note → entity** (tworzy note-entity association)
+  - ❌ note → note (blokowane)
+  - ❌ entity → note (blokowane z komunikatem)
 - Kliknięcie tego samego węzła: odznaczenie
-- Po utworzeniu relacji: automatyczny refresh grafu
+- Po utworzeniu połączenia: automatyczny refresh grafu
 
 #### RelationshipModal (`src/components/dashboard/graph/RelationshipModal.tsx`)
 - Wybór typu relacji z dropdown (6 typów)
-- Wyświetlanie nazw połączonych bytów
+- Wyświetlanie nazw połączonych węzłów
 - Przyciski: Anuluj / Utwórz relację
-- Integracja z API: `POST /api/relationships`
+- Integracja z API: `POST /api/relationships` lub `POST /api/notes/:id/entities`
 
-#### Edycja relacji (dodatkowa funkcjonalność)
-- Kliknięcie krawędzi (poza trybem łączenia) otwiera modal edycji
-- EditRelationshipModal pokazuje aktualny typ relacji
+#### Edycja relacji entity-entity
+- Kliknięcie krawędzi entity-entity otwiera EditRelationshipModal
 - Możliwość zmiany typu: `PATCH /api/relationships/:id`
 - Możliwość usunięcia: `DELETE /api/relationships/:id` (z potwierdzeniem)
 - Automatyczny refresh grafu po zmianach
 
+#### Edycja połączeń note-entity (nowa funkcjonalność)
+- Kliknięcie krawędzi note-entity otwiera EditNoteEntityModal
+- Modal pokazuje nazwę notatki, encji i aktualny typ relacji
+- Możliwość zmiany typu: `DELETE` + `POST /api/notes/:id/entities`
+- Możliwość usunięcia: `DELETE /api/notes/:id/entities/:entityId` (z potwierdzeniem)
+- Automatyczny refresh grafu po zmianach
+
 #### Kliknięcie węzła w grafie
 - Poza trybem łączenia: zmiana centrum grafu (`onNodeSelect`)
-- W trybie łączenia: wybór węzła do połączenia
+- W trybie łączenia: wybór węzła do połączenia (note lub entity)
 
-### ✅ Krok 7: Dopracowanie UX (częściowo)
+### ✅ Krok 7: Dopracowanie UX
 - ✅ Skeleton loaders dla notatek
 - ✅ Obsługa błędów z przyciskiem "Spróbuj ponownie"
 - ✅ Logika zwijania/rozwijania GraphPanel
@@ -139,6 +151,8 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - ✅ Stany puste z odpowiednimi komunikatami
 - ✅ Wizualne oznaczenie wybranej notatki
 - ✅ Wizualne oznaczenie wybranego węzła w trybie łączenia
+- ✅ Kierunki krawędzi (strzałki) - wskazują zawsze na target
+- ✅ Graf nie resetuje się przy wyszukiwaniu/filtrowaniu
 - ❌ Brak toast notifications dla błędów (TODO komentarze w kodzie)
 
 ### 🔧 Naprawione problemy
@@ -148,57 +162,77 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 4. **Kliknięcie notatki** - zmieniono z nawigacji na wybór centrum grafu
 5. **Tryb łączenia** - kliknięcie węzłów tworzy relacje zamiast zmieniać centrum
 6. **Nodes/edges nie aktualizowały się** - dodano useEffect synchronizujący stan
-7. **Kliknięcie węzła nie działało** - naprawiono GraphView.tsx:63-65, używając `node.id` i `node.type` zamiast `node.data.id` i `node.data.type` (wartości są na głównym poziomie obiektu w @xyflow/react, nie w data)
+7. **Kliknięcie węzła nie działało** - naprawiono GraphView.tsx:63-65, używając `node.id` i `node.type` zamiast `node.data.id` i `node.data.type` (wartości są na głównym poziomiu obiektu w @xyflow/react, nie w data)
 8. **Błąd 400 przy edycji krawędzi note-entity** - dodano walidację w GraphPanel.tsx:159-163, która zapobiega otwieraniu modala edycji dla asocjacji note-entity (można edytować tylko relacje entity-entity)
+9. **Graf resetował się przy wyszukiwaniu** - useDashboard.ts:29,222-226 używa `useRef` do śledzenia początkowego ładowania grafu, graf ładuje się tylko raz i nie resetuje się przy zmianie filtrów
+10. **Krawędzie note-entity nie były edytowalne** - dodano EditNoteEntityModal dla edycji i usuwania połączeń note-entity
 
 ## Integracja API
 
 ### Wykorzystywane endpointy
-- ✅ `GET /api/notes` - lista notatek z paginacją i wyszukiwaniem
-- ✅ `GET /api/entities` - sugestie bytów dla SearchBar
+- ✅ `GET /api/notes` - lista notatek z paginacją, wyszukiwaniem i filtrowaniem
+- ✅ `GET /api/entities` - lista wszystkich encji użytkownika (limit: 100)
 - ✅ `GET /api/graph` - dane grafu (wymaga center_id i center_type)
 - ✅ `POST /api/relationships` - tworzenie relacji między bytami
 - ✅ `PATCH /api/relationships/:id` - aktualizacja typu relacji
 - ✅ `DELETE /api/relationships/:id` - usuwanie relacji
+- ✅ `POST /api/notes/:id/entities` - dodawanie encji do notatki
+- ✅ `DELETE /api/notes/:id/entities/:entityId` - usuwanie encji z notatki
 
 ### Parametry requestów
-- Notes: `page`, `limit`, `search` (opcjonalny)
-- Entities: `search` (dla autouzupełniania)
+- Notes: `page`, `limit`, `search` (tytuł notatki), `entities` (CSV lista UUID)
+- Entities: `limit` (dla pobrania wszystkich encji użytkownika)
 - Graph: `center_id`, `center_type`, `levels` (domyślnie 2)
+- Note entities: `entity_id`, `relationship_type` (opcjonalny)
+
+## ✅ Krok 8: Ulepszenia po implementacji
+
+### Zmiany w wyszukiwaniu i filtrowaniu
+- ✅ **Backend**: `notes.service.ts:49-52` - wyszukiwanie tylko po tytule (`.ilike('title', ...)`)
+- ✅ **Backend**: `notes.service.ts:54-68` - filtrowanie po encjach przez RPC `get_notes_with_all_entities`
+- ✅ **API**: `useDashboard.ts:35-44` - parametry `search` i `entities` (CSV)
+- ✅ **Frontend**: `SearchBar.tsx` - przepisany (235 linii):
+  - Input dla wyszukiwania po tytule
+  - Multi-select dla wyboru encji (tagów)
+  - Badge'y z wybranymi tagami
+  - Przycisk "Wyczyść wszystkie filtry"
+- ✅ **State**: `DashboardState` - dodano `selectedEntityIds: string[]`
+- ✅ **Hooks**: `useDashboard.ts` - `handleEntitySelectionChange()`, debounced effect dla obu filtrów
+- ✅ **Dokumentacja**: Zaktualizowano `api-plan.md` i `notes-get-implementation-plan.md`
+
+### Edycja połączeń note-entity
+- ✅ **Modal**: `EditNoteEntityModal.tsx` (167 linii) - edycja i usuwanie note-entity
+- ✅ **Logika**: `GraphPanel.tsx:169-203` - rozpoznawanie typu krawędzi (entity-entity vs note-entity)
+- ✅ **Handlers**: `GraphPanel.tsx:269-343` - `handleNoteEntityUpdate()`, `handleNoteEntityDelete()`
+- ✅ **API**: DELETE + POST dla zmiany typu relacji note-entity
+
+### Graf - stabilność i kierunki
+- ✅ **Kierunki**: `graphHelpers.ts:47-51` - dodano `markerEnd` z strzałkami
+- ✅ **Stabilność**: `useDashboard.ts:29,222-226` - `useRef` zapobiega resetowaniu grafu
+- ✅ **Tryb łączenia**: note → entity oraz entity → entity
 
 ## Kolejne kroki
 
-### Krok 8: Testowanie i refaktoryzacja
-Zgodnie z planem implementacji (krok 8):
-- [ ] Przetestować wszystkie interakcje użytkownika:
-  - [ ] Wyszukiwanie notatek po bytach
-  - [ ] Paginacja listy notatek
-  - [ ] Wybór notatki i centrowanie grafu
-  - [ ] Tryb łączenia - tworzenie relacji
-  - [ ] Edycja relacji przez kliknięcie krawędzi
-  - [ ] Usuwanie relacji
-  - [ ] Zwijanie/rozwijanie/fullscreen panelu grafu
-- [ ] Przetestować scenariusze błędów:
-  - [ ] Błąd ładowania notatek
-  - [ ] Błąd ładowania grafu
-  - [ ] Błąd tworzenia relacji
-  - [ ] Błąd aktualizacji/usuwania relacji
-- [ ] Testy z pustymi stanami:
-  - [ ] Brak notatek (nowy użytkownik)
-  - [ ] Brak wyników wyszukiwania
-  - [ ] Brak danych grafu
-- [ ] Refaktoryzacja jeśli potrzebna
+### Testowanie (do wykonania ręcznie)
+- [ ] Przetestować wyszukiwanie po tytule
+- [ ] Przetestować filtrowanie po tagach (pojedynczy i wielokrotny wybór)
+- [ ] Przetestować łączenie filtrów (tytuł + tagi)
+- [ ] Przetestować tworzenie połączeń note → entity w trybie łączenia
+- [ ] Przetestować edycję połączeń note-entity przez kliknięcie krawędzi
+- [ ] Przetestować że graf nie resetuje się przy zmianie filtrów
+- [ ] Przetestować paginację z aktywnymi filtrami
 
 ### Usprawnienia UX (opcjonalne)
 - [ ] Implementacja toast notifications (biblioteka Sonner z shadcn/ui)
   - Lokalizacje TODO w kodzie:
-    - `GraphPanel.tsx:59` - błąd walidacji typu węzła
-    - `GraphPanel.tsx:120` - błąd tworzenia relacji
-    - `GraphPanel.tsx:192` - błąd aktualizacji relacji
-    - `GraphPanel.tsx:217` - błąd usuwania relacji
-- [ ] Loading indicators podczas operacji API
+    - `GraphPanel.tsx:97,103` - błędy walidacji w trybie łączenia
+    - `GraphPanel.tsx:145` - błąd tworzenia połączenia
+    - `GraphPanel.tsx:309` - błąd aktualizacji note-entity
+    - `GraphPanel.tsx:334` - błąd usuwania note-entity
+- [ ] Loading indicators podczas operacji API (tworzenie/usuwanie połączeń)
 - [ ] Animacje przejść między stanami
 - [ ] Improved error messages (bardziej szczegółowe)
+- [ ] Sortowanie encji w multi-select (alfabetycznie lub po częstości użycia)
 
 ### Dodatkowe funkcjonalności (poza planem)
 - [ ] Eksport grafu do obrazu (PNG/SVG)
@@ -212,33 +246,34 @@ Zgodnie z planem implementacji (krok 8):
 
 ```
 src/components/dashboard/
-├── DashboardPage.tsx              # Główny kontener
-├── types.ts                       # TypeScript types (DashboardState, ViewModels)
+├── DashboardPage.tsx              # Główny kontener (73 linie)
+├── types.ts                       # TypeScript types (DashboardState, ViewModels) (55 linii)
 ├── hooks/
-│   └── useDashboard.ts           # Custom hook z logiką stanu (227 linii)
+│   └── useDashboard.ts           # Custom hook z logiką stanu (278 linii)
 ├── notes/
 │   ├── NotesPanel.tsx            # Panel notatek (84 linie)
-│   ├── SearchBar.tsx             # Wyszukiwanie z autouzupełnianiem (134 linie)
+│   ├── SearchBar.tsx             # Wyszukiwanie po tytule + multi-select encji (235 linii)
 │   ├── NotesList.tsx             # Lista notatek (97 linii)
 │   ├── NoteItem.tsx              # Pojedyncza notatka (56 linii)
 │   └── PaginationControls.tsx   # Kontrolki paginacji (43 linie)
 └── graph/
-    ├── GraphPanel.tsx            # Panel grafu z logiką (340 linii)
+    ├── GraphPanel.tsx            # Panel grafu z logiką (470 linii)
     ├── GraphView.tsx             # Wizualizacja @xyflow/react (143 linie)
     ├── GraphToolbar.tsx          # Toolbar z kontrolkami (26 linii)
     ├── CustomNodes.tsx           # Custom węzły (Entity/Note) (82 linie)
-    ├── graphHelpers.ts           # Helper functions (73 linie)
+    ├── graphHelpers.ts           # Helper functions (90 linii)
     ├── RelationshipModal.tsx     # Modal tworzenia relacji (130 linii)
-    └── EditRelationshipModal.tsx # Modal edycji relacji (133 linie)
+    ├── EditRelationshipModal.tsx # Modal edycji relacji entity-entity (133 linie)
+    └── EditNoteEntityModal.tsx   # Modal edycji połączeń note-entity (167 linii)
 ```
 
 ## Metryki
 
-- **Komponenty utworzone**: 15
-- **Linie kodu**: ~1,400+
-- **Zainstalowane biblioteki**: @xyflow/react, shadcn/ui components
-- **Endpointy API**: 5 (GET notes, GET entities, GET graph, POST/PATCH/DELETE relationships)
-- **Czas implementacji**: 1 sesja
+- **Komponenty utworzone**: 16 (+1 EditNoteEntityModal)
+- **Linie kodu**: ~1,750+ (+350)
+- **Zainstalowane biblioteki**: @xyflow/react, shadcn/ui components (Input, Card, Skeleton, Popover, Dialog, Select, Button, Badge)
+- **Endpointy API**: 8 (GET notes, GET entities, GET graph, POST/PATCH/DELETE relationships, POST/DELETE note_entities)
+- **Czas implementacji**: 2 sesje
 - **Status buildu**: ✅ Sukces (bez błędów/ostrzeżeń TypeScript)
 
 ## Uwagi techniczne
