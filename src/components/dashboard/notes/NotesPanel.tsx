@@ -18,8 +18,10 @@ interface NotesPanelProps {
   isLoading: boolean;
   error: Error | null;
   searchTerm: string;
+  selectedEntityIds: string[];
   selectedNoteId?: string;
   onSearchChange: (term: string) => void;
+  onEntitySelectionChange: (entityIds: string[]) => void;
   onPageChange: (page: number) => void;
   onNoteSelect: (noteId: string) => void;
 }
@@ -30,8 +32,10 @@ export function NotesPanel({
   isLoading,
   error,
   searchTerm,
+  selectedEntityIds,
   selectedNoteId,
   onSearchChange,
+  onEntitySelectionChange,
   onPageChange,
   onNoteSelect,
 }: NotesPanelProps) {
@@ -44,7 +48,12 @@ export function NotesPanel({
 
       {/* Search bar */}
       <div className="border-b p-4">
-        <SearchBar searchTerm={searchTerm} onSearchChange={onSearchChange} />
+        <SearchBar
+          titleSearch={searchTerm}
+          selectedEntityIds={selectedEntityIds}
+          onTitleSearchChange={onSearchChange}
+          onEntitySelectionChange={onEntitySelectionChange}
+        />
       </div>
 
       {/* New note button */}

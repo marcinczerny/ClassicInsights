@@ -17,6 +17,7 @@ export function DashboardPage() {
     isLoadingNotes,
     notesError,
     searchTerm,
+    selectedEntityIds,
 
     // Graph state
     graphData,
@@ -27,6 +28,7 @@ export function DashboardPage() {
 
     // Actions
     handleSearchChange,
+    handleEntitySelectionChange,
     handlePageChange,
     handleNoteSelect,
     handleNodeSelect,
@@ -45,8 +47,10 @@ export function DashboardPage() {
           isLoading={isLoadingNotes}
           error={notesError}
           searchTerm={searchTerm}
+          selectedEntityIds={selectedEntityIds}
           selectedNoteId={graphCenterNode?.type === 'note' ? graphCenterNode.id : undefined}
           onSearchChange={handleSearchChange}
+          onEntitySelectionChange={handleEntitySelectionChange}
           onPageChange={handlePageChange}
           onNoteSelect={handleNoteSelect}
         />

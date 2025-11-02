@@ -21,6 +21,7 @@ const INITIAL_STATE: DashboardState = {
 
   graphCenterNode: null,
   searchTerm: "",
+  selectedEntityIds: [],
   graphPanelState: "open",
 };
 
@@ -31,7 +32,7 @@ export function useDashboard() {
   /**
    * Fetch notes from API
    */
-  const fetchNotes = useCallback(async (page: number = 1, search: string = "") => {
+  const fetchNotes = useCallback(async (page: number = 1, search: string = "", entityIds: string[] = []) => {
     setState((prev) => ({ ...prev, isLoadingNotes: true, notesError: null }));
 
     try {
@@ -39,6 +40,7 @@ export function useDashboard() {
         page: page.toString(),
         limit: "10",
         ...(search && { search }),
+        ...(entityIds.length > 0 && { entities: entityIds.join(',') }),
       });
 
       const response = await fetch(`/api/notes?${params}`);
@@ -107,18 +109,25 @@ export function useDashboard() {
   }, []);
 
   /**
-   * Handle search term change with debouncing
+   * Handle search term change (title search)
    */
   const handleSearchChange = useCallback((term: string) => {
     setState((prev) => ({ ...prev, searchTerm: term }));
   }, []);
 
   /**
+   * Handle entity selection change
+   */
+  const handleEntitySelectionChange = useCallback((entityIds: string[]) => {
+    setState((prev) => ({ ...prev, selectedEntityIds: entityIds }));
+  }, []);
+
+  /**
    * Handle page change in pagination
    */
   const handlePageChange = useCallback((page: number) => {
-    fetchNotes(page, state.searchTerm);
-  }, [fetchNotes, state.searchTerm]);
+    fetchNotes(page, state.searchTerm, state.selectedEntityIds);
+  }, [fetchNotes, state.searchTerm, state.selectedEntityIds]);
 
   /**
    * Handle note selection from list - centers graph on selected note
@@ -227,17 +236,15 @@ export function useDashboard() {
   }, [state.isLoadingNotes, state.notes.length, fetchGraph]);
 
   /**
-   * Debounced search effect
+   * Debounced search effect - triggers when search term or entity selection changes
    */
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (state.searchTerm.length >= 2 || state.searchTerm === "") {
-        fetchNotes(1, state.searchTerm);
-      }
+      fetchNotes(1, state.searchTerm, state.selectedEntityIds);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [state.searchTerm, fetchNotes]);
+  }, [state.searchTerm, state.selectedEntityIds, fetchNotes]);
 
   return {
     // State
@@ -252,12 +259,14 @@ export function useDashboard() {
 
     graphCenterNode: state.graphCenterNode,
     searchTerm: state.searchTerm,
+    selectedEntityIds: state.selectedEntityIds,
     graphPanelState: state.graphPanelState,
 
     // Actions
     fetchNotes,
     fetchGraph,
     handleSearchChange,
+    handleEntitySelectionChange,
     handlePageChange,
     handleNoteSelect,
     handleNodeSelect,

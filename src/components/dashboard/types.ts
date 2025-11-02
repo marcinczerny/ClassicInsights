@@ -31,9 +31,14 @@ export interface DashboardState {
   graphCenterNode: { id: string; type: 'note' | 'entity' } | null;
 
   /**
-   * Current search term
+   * Current search term (for note title)
    */
   searchTerm: string;
+
+  /**
+   * Selected entity IDs for filtering
+   */
+  selectedEntityIds: string[];
 
   /**
    * Graph panel visibility state
