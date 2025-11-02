@@ -119,8 +119,8 @@ Get a paginated list of notes for the current user.
 - `limit` (integer, optional, default: 20, max: 100): Number of items per page
 - `sort` (string, optional, default: "created_at"): Sort field (created_at, updated_at, title)
 - `order` (string, optional, default: "desc"): Sort order (asc, desc)
-- `entities` (string, optional): Comma-separated list of entity IDs to filter by (returns notes that have ALL specified entities)
-- `search` (string, optional): Search term to filter notes by title or content
+- `search` (string, optional): Search term to filter notes by title only (case-insensitive partial match)
+- `entities` (string, optional): Comma-separated list of entity IDs to filter by (returns notes that have ALL specified entities). Can be combined with `search` parameter for combined filtering.
 
 **Request Body**: None
 

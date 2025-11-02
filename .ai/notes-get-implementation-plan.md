@@ -12,8 +12,8 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
     - `limit` (integer): Liczba notatek na stronę. Domyślnie `20`, maksymalnie `100`.
     - `sort` (string): Pole do sortowania. Dozwolone wartości: `"created_at"`, `"updated_at"`, `"title"`. Domyślnie `"created_at"`.
     - `order` (string): Kierunek sortowania. Dozwolone wartości: `"asc"`, `"desc"`. Domyślnie `"desc"`.
-    - `entities` (string): Rozdzielona przecinkami lista identyfikatorów UUID bytów. Zwraca notatki powiązane ze **wszystkimi** podanymi bytami.
-    - `search` (string): Fraza do wyszukania w tytule lub treści notatki.
+    - `search` (string): Fraza do wyszukania **tylko w tytule notatki** (wyszukiwanie case-insensitive, częściowe dopasowanie).
+    - `entities` (string): Rozdzielona przecinkami lista identyfikatorów UUID bytów. Zwraca notatki powiązane ze **wszystkimi** podanymi bytami. Można łączyć z parametrem `search` dla bardziej precyzyjnego filtrowania.
 - **Request Body**: Brak.
 
 ## 3. Wykorzystywane typy
@@ -63,9 +63,10 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
 5.  Wywoływana jest funkcja z serwisu, np. `NotesService.getNotes(userId, validatedParams)`, zlokalizowana w `src/lib/services/notes.service.ts`.
 6.  `NotesService` konstruuje zapytanie do Supabase:
     a. Rozpoczyna od `from('notes').select('*, note_entities(type, entities(*))')` aby pobrać byty wraz z typami relacji z tabeli `note_entities`.
-    b. Dodaje filtrowanie `search` przy użyciu `.or('title.ilike.%term%,content.ilike.%term%')`.
+    b. Dodaje filtrowanie `search` przy użyciu `.ilike('title', '%term%')` - wyszukiwanie **tylko po tytule**.
     c. Jeśli podano `entities`, dodaje warunek filtrujący, który zapewnia, że notatka jest powiązana ze wszystkimi podanymi bytami. Może to wymagać użycia funkcji RPC w PostgreSQL lub bardziej złożonego filtrowania.
-    d. Stosuje sortowanie (`.order()`) i paginację (`.range()`).
+    d. Parametry `search` i `entities` mogą być używane jednocześnie - wtedy filtrowanie jest addytywne (AND).
+    e. Stosuje sortowanie (`.order()`) i paginację (`.range()`).
 7.  `NotesService` wykonuje osobne zapytanie, aby uzyskać całkowitą liczbę pasujących rekordów (`count`), niezbędną do metadanych paginacji.
 8.  Serwis formatuje dane do struktury `NotesListResponseDTO` i zwraca je do handlera API.
 9.  Handler API serializuje DTO do formatu JSON i wysyła odpowiedź z kodem statusu `200 OK`.
