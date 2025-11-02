@@ -1,0 +1,13 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { NoteEditorView } from "../../components/notes/NoteEditorView";
+
+export const prerender = false;
+
+// Extract note ID from URL params
+const { id } = Astro.params;
+---
+
+<Layout>
+  <NoteEditorView client:load noteId={id || 'new'} />
+</Layout>
