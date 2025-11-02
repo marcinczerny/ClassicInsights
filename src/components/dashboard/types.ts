@@ -49,10 +49,10 @@ export interface DashboardState {
 /**
  * ViewModel types for graph library, extending DTOs with UI state
  */
-export interface GraphNodeViewModel extends GraphNodeDTO {
+export type GraphNodeViewModel = GraphNodeDTO & {
   isSelected?: boolean;
   position?: { x: number; y: number }; // Required by some graph libraries
-}
+};
 
 export interface GraphEdgeViewModel extends GraphEdgeDTO {
   isSelected?: boolean;
