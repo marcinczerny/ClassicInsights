@@ -1,11 +1,12 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
 import type { AnalyzeNoteResponseDTO, SuggestionPreviewDTO, SuggestionsListResponseDTO, SuggestionDTO } from "../../types.ts";
 import type { Enums } from "../../db/database.types.ts";
+import { z } from "zod";
 import { handleSupabaseError } from "../../db/supabase.client.ts";
 import { getProfile } from "./profile.service.ts";
 import { findNoteById, addEntityToNote, updateNote } from "./notes.service.ts";
-import { createEntity } from "./entities.service.ts";
-import { generateSuggestions } from "./ai.service.ts";
+import { createEntity, getEntities } from "./entities.service.ts";
+import { OpenRouterService } from "./ai.service.ts";
 
 /**
  * Custom error class for AI consent validation
@@ -68,6 +69,111 @@ export class InvalidStateTransitionError extends Error {
 }
 
 const MIN_CONTENT_LENGTH = 10;
+
+/**
+ * Zod schema for AI-generated suggestion
+ */
+const AISuggestionSchema = z.object({
+	type: z.enum(["quote", "summary", "new_entity", "existing_entity_link"]).describe("Type of the suggestion"),
+	name: z.string().describe("Display name for the suggestion"),
+	content: z.string().describe("Content of the suggestion (quote text, summary, entity description, etc.)"),
+	suggested_entity_id: z.union([z.string().uuid(), z.null()]).describe("UUID of existing entity to link (ONLY for existing_entity_link type, null otherwise)"),
+	entity_type: z.enum(["person", "work", "epoch", "idea", "school", "system", "other"]).nullable().optional().describe("Type of entity (ONLY for new_entity type, null otherwise)"),
+});
+
+/**
+ * Zod schema for AI response containing multiple suggestions
+ */
+const AISuggestionsResponseSchema = z.object({
+	suggestions: z.array(AISuggestionSchema).describe("Array of generated suggestions for the note"),
+});
+
+/**
+ * Generates AI suggestions for a note using OpenRouter
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - User ID
+ * @param noteContent - Content of the note to analyze
+ * @param noteEntities - Entities already linked to the note
+ * @returns Array of AI-generated suggestions
+ */
+async function generateSuggestionsFromAI(
+	supabase: SupabaseClient,
+	userId: string,
+	noteContent: string,
+	noteEntities: Array<{ id: string; name: string; type: Enums<"entity_type">; description: string | null }>
+): Promise<z.infer<typeof AISuggestionsResponseSchema>["suggestions"]> {
+	// Fetch all user's entities for context
+	const { data: userEntities } = await getEntities(supabase, userId, {
+		limit: 100, // Get up to 100 entities for context
+		sort: "name",
+		order: "asc",
+	});
+
+	// Prepare context about existing entities with UUIDs
+	const existingEntitiesContext = userEntities.length > 0
+		? userEntities.map(e => `- ID: ${e.id} | Name: "${e.name}" | Type: ${e.type}${e.description ? ` | Description: ${e.description}` : ""}`).join("\n")
+		: "No existing entities.";
+
+	const noteEntitiesContext = noteEntities.length > 0
+		? noteEntities.map(e => `- ${e.name} (${e.type})`).join("\n")
+		: "No entities linked to this note yet.";
+
+	// System prompt
+	const systemPrompt = `You are an expert assistant for analyzing philosophical and academic notes. Your task is to generate helpful suggestions based on the note content.
+
+You can suggest 4 types:
+1. **quote**: Important excerpts from the text that should be highlighted
+   - Set: suggested_entity_id = null, entity_type = null
+2. **summary**: A concise summary of the key ideas in the note
+   - Set: suggested_entity_id = null, entity_type = null
+3. **new_entity**: New entities (people, works, ideas, etc.) mentioned in the text that should be added to the knowledge base
+   - Set: suggested_entity_id = null, entity_type = one of ["person", "work", "epoch", "idea", "school", "system", "other"]
+4. **existing_entity_link**: Links to entities that already exist in the user's knowledge base
+   - Set: suggested_entity_id = exact UUID from the provided list, entity_type = null
+
+CRITICAL Field Requirements:
+- For quote/summary: BOTH suggested_entity_id AND entity_type MUST be null
+- For new_entity: suggested_entity_id MUST be null, entity_type MUST be set to appropriate type
+- For existing_entity_link: suggested_entity_id MUST be exact UUID from user's entities list, entity_type MUST be null
+
+Guidelines:
+- For "quote" suggestions: Extract meaningful, self-contained passages (max 200 characters)
+- For "summary" suggestions: Provide a concise summary capturing the main ideas
+- For "new_entity" suggestions: Only suggest entities clearly mentioned in the text that don't exist yet
+- For "existing_entity_link" suggestions: Only link entities that are clearly relevant AND exist in the provided list; use EXACT UUID
+
+Output format:
+- Return 2-5 suggestions total
+- Prioritize quality over quantity
+- Each suggestion must have a clear, descriptive name`;
+
+	const userPrompt = `**Note Content:**
+${noteContent}
+
+**Entities already linked to this note:**
+${noteEntitiesContext}
+
+**User's existing entities (for linking):**
+${existingEntitiesContext}
+
+Generate 2-5 helpful suggestions for this note.`;
+
+	// Initialize AI service
+	const aiService = new OpenRouterService();
+
+	// Get structured response from AI
+	const response = await aiService.getStructuredResponse({
+		systemPrompt,
+		userPrompt,
+		schema: AISuggestionsResponseSchema,
+		params: {
+			temperature: 0.7, // Balanced creativity and consistency
+		},
+	});
+
+	return response.suggestions;
+}
 
 /**
  * Logs AI service errors to the database for monitoring and debugging
@@ -167,9 +273,14 @@ export async function analyzeNote(
 	}
 
 	// Step 4: Call AI service to generate suggestions
-	let mockSuggestions;
+	let aiSuggestions;
 	try {
-		mockSuggestions = await generateSuggestions(noteContent);
+		aiSuggestions = await generateSuggestionsFromAI(
+			supabase,
+			userId,
+			noteContent,
+			note.entities || []
+		);
 	} catch (aiError) {
 		// Log the AI error
 		await logAIError(
@@ -186,7 +297,7 @@ export async function analyzeNote(
 	const generationDuration = Date.now() - startTime;
 
 	// Step 5: Save suggestions to database
-	const suggestionsToInsert = mockSuggestions.map(suggestion => ({
+	const suggestionsToInsert = aiSuggestions.map(suggestion => ({
 		user_id: userId,
 		note_id: noteId,
 		type: suggestion.type,
@@ -387,6 +498,10 @@ async function executeAcceptanceLogic(
 			case "new_entity": {
 				// Create new entity from suggestion content
 				// Parse the name from suggestion.name (format: "Suggested Person: Plato")
+				if (!suggestion.name) {
+					throw new Error("Suggestion name is required for new_entity type");
+				}
+
 				const entityName = suggestion.name.includes(":")
 					? suggestion.name.split(":")[1].trim()
 					: suggestion.name;
@@ -395,7 +510,7 @@ async function executeAcceptanceLogic(
 				const newEntity = await createEntity(supabase, userId, {
 					name: entityName,
 					type: "person", // Default type for AI-suggested entities
-					description: suggestion.content,
+					description: suggestion.content || "",
 				});
 
 				// Link the new entity to the note
