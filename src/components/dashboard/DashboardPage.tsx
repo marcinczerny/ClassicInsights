@@ -34,6 +34,7 @@ export function DashboardPage() {
     handleNodeSelect,
     handleCreateRelationship,
     handleCreateNoteEntity,
+    handleNoteDelete,
     setGraphPanelState,
   } = useDashboard();
 
@@ -53,6 +54,7 @@ export function DashboardPage() {
           onEntitySelectionChange={handleEntitySelectionChange}
           onPageChange={handlePageChange}
           onNoteSelect={handleNoteSelect}
+          onNoteDelete={handleNoteDelete}
         />
       </div>
 

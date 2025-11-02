@@ -24,6 +24,7 @@ interface NotesPanelProps {
   onEntitySelectionChange: (entityIds: string[]) => void;
   onPageChange: (page: number) => void;
   onNoteSelect: (noteId: string) => void;
+  onNoteDelete?: (noteId: string) => Promise<void>;
 }
 
 export function NotesPanel({
@@ -38,6 +39,7 @@ export function NotesPanel({
   onEntitySelectionChange,
   onPageChange,
   onNoteSelect,
+  onNoteDelete,
 }: NotesPanelProps) {
   return (
     <div className="flex h-full flex-col border-r bg-background">
@@ -84,6 +86,7 @@ export function NotesPanel({
             selectedNoteId={selectedNoteId}
             onPageChange={onPageChange}
             onNoteSelect={onNoteSelect}
+            onNoteDelete={onNoteDelete}
           />
         </div>
       )}

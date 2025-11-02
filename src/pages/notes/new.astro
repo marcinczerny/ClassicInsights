@@ -1,0 +1,10 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { NoteEditorView } from "../../components/notes/NoteEditorView";
+
+export const prerender = false;
+---
+
+<Layout>
+  <NoteEditorView client:load noteId="new" />
+</Layout>

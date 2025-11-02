@@ -182,7 +182,13 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => window.location.href = '/'}
+              onClick={() => {
+                if (note.id === 'new') {
+                  window.location.href = '/';
+                } else {
+                  window.location.href = `/notes/${note.id}`;
+                }
+              }}
             >
               Anuluj
             </Button>

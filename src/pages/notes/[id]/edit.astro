@@ -1,6 +1,6 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import { NoteViewPage } from "../../components/notes/NoteViewPage";
+import Layout from "../../../layouts/Layout.astro";
+import { NoteEditorView } from "../../../components/notes/NoteEditorView";
 
 export const prerender = false;
 
@@ -14,5 +14,5 @@ if (!id) {
 ---
 
 <Layout>
-  <NoteViewPage client:load noteId={id} />
+  <NoteEditorView client:load noteId={id} />
 </Layout>

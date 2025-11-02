@@ -205,6 +205,36 @@ export function useDashboard() {
   }, [fetchGraph, state.graphCenterNode]);
 
   /**
+   * Delete a note
+   */
+  const handleNoteDelete = useCallback(async (noteId: string) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete note");
+      }
+
+      // Clear graph if deleted note was centered
+      if (state.graphCenterNode?.id === noteId && state.graphCenterNode?.type === 'note') {
+        setState((prev) => ({
+          ...prev,
+          graphCenterNode: null,
+          graphData: null,
+        }));
+      }
+
+      // Refresh notes list
+      await fetchNotes(state.pagination?.page || 1, state.searchTerm, state.selectedEntityIds);
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      throw error;
+    }
+  }, [fetchNotes, state.graphCenterNode, state.pagination, state.searchTerm, state.selectedEntityIds]);
+
+  /**
    * Set graph panel visibility state
    */
   const setGraphPanelState = useCallback((panelState: DashboardState['graphPanelState']) => {
@@ -272,6 +302,7 @@ export function useDashboard() {
     handleNodeSelect,
     handleCreateRelationship,
     handleCreateNoteEntity,
+    handleNoteDelete,
     setGraphPanelState,
   };
 }

@@ -17,6 +17,7 @@ interface NotesListProps {
   selectedNoteId?: string;
   onPageChange: (page: number) => void;
   onNoteSelect: (noteId: string) => void;
+  onNoteDelete?: (noteId: string) => Promise<void>;
 }
 
 /**
@@ -66,7 +67,7 @@ function EmptyState({ hasSearchTerm }: { hasSearchTerm: boolean }) {
   );
 }
 
-export function NotesList({ notes, pagination, isLoading, selectedNoteId, onPageChange, onNoteSelect }: NotesListProps) {
+export function NotesList({ notes, pagination, isLoading, selectedNoteId, onPageChange, onNoteSelect, onNoteDelete }: NotesListProps) {
   if (isLoading) {
     return <NotesListSkeleton />;
   }
@@ -84,6 +85,7 @@ export function NotesList({ notes, pagination, isLoading, selectedNoteId, onPage
             note={note}
             isSelected={note.id === selectedNoteId}
             onSelect={onNoteSelect}
+            onDelete={onNoteDelete}
           />
         ))}
       </div>
