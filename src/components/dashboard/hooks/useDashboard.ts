@@ -5,7 +5,7 @@
  * for the Dashboard view, keeping components clean and logic reusable.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { DashboardState } from "../types";
 import type { CreateRelationshipCommand } from "@/types";
 
@@ -26,6 +26,7 @@ const INITIAL_STATE: DashboardState = {
 
 export function useDashboard() {
   const [state, setState] = useState<DashboardState>(INITIAL_STATE);
+  const hasInitiallyLoadedGraph = useRef(false);
 
   /**
    * Fetch notes from API
@@ -161,6 +162,40 @@ export function useDashboard() {
   }, [fetchGraph, state.graphCenterNode]);
 
   /**
+   * Create a new note-entity association
+   */
+  const handleCreateNoteEntity = useCallback(async (
+    noteId: string,
+    entityId: string,
+    relationshipType: string
+  ) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}/entities`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entity_id: entityId,
+          relationship_type: relationshipType,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create note-entity association");
+      }
+
+      // Refresh graph after creating association
+      if (state.graphCenterNode) {
+        await fetchGraph(state.graphCenterNode);
+      }
+    } catch (error) {
+      console.error("Error creating note-entity association:", error);
+      throw error;
+    }
+  }, [fetchGraph, state.graphCenterNode]);
+
+  /**
    * Set graph panel visibility state
    */
   const setGraphPanelState = useCallback((panelState: DashboardState['graphPanelState']) => {
@@ -176,14 +211,20 @@ export function useDashboard() {
   }, [fetchNotes]);
 
   /**
-   * Auto-load graph centered on first note when notes are loaded
+   * Auto-load graph centered on first note when notes are loaded for the first time only
+   * This should not run when search term changes - graph should stay on current node
    */
   useEffect(() => {
-    if (!state.isLoadingNotes && state.notes.length > 0 && !state.graphCenterNode) {
+    // Only auto-select on initial load:
+    // 1. Notes are loaded
+    // 2. There are notes available
+    // 3. Haven't loaded graph yet (tracked by ref)
+    if (!state.isLoadingNotes && state.notes.length > 0 && !hasInitiallyLoadedGraph.current) {
       const firstNote = state.notes[0];
       fetchGraph({ id: firstNote.id, type: 'note' });
+      hasInitiallyLoadedGraph.current = true;
     }
-  }, [state.isLoadingNotes, state.notes, state.graphCenterNode, fetchGraph]);
+  }, [state.isLoadingNotes, state.notes.length, fetchGraph]);
 
   /**
    * Debounced search effect
@@ -221,6 +262,7 @@ export function useDashboard() {
     handleNoteSelect,
     handleNodeSelect,
     handleCreateRelationship,
+    handleCreateNoteEntity,
     setGraphPanelState,
   };
 }

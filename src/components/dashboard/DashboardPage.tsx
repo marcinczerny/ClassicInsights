@@ -31,6 +31,7 @@ export function DashboardPage() {
     handleNoteSelect,
     handleNodeSelect,
     handleCreateRelationship,
+    handleCreateNoteEntity,
     setGraphPanelState,
   } = useDashboard();
 
@@ -62,6 +63,7 @@ export function DashboardPage() {
           graphCenterNode={graphCenterNode}
           onNodeSelect={handleNodeSelect}
           onCreateRelationship={handleCreateRelationship}
+          onCreateNoteEntity={handleCreateNoteEntity}
           onPanelStateChange={setGraphPanelState}
         />
       </div>

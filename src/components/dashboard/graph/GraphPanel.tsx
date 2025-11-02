@@ -11,6 +11,7 @@ import { GraphView } from "./GraphView";
 import { GraphToolbar } from "./GraphToolbar";
 import { RelationshipModal } from "./RelationshipModal";
 import { EditRelationshipModal } from "./EditRelationshipModal";
+import { EditNoteEntityModal } from "./EditNoteEntityModal";
 import { Button } from "@/components/ui/button";
 import type { GraphDTO, CreateRelationshipCommand } from "@/types";
 import type { Enums } from "@/db/database.types";
@@ -24,6 +25,7 @@ interface GraphPanelProps {
   graphCenterNode: { id: string; type: 'note' | 'entity' } | null;
   onNodeSelect: (node: { id: string; type: 'note' | 'entity' }) => void;
   onCreateRelationship: (command: CreateRelationshipCommand) => void;
+  onCreateNoteEntity: (noteId: string, entityId: string, relationshipType: Enums<"relationship_type">) => void;
   onPanelStateChange: (state: 'collapsed' | 'open' | 'fullscreen') => void;
 }
 
@@ -36,6 +38,7 @@ export function GraphPanel({
   graphCenterNode,
   onNodeSelect,
   onCreateRelationship,
+  onCreateNoteEntity,
   onPanelStateChange,
 }: GraphPanelProps) {
   const [isConnectionMode, setIsConnectionMode] = useState(false);
@@ -54,6 +57,13 @@ export function GraphPanel({
     sourceNode?: any;
     targetNode?: any;
   } | null>(null);
+  const [editingNoteEntity, setEditingNoteEntity] = useState<{
+    noteId: string;
+    entityId: string;
+    type: Enums<"relationship_type">;
+    noteNode?: any;
+    entityNode?: any;
+  } | null>(null);
 
   /**
    * Handle node click in connection mode
@@ -64,14 +74,7 @@ export function GraphPanel({
     const clickedNode = graphData.nodes.find(n => n.id === nodeId);
     if (!clickedNode) return;
 
-    // Validate: only entities can be connected
-    if (clickedNode.type !== 'entity') {
-      console.error("Only entities can be connected");
-      // TODO: Show error toast
-      return;
-    }
-
-    // First click: select source node
+    // First click: select source node (can be note or entity)
     if (!selectedSourceNode) {
       setSelectedSourceNode(nodeId);
       return;
@@ -93,9 +96,20 @@ export function GraphPanel({
       return;
     }
 
-    // Validate: both must be entities
-    if (sourceNode.type !== 'entity' || targetNode.type !== 'entity') {
-      console.error("Both nodes must be entities to create a relationship");
+    // Validate connection types:
+    // 1. entity → entity (relationship)
+    // 2. note → entity (note-entity association)
+    // Invalid: entity → note, note → note
+    if (sourceNode.type === 'note' && targetNode.type === 'note') {
+      console.error("Cannot connect two notes");
+      // TODO: Show error toast
+      setSelectedSourceNode(null);
+      return;
+    }
+
+    if (sourceNode.type === 'entity' && targetNode.type === 'note') {
+      console.error("Connections must go from note to entity, not the other way");
+      // TODO: Show error toast
       setSelectedSourceNode(null);
       return;
     }
@@ -115,22 +129,31 @@ export function GraphPanel({
   const handleRelationshipConfirm = useCallback(async (type: Enums<"relationship_type">) => {
     if (!pendingConnection) return;
 
-    const command: CreateRelationshipCommand = {
-      source_entity_id: pendingConnection.source,
-      target_entity_id: pendingConnection.target,
-      type,
-    };
-
     try {
-      await onCreateRelationship(command);
+      const { sourceNode, targetNode } = pendingConnection;
+
+      // Check if this is a note-entity connection or entity-entity relationship
+      if (sourceNode.type === 'note' && targetNode.type === 'entity') {
+        // Create note-entity association
+        await onCreateNoteEntity(pendingConnection.source, pendingConnection.target, type);
+      } else if (sourceNode.type === 'entity' && targetNode.type === 'entity') {
+        // Create entity-entity relationship
+        const command: CreateRelationshipCommand = {
+          source_entity_id: pendingConnection.source,
+          target_entity_id: pendingConnection.target,
+          type,
+        };
+        await onCreateRelationship(command);
+      }
+
       setPendingConnection(null);
       setSelectedSourceNode(null);
       setIsConnectionMode(false);
     } catch (error) {
-      console.error("Failed to create relationship:", error);
+      console.error("Failed to create connection:", error);
       // TODO: Show error toast
     }
-  }, [pendingConnection, onCreateRelationship]);
+  }, [pendingConnection, onCreateRelationship, onCreateNoteEntity]);
 
   /**
    * Handle relationship modal cancel
@@ -141,7 +164,7 @@ export function GraphPanel({
   }, []);
 
   /**
-   * Handle edge click for editing relationship
+   * Handle edge click for editing relationship or note-entity association
    */
   const handleEdgeClick = useCallback((edge: { id: string; source: string; target: string }) => {
     if (!graphData) return;
@@ -156,20 +179,27 @@ export function GraphPanel({
 
     if (!sourceNode || !targetNode) return;
 
-    // Only allow editing relationships between entities (not note-entity associations)
-    if (sourceNode.type !== 'entity' || targetNode.type !== 'entity') {
-      console.log("Cannot edit note-entity associations, only entity-entity relationships");
-      return;
+    // Check if this is entity-entity or note-entity
+    if (sourceNode.type === 'entity' && targetNode.type === 'entity') {
+      // Entity-entity relationship
+      setEditingEdge({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        type: edgeData.type,
+        sourceNode,
+        targetNode,
+      });
+    } else if (sourceNode.type === 'note' && targetNode.type === 'entity') {
+      // Note-entity association
+      setEditingNoteEntity({
+        noteId: edge.source,
+        entityId: edge.target,
+        type: edgeData.type,
+        noteNode: sourceNode,
+        entityNode: targetNode,
+      });
     }
-
-    setEditingEdge({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      type: edgeData.type,
-      sourceNode,
-      targetNode,
-    });
   }, [graphData]);
 
   /**
@@ -231,6 +261,85 @@ export function GraphPanel({
    */
   const handleEditCancel = useCallback(() => {
     setEditingEdge(null);
+  }, []);
+
+  /**
+   * Handle note-entity association update
+   */
+  const handleNoteEntityUpdate = useCallback(async (
+    noteId: string,
+    entityId: string,
+    newType: Enums<"relationship_type">
+  ) => {
+    try {
+      // Update note-entity association by deleting and recreating with new type
+      // First delete
+      const deleteResponse = await fetch(`/api/notes/${noteId}/entities/${entityId}`, {
+        method: "DELETE",
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete note-entity association");
+      }
+
+      // Then create with new type
+      const createResponse = await fetch(`/api/notes/${noteId}/entities`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entity_id: entityId,
+          relationship_type: newType,
+        }),
+      });
+
+      if (!createResponse.ok) {
+        throw new Error("Failed to create note-entity association");
+      }
+
+      // Refresh graph
+      if (graphCenterNode) {
+        onNodeSelect(graphCenterNode);
+      }
+
+      setEditingNoteEntity(null);
+    } catch (error) {
+      console.error("Error updating note-entity association:", error);
+      // TODO: Show error toast
+    }
+  }, [graphCenterNode, onNodeSelect]);
+
+  /**
+   * Handle note-entity association deletion
+   */
+  const handleNoteEntityDelete = useCallback(async (noteId: string, entityId: string) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}/entities/${entityId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete note-entity association");
+      }
+
+      // Refresh graph
+      if (graphCenterNode) {
+        onNodeSelect(graphCenterNode);
+      }
+
+      setEditingNoteEntity(null);
+    } catch (error) {
+      console.error("Error deleting note-entity association:", error);
+      // TODO: Show error toast
+    }
+  }, [graphCenterNode, onNodeSelect]);
+
+  /**
+   * Handle note-entity edit modal cancel
+   */
+  const handleNoteEntityEditCancel = useCallback(() => {
+    setEditingNoteEntity(null);
   }, []);
 
   if (panelState === 'collapsed') {
@@ -338,6 +447,21 @@ export function GraphPanel({
           onConfirm={handleRelationshipUpdate}
           onCancel={handleEditCancel}
           onDelete={handleRelationshipDelete}
+        />
+      )}
+
+      {/* Edit Note-Entity Modal */}
+      {editingNoteEntity && editingNoteEntity.noteNode && editingNoteEntity.entityNode && (
+        <EditNoteEntityModal
+          isOpen={!!editingNoteEntity}
+          noteId={editingNoteEntity.noteId}
+          entityId={editingNoteEntity.entityId}
+          noteName={editingNoteEntity.noteNode.name}
+          entityName={editingNoteEntity.entityNode.name}
+          currentType={editingNoteEntity.type}
+          onConfirm={handleNoteEntityUpdate}
+          onCancel={handleNoteEntityEditCancel}
+          onDelete={handleNoteEntityDelete}
         />
       )}
     </div>

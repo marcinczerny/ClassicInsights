@@ -44,6 +44,11 @@ export function transformGraphData(
     type: "smoothstep",
     animated: false,
     label: formatRelationshipType(edge.type),
+    markerEnd: {
+      type: 'arrowclosed',
+      width: 20,
+      height: 20,
+    },
     data: edge,
   }));
 
