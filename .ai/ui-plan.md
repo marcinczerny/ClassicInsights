@@ -91,20 +91,26 @@ The primary user journey is designed to be a seamless flow from content creation
 
 ## 4. Layout and Navigation Structure
 
-Navigation is designed to be simple and predictable.
+Navigation is designed to be simple and predictable, centered around a persistent top navigation bar.
 
--   **Application Shell**: A persistent layout component wraps all authenticated views.
--   **Header Navigation**: The header contains links to the main sections:
-    -   **Notes**: Links to the Main Dashboard (`/`).
-    -   **Entities**: Links to the Global Entity Management View (`/entities`).
-    -   **User Profile Dropdown**: Provides access to the **Profile Management View** (`/profile`) and the **Sign Out** action.
+-   **Application Shell**: A persistent layout component that includes the top navigation bar and wraps all authenticated views.
+-   **Top Navigation Bar**: A standard header present on all pages, containing:
+    -   **App Logo and Name**: Positioned on the far left, linking to the Main Dashboard (`/`).
+    -   **Navigation Links**: A central group of links for major sections:
+        -   **Notes**: Links to the Main Dashboard (`/`).
+        -   **Entities**: Links to the Global Entity Management View (`/entities`).
+    -   **Graph Controls**: A button or toggle to show/hide the `GraphPanel` as a side panel or expand it to full-screen.
+    -   **Light/Dark mode switch**: A toggle to trigger light/dark mode of app
+    -   **User Profile Dropdown**: Positioned on the far right, providing access to:
+        -   **Profile Management View** (`/profile`).
+        -   **Sign Out** action.
 -   **Contextual Navigation**: Navigation within a view, such as clicking a note in the `NotesList` to go to the `Note Editor View`, or clicking the "New Note" button.
 
 ## 5. Key Reusable Components
 
 -   **`AuthForm`**: A standardized form for sign-in and sign-up, handling validation and submission state.
 -   **`NotesList`**: Displays a list of notes with search and filter capabilities. Handles its own empty and loading states.
--   **`GraphPanel`**: A container component for the `GraphView`. It manages the layout (e.g., side panel) and includes UI controls like "Collapse" and "Expand", allowing the graph to be viewed side-by-side with notes or in a full-screen, focused mode.
+-   **`GraphPanel`**: A container component for the `GraphView`. It manages the layout (e.g., side panel or full-screen mode), and its state (collapsed/expanded) is controlled from the top navigation bar. It allows the graph to be viewed side-by-side with notes or in a full-screen, focused mode.
 -   **`GraphView`**: An interactive component responsible for rendering nodes and edges, handling user interactions like panning, zooming, and node selection.
 -   **`EntityTagInput`**: A specialized input for the Note Editor that allows users to add entities, provides autocomplete suggestions from existing entities, and triggers a creation modal for new ones. Includes a dropdown for setting the relationship type.
 -   **`AISuggestionCard`**: A card component to display a single AI suggestion with its type, content, and action buttons (`Accept`/`Reject`).
