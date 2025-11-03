@@ -1,12 +1,24 @@
 ---
 import "../styles/global.css";
 import { ToastProvider } from "../components/ToastProvider";
+import { TopNavigationBar } from "../components/layout/TopNavigationBar";
 
 interface Props {
   title?: string;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const { title = "ClassicInsights" } = Astro.props;
+
+// Mock user for layout demonstration
+// TODO: Replace with actual auth implementation
+// Set to null to test unauthenticated state, or provide mock data for authenticated state
+const user = {
+  id: "mock-user-id",
+  email: "user@example.com"
+};
+
+// For unauthenticated state testing, uncomment:
+// const user = null;
 ---
 
 <!doctype html>
@@ -19,6 +31,7 @@ const { title = "10x Astro Starter" } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
+    <TopNavigationBar user={user} client:load />
     <slot />
     <ToastProvider client:load />
   </body>
