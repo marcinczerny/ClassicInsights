@@ -5,9 +5,12 @@
  * Manages overall state, layout, and communication between NotesPanel and GraphPanel.
  */
 
+import { useState, useEffect } from "react";
 import { useDashboard } from "./hooks/useDashboard";
 import { NotesPanel } from "./notes/NotesPanel";
 import { GraphPanel } from "./graph/GraphPanel";
+import { OnboardingModal } from "../onboarding/OnboardingModal";
+import { useSessionStorage } from "../onboarding/useSessionStorage";
 
 export function DashboardPage() {
   const {
@@ -37,6 +40,29 @@ export function DashboardPage() {
     handleNoteDelete,
     setGraphPanelState,
   } = useDashboard();
+
+  // Onboarding modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useSessionStorage('onboardingDismissed', false);
+
+  // Show onboarding modal for new users with no notes
+  useEffect(() => {
+    if (!onboardingDismissed && !isLoadingNotes && pagination?.total === 0) {
+      setIsModalOpen(true);
+    }
+  }, [onboardingDismissed, isLoadingNotes, pagination?.total]);
+
+  // Handle CTA click - navigate to create note page
+  const handleCtaClick = () => {
+    setIsModalOpen(false);
+    window.location.href = '/notes/new';
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setOnboardingDismissed(true);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -73,6 +99,13 @@ export function DashboardPage() {
           onPanelStateChange={setGraphPanelState}
         />
       </div>
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onCtaClick={handleCtaClick}
+      />
     </div>
   );
 }
