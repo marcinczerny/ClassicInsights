@@ -125,6 +125,14 @@ export type EntitiesListResponseDTO = {
   pagination: PaginationDTO;
 };
 
+/**
+ * List of notes response (GET /api/notes response)
+ */
+export type NotesListResponseDTO = {
+  data: NoteDTO[];
+  pagination: PaginationDTO;
+};
+
 // ============================================================================
 // NOTE TYPES
 // ============================================================================

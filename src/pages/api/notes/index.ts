@@ -1,21 +1,29 @@
 import { createNote, getNotes } from '@/lib/services/notes.service';
-import { createNoteSchema } from '@/lib/validation';
+import { createNoteSchema, getNotesSchema } from '@/lib/validation';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ locals, url }) => {
   const { user } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
   try {
-    const notes = await getNotes(user.id);
-    return new Response(JSON.stringify(notes), {
+    // Parse query parameters
+    const params = getNotesSchema.parse(Object.fromEntries(url.searchParams));
+
+    const result = await getNotes(user.id, params);
+    return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return new Response(JSON.stringify({ error: 'Invalid query parameters', details: error.errors }), {
+        status: 400,
+      });
+    }
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });

@@ -47,10 +47,10 @@ export function DashboardPage() {
 
   // Show onboarding modal for new users with no notes
   useEffect(() => {
-    if (!onboardingDismissed && !isLoadingNotes && pagination?.total === 0) {
+    if (!onboardingDismissed && !isLoadingNotes && notes.length === 0) {
       setIsModalOpen(true);
     }
-  }, [onboardingDismissed, isLoadingNotes, pagination?.total]);
+  }, [onboardingDismissed, isLoadingNotes, notes.length]);
 
   // Handle CTA click - navigate to create note page
   const handleCtaClick = () => {

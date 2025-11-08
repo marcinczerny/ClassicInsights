@@ -3,7 +3,7 @@ import type { DashboardState, DashboardViewController } from '../types';
 import type { NoteDTO, CreateRelationshipCommand } from '@/types';
 
 const INITIAL_STATE: Omit<DashboardState, 'notes'> = {
-  pagination: null,
+  pagination: { page: 1, limit: 20, total: 0, total_pages: 0 },
   isLoadingNotes: true,
   notesError: null,
   graphData: null,
@@ -12,7 +12,7 @@ const INITIAL_STATE: Omit<DashboardState, 'notes'> = {
   graphCenterNode: null,
   searchTerm: '',
   selectedEntityIds: [],
-  graphPanelState: 'open',
+  graphPanelState: 'open' as const,
 };
 
 export function useDashboard(): DashboardViewController {
@@ -23,20 +23,30 @@ export function useDashboard(): DashboardViewController {
   const fetchAllData = useCallback(async () => {
     setState(prev => ({ ...prev, isLoadingNotes: true, isLoadingGraph: true }));
     try {
+      const params = new URLSearchParams({
+        page: state.pagination.page.toString(),
+        limit: state.pagination.limit.toString(),
+        sort: 'created_at',
+        order: 'desc',
+        ...(state.searchTerm && { search: state.searchTerm }),
+        ...(state.selectedEntityIds.length > 0 && { entities: state.selectedEntityIds.join(',') }),
+      });
+
       const [notesRes, graphRes] = await Promise.all([
-        fetch('/api/notes'),
+        fetch(`/api/notes?${params}`),
         fetch('/api/graph'),
       ]);
 
       if (!notesRes.ok) throw new Error('Failed to fetch notes');
       if (!graphRes.ok) throw new Error('Failed to fetch graph data');
 
-      const notes = await notesRes.json();
+      const notesResponse = await notesRes.json();
       const graphData = await graphRes.json();
-      
-      setAllNotes(notes);
+
+      setAllNotes(notesResponse.data);
       setState(prev => ({
         ...prev,
+        pagination: notesResponse.pagination,
         graphData,
         isLoadingNotes: false,
         isLoadingGraph: false,
@@ -45,7 +55,7 @@ export function useDashboard(): DashboardViewController {
       const err = error instanceof Error ? error : new Error('An unknown error occurred');
       setState(prev => ({ ...prev, notesError: err, graphError: err, isLoadingNotes: false, isLoadingGraph: false }));
     }
-  }, []);
+  }, [state.pagination.page, state.pagination.limit, state.searchTerm, state.selectedEntityIds]);
 
   useEffect(() => {
     fetchAllData();
@@ -62,6 +72,13 @@ export function useDashboard(): DashboardViewController {
   
   const handleSearchChange = useCallback((term: string) => {
     setState(prev => ({ ...prev, searchTerm: term }));
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setState(prev => ({
+      ...prev,
+      pagination: { ...prev.pagination, page }
+    }));
   }, []);
 
   const handleNoteSelect = useCallback((noteId: string) => {
@@ -88,11 +105,10 @@ export function useDashboard(): DashboardViewController {
   return {
     ...state,
     notes: filteredNotes,
-    pagination: null, // Pagination is removed
-    
+
     // Note actions
     handleSearchChange,
-    handlePageChange: () => {},
+    handlePageChange,
     handleNoteDelete,
     handleNoteSelect,
 

@@ -4,7 +4,10 @@ import type {
   NoteDTO,
   UpdateNoteCommand,
   NoteEntityAssociationDTO,
+  PaginationDTO,
 } from '@/types';
+import type { GetNotesParams } from '@/lib/validation';
+import type { NotesListResponseDTO } from '@/types';
 
 async function _validateEntities(entityIds: string[], userId: string): Promise<void> {
   if (!entityIds || entityIds.length === 0) {
@@ -27,8 +30,50 @@ async function _validateEntities(entityIds: string[], userId: string): Promise<v
   }
 }
 
-export async function getNotes(userId: string): Promise<NoteDTO[]> {
-  const { data, error } = await supabaseClient
+export async function getNotes(userId: string, params: GetNotesParams = {}): Promise<NotesListResponseDTO> {
+  const {
+    page = 1,
+    limit = 20,
+    sort = 'created_at',
+    order = 'desc',
+    entities: entityFilter,
+    search,
+  } = params;
+
+  // First, get total count for pagination
+  let countQuery = supabaseClient
+    .from('notes')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  // Apply entity filter to count if provided
+  if (entityFilter && entityFilter.length > 0) {
+    countQuery = countQuery.in('id',
+      supabaseClient
+        .from('note_entities')
+        .select('note_id')
+        .in('entity_id', entityFilter)
+    );
+  }
+
+  // Apply search filter to count if provided
+  if (search) {
+    countQuery = countQuery.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+  }
+
+  const { count, error: countError } = await countQuery;
+
+  if (countError) {
+    console.error('Error counting notes:', countError);
+    throw new Error('Failed to count notes.');
+  }
+
+  const total = count || 0;
+  const total_pages = Math.ceil(total / limit);
+  const offset = (page - 1) * limit;
+
+  // Build the main query
+  let query = supabaseClient
     .from('notes')
     .select(
       `
@@ -38,9 +83,37 @@ export async function getNotes(userId: string): Promise<NoteDTO[]> {
         entities(id, name, type, description)
       )
     `,
+      { count: 'exact' }
     )
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .range(offset, offset + limit - 1);
+
+  // Apply sorting
+  const sortOrder = order === 'desc';
+  if (sort === 'title') {
+    query = query.order('title', { ascending: !sortOrder });
+  } else if (sort === 'updated_at') {
+    query = query.order('updated_at', { ascending: !sortOrder });
+  } else {
+    query = query.order('created_at', { ascending: !sortOrder });
+  }
+
+  // Apply entity filter
+  if (entityFilter && entityFilter.length > 0) {
+    query = query.in('id',
+      supabaseClient
+        .from('note_entities')
+        .select('note_id')
+        .in('entity_id', entityFilter)
+    );
+  }
+
+  // Apply search filter
+  if (search) {
+    query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching notes:', error);
@@ -56,7 +129,15 @@ export async function getNotes(userId: string): Promise<NoteDTO[]> {
     note_entities: undefined,
   }));
 
-  return transformedData;
+  return {
+    data: transformedData,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages,
+    },
+  };
 }
 
 export async function createNote(userId: string, command: CreateNoteCommand): Promise<NoteDTO> {
