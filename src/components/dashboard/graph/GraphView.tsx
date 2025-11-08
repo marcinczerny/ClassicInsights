@@ -5,14 +5,16 @@
  * Handles panning, zooming, node selection, and creating connections.
  */
 
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useRef } from "react";
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   type OnConnect,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -26,15 +28,17 @@ interface GraphViewProps {
   hasNotes: boolean;
   isConnectionMode?: boolean;
   selectedSourceNode?: string | null;
+  graphCenterNode?: { id: string; type: 'note' | 'entity' } | null;
   onNodeClick?: (node: { id: string; type: 'note' | 'entity' }) => void;
   onEdgeClick?: (edge: { id: string; source: string; target: string }) => void;
 }
 
-export function GraphView({
+function GraphViewInner({
   graphData,
   hasNotes,
   isConnectionMode = false,
   selectedSourceNode = null,
+  graphCenterNode,
   onNodeClick,
   onEdgeClick,
 }: GraphViewProps) {
@@ -45,6 +49,7 @@ export function GraphView({
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { fitView } = useReactFlow();
 
   /**
    * Update nodes and edges when graphData changes
@@ -53,6 +58,27 @@ export function GraphView({
     setNodes(initialNodes);
     setEdges(initialEdges);
   }, [initialNodes, initialEdges, setNodes, setEdges]);
+
+  /**
+   * Center view on selected node when graphCenterNode changes
+   */
+  useEffect(() => {
+    if (graphCenterNode && nodes.length > 0) {
+      const centerNode = nodes.find(node => node.id === graphCenterNode.id);
+      if (centerNode) {
+        // Use setTimeout to ensure the DOM is updated
+        setTimeout(() => {
+          fitView({
+            nodes: [centerNode],
+            padding: 0.2,
+            includeHiddenNodes: false,
+            minZoom: 0.1,
+            maxZoom: 2,
+          });
+        }, 100);
+      }
+    }
+  }, [graphCenterNode, nodes, fitView]);
 
   /**
    * Handle node click - reload graph centered on clicked node
@@ -121,8 +147,7 @@ export function GraphView({
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
         nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitView={false}
         attributionPosition="bottom-left"
       >
         <Background />
@@ -137,5 +162,13 @@ export function GraphView({
         />
       </ReactFlow>
     </div>
+  );
+}
+
+export function GraphView(props: GraphViewProps) {
+  return (
+    <ReactFlowProvider>
+      <GraphViewInner {...props} />
+    </ReactFlowProvider>
   );
 }

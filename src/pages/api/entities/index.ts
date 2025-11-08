@@ -1,98 +1,51 @@
-import { createEntity, getEntities } from "@/lib/services/entities.service";
-import type { CreateEntityCommand, EntitiesListResponseDTO } from "@/types";
-import type { APIRoute } from "astro";
-import { DEFAULT_USER_ID } from "@/db/supabase.client";
-import { createEntitySchema, getEntitiesSchema } from "@/lib/validation";
+import { getEntities, createEntity } from '@/lib/services/entities.service';
+import { entitySchema } from '@/lib/validation';
+import type { APIRoute } from 'astro';
+import { z } from 'zod';
 
-export const prerender = false;
+export const GET: APIRoute = async ({ locals }) => {
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
 
-export const GET: APIRoute = async (context) => {
-	const { locals, url } = context;
-	const userId = DEFAULT_USER_ID;
-
-	try {
-		const queryParams = Object.fromEntries(url.searchParams.entries());
-		const validationResult = getEntitiesSchema.safeParse(queryParams);
-
-		if (!validationResult.success) {
-			return new Response(
-				JSON.stringify({
-					message: "Invalid query parameters",
-					errors: validationResult.error.flatten(),
-				}),
-				{ status: 400 },
-			);
-		}
-
-		const options = validationResult.data;
-		const { page, limit } = options;
-
-		const { data: entities, count: total } = await getEntities(locals.supabase, userId, options);
-
-		const totalPages = Math.ceil(total / limit);
-
-		const response: EntitiesListResponseDTO = {
-			data: entities,
-			pagination: {
-				page,
-				limit,
-				total,
-				total_pages: totalPages,
-			},
-		};
-
-		return new Response(JSON.stringify(response), {
-			status: 200,
-			headers: { "Content-Type": "application/json" },
-		});
-	} catch (error) {
-		console.error("Error fetching entities:", error);
-		return new Response(
-			JSON.stringify({ message: "Internal Server Error" }),
-			{ status: 500 },
-		);
-	}
+  try {
+    const entities = await getEntities(user.id);
+    return new Response(JSON.stringify(entities), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
+  }
 };
 
-export const POST: APIRoute = async ({ locals, request }) => {
-	const userId = DEFAULT_USER_ID;
+export const POST: APIRoute = async ({ request, locals }) => {
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
 
-	try {
-		const body = await request.json();
-		const validationResult = createEntitySchema.safeParse(body);
+  try {
+    const body = await request.json();
+    const validatedData = entitySchema.parse(body);
 
-		if (!validationResult.success) {
-			return new Response(
-				JSON.stringify({
-					message: "Invalid request body",
-					errors: validationResult.error.flatten(),
-				}),
-				{ status: 400 },
-			);
-		}
+    const newEntity = await createEntity(user.id, validatedData);
 
-		const createCommand: CreateEntityCommand = validationResult.data;
-
-		const newEntity = await createEntity(
-			locals.supabase,
-			userId,
-			createCommand,
-		);
-
-		return new Response(JSON.stringify(newEntity), {
-			status: 201,
-			headers: { "Content-Type": "application/json" },
-		});
-	} catch (error) {
-		if (error instanceof Error && error.message.includes("already exists")) {
-			return new Response(JSON.stringify({ message: error.message }), {
-				status: 409, // Conflict
-			});
-		}
-		console.error("Error creating entity:", error);
-		return new Response(
-			JSON.stringify({ message: "Internal Server Error" }),
-			{ status: 500 },
-		);
-	}
+    return new Response(JSON.stringify(newEntity), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return new Response(JSON.stringify({ error: 'Invalid input', details: error.errors }), {
+        status: 400,
+      });
+    }
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
+  }
 };

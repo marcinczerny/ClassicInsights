@@ -40,10 +40,30 @@ export interface DashboardState {
    */
   selectedEntityIds: string[];
 
-  /**
-   * Graph panel visibility state
-   */
+/**
+ * Graph panel visibility state
+ */
   graphPanelState: 'collapsed' | 'open' | 'fullscreen';
+}
+
+/**
+ * Controller interface for Dashboard view interactions
+ */
+export interface DashboardViewController extends DashboardState {
+  // Note actions
+  handleSearchChange: (term: string) => void;
+  handlePageChange: (page: number) => void;
+  handleNoteSelect: (noteId: string) => void;
+  handleNoteDelete: (noteId: string) => Promise<void>;
+
+  // Entity actions
+  handleEntitySelectionChange: (entityIds: string[]) => void;
+
+  // Graph actions
+  handleNodeSelect: (node: { id: string; type: 'note' | 'entity' }) => void;
+  handleCreateRelationship: (sourceId: string, targetId: string) => Promise<void>;
+  handleCreateNoteEntity: (noteId: string, entityName: string) => Promise<void>;
+  setGraphPanelState: (state: 'collapsed' | 'open' | 'fullscreen') => void;
 }
 
 /**

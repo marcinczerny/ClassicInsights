@@ -95,7 +95,7 @@ Middleware will run on every request and will be responsible for managing user s
 
 ### 3.2. API Endpoints
 
-Most authentication logic will be handled client-side by the Supabase JS SDK. There is no need to create dedicated API endpoints for login/registration, as Supabase provides its own secure API. Our backend will only use the session verified by middleware.
+Authentication logic will be handled by dedicated API endpoints in `src/pages/api/auth/`. The frontend components will communicate with these endpoints instead of directly calling the Supabase SDK, ensuring that secrets are kept on the server. The backend will use the session verified by middleware.
 
 ### 3.3. Validation and Error Handling
 

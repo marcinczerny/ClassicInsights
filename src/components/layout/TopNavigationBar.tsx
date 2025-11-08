@@ -15,9 +15,10 @@ interface User {
 
 interface TopNavigationBarProps {
   user: User | null;
+  currentPath: string;
 }
 
-export function TopNavigationBar({ user }: TopNavigationBarProps) {
+export function TopNavigationBar({ user, currentPath }: TopNavigationBarProps) {
   const isAuthenticated = user !== null;
 
   // Hydrate global state with user session on mount
@@ -39,7 +40,7 @@ export function TopNavigationBar({ user }: TopNavigationBarProps) {
         {/* Navigation Links - only for authenticated users */}
         {isAuthenticated && (
           <div className="ml-6 sm:ml-8 hidden sm:block">
-            <NavLinks />
+            <NavLinks currentPath={currentPath} />
           </div>
         )}
 

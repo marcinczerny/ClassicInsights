@@ -8,17 +8,7 @@ interface Props {
 }
 
 const { title = "ClassicInsights" } = Astro.props;
-
-// Mock user for layout demonstration
-// TODO: Replace with actual auth implementation
-// Set to null to test unauthenticated state, or provide mock data for authenticated state
-const user = {
-  id: "mock-user-id",
-  email: "user@example.com"
-};
-
-// For unauthenticated state testing, uncomment:
-// const user = null;
+const { user } = Astro.locals;
 ---
 
 <!doctype html>
@@ -31,7 +21,7 @@ const user = {
     <title>{title}</title>
   </head>
   <body>
-    <TopNavigationBar user={user} client:load />
+    <TopNavigationBar user={user ?? null} currentPath={Astro.url.pathname} client:load />
     <slot />
     <ToastProvider client:load />
   </body>

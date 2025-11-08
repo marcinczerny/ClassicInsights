@@ -2,6 +2,7 @@ import type {
   CreateEntityCommand,
   EntitiesListResponseDTO,
   EntityDTO,
+  EntityWithCountDTO,
   UpdateEntityCommand,
 } from "@/types";
 
@@ -38,7 +39,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 export async function fetchEntities(
   params: EntitiesQueryParams = {},
   signal?: AbortSignal,
-): Promise<EntitiesListResponseDTO> {
+): Promise<EntityWithCountDTO[]> {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
@@ -57,7 +58,7 @@ export async function fetchEntities(
     signal,
   });
 
-  return handleResponse<EntitiesListResponseDTO>(response);
+  return handleResponse<EntityWithCountDTO[]>(response);
 }
 
 export async function createEntityRequest(payload: CreateEntityCommand): Promise<EntityDTO> {

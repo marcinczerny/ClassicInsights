@@ -1,127 +1,89 @@
-import type { APIRoute } from "astro";
-import { getNoteSchema, updateNoteSchema } from "@/lib/validation";
-import { findNoteById, updateNote, deleteNote } from "@/lib/services/notes.service";
-import { DEFAULT_USER_ID } from "@/db/supabase.client";
-import { handleServiceError, createErrorResponse, createNotFoundResponse } from "@/lib/errors";
-
-export const prerender = false;
+import {
+  deleteNote,
+  findNoteById,
+  updateNote,
+} from '@/lib/services/notes.service';
+import { noteSchema } from '@/lib/validation';
+import type { APIRoute } from 'astro';
+import { z } from 'zod';
 
 export const GET: APIRoute = async ({ params, locals }) => {
-  // TODO: Replace with actual authentication
-  // const session = await locals.supabase.auth.getSession();
-  // if (!session.data.session) {
-  //   return createUnauthorizedResponse();
-  // }
-  // const userId = session.data.session.user.id;
-  const userId = DEFAULT_USER_ID;
-
-  const validationResult = getNoteSchema.safeParse(params);
-
-  if (!validationResult.success) {
-    return createErrorResponse(
-      "VALIDATION_ERROR",
-      "Invalid note ID",
-      400,
-      validationResult.error.errors
-    );
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const { id: noteId } = validationResult.data;
+  const noteId = params.id;
+  if (!noteId) {
+    return new Response(JSON.stringify({ error: 'Note ID is required' }), { status: 400 });
+  }
 
   try {
-    const note = await findNoteById(locals.supabase, noteId, userId);
-
+    const note = await findNoteById(noteId, user.id);
     if (!note) {
-      return createNotFoundResponse("Note");
+      return new Response(JSON.stringify({ error: 'Note not found' }), { status: 404 });
     }
-
     return new Response(JSON.stringify(note), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return handleServiceError(error);
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 };
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  // TODO: Replace with actual authentication
-  // const session = await locals.supabase.auth.getSession();
-  // if (!session.data.session) {
-  //   return createUnauthorizedResponse();
-  // }
-  // const userId = session.data.session.user.id;
-  const userId = DEFAULT_USER_ID;
-
-  // 1. Validate URL parameter
-  const paramsValidation = getNoteSchema.safeParse(params);
-  if (!paramsValidation.success) {
-    return createErrorResponse(
-      "VALIDATION_ERROR",
-      "Invalid note ID",
-      400,
-      paramsValidation.error.errors
-    );
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
-  const { id: noteId } = paramsValidation.data;
+
+  const noteId = params.id;
+  if (!noteId) {
+    return new Response(JSON.stringify({ error: 'Note ID is required' }), { status: 400 });
+  }
 
   try {
-    // 2. Validate request body
     const body = await request.json();
-    const bodyValidation = updateNoteSchema.safeParse(body);
-    if (!bodyValidation.success) {
-      return createErrorResponse(
-        "VALIDATION_ERROR",
-        "Invalid request body",
-        400,
-        bodyValidation.error.errors
-      );
-    }
+    const validatedData = noteSchema.partial().parse(body);
 
-    // 3. Call the service to update the note
-    const updatedNote = await updateNote(locals.supabase, noteId, userId, bodyValidation.data);
+    const updatedNote = await updateNote(noteId, user.id, validatedData);
+
     return new Response(JSON.stringify(updatedNote), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return handleServiceError(error);
+    if (error instanceof z.ZodError) {
+      return new Response(JSON.stringify({ error: 'Invalid input', details: error.errors }), {
+        status: 400,
+      });
+    }
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 };
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  // TODO: Replace with actual authentication
-  // const session = await locals.supabase.auth.getSession();
-  // if (!session.data.session) {
-  //   return createUnauthorizedResponse();
-  // }
-  // const userId = session.data.session.user.id;
-  const userId = DEFAULT_USER_ID;
-
-  const validationResult = getNoteSchema.safeParse(params);
-
-  if (!validationResult.success) {
-    return createErrorResponse(
-      "VALIDATION_ERROR",
-      "Invalid note ID",
-      400,
-      validationResult.error.errors
-    );
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const { id: noteId } = validationResult.data;
+  const noteId = params.id;
+  if (!noteId) {
+    return new Response(JSON.stringify({ error: 'Note ID is required' }), { status: 400 });
+  }
 
   try {
-    // First, verify the note exists and belongs to the user to return a 404 if not found.
-    const note = await findNoteById(locals.supabase, noteId, userId);
-    if (!note) {
-      return createNotFoundResponse("Note");
-    }
-
-    await deleteNote(locals.supabase, noteId, userId);
-
+    await deleteNote(noteId, user.id);
     return new Response(null, { status: 204 });
   } catch (error) {
-    return handleServiceError(error);
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 };

@@ -1,73 +1,51 @@
-import type { APIRoute } from "astro";
-import { createNoteSchema, getNotesSchema } from "@/lib/validation";
-import { createNote, getNotes } from "@/lib/services/notes.service";
-import { DEFAULT_USER_ID } from "@/db/supabase.client";
-import { handleServiceError, createErrorResponse } from "@/lib/errors";
+import { createNote, getNotes } from '@/lib/services/notes.service';
+import { noteSchema } from '@/lib/validation';
+import type { APIRoute } from 'astro';
+import { z } from 'zod';
 
-export const prerender = false;
-
-export const GET: APIRoute = async ({ request, locals }) => {
-  // TODO: Replace with actual authentication
-  // const session = await locals.supabase.auth.getSession();
-  // if (!session.data.session) {
-  //   return createUnauthorizedResponse();
-  // }
-  // const userId = session.data.session.user.id;
-  const userId = DEFAULT_USER_ID;
-
-  const url = new URL(request.url);
-  const queryParams = Object.fromEntries(url.searchParams.entries());
-
-  const validationResult = getNotesSchema.safeParse(queryParams);
-
-  if (!validationResult.success) {
-    return createErrorResponse(
-      "VALIDATION_ERROR",
-      "Invalid query parameters",
-      400,
-      validationResult.error.errors
-    );
+export const GET: APIRoute = async ({ locals }) => {
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
   try {
-    const notesData = await getNotes(locals.supabase, userId, validationResult.data);
-    return new Response(JSON.stringify(notesData), {
+    const notes = await getNotes(user.id);
+    return new Response(JSON.stringify(notes), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return handleServiceError(error);
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  // TODO: Replace with actual authentication
-  // const session = await locals.supabase.auth.getSession();
-  // if (!session.data.session) {
-  //   return createUnauthorizedResponse();
-  // }
-  // const userId = session.data.session.user.id;
-  const userId = DEFAULT_USER_ID;
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
 
   try {
     const body = await request.json();
-    const validationResult = createNoteSchema.safeParse(body);
+    const validatedData = noteSchema.parse(body);
 
-    if (!validationResult.success) {
-      return createErrorResponse(
-        "VALIDATION_ERROR",
-        "Invalid request body",
-        400,
-        validationResult.error.errors
-      );
-    }
+    const newNote = await createNote(user.id, validatedData);
 
-    const newNote = await createNote(locals.supabase, userId, validationResult.data);
     return new Response(JSON.stringify(newNote), {
       status: 201,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return handleServiceError(error);
+    if (error instanceof z.ZodError) {
+      return new Response(JSON.stringify({ error: 'Invalid input', details: error.errors }), {
+        status: 400,
+      });
+    }
+    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 };

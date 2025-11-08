@@ -1,11 +1,8 @@
-export function NavLinks() {
+export function NavLinks({ currentPath }: { currentPath: string }) {
   const links = [
-    { href: "/", label: "Notes" },
-    { href: "/entities", label: "Entities" },
+    { href: '/', label: 'Notes' },
+    { href: '/entities', label: 'Entities' },
   ];
-
-  // Get current path for active link styling
-  const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
 
   return (
     <nav className="flex items-center gap-6">
@@ -17,9 +14,7 @@ export function NavLinks() {
             key={link.href}
             href={link.href}
             className={`text-sm font-medium transition-colors hover:text-primary ${
-              isActive
-                ? "text-foreground"
-                : "text-muted-foreground"
+              isActive ? 'text-foreground' : 'text-muted-foreground'
             }`}
           >
             {link.label}

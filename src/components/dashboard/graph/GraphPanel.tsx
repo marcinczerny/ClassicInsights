@@ -416,6 +416,7 @@ export function GraphPanel({
             hasNotes={hasNotes}
             isConnectionMode={isConnectionMode}
             selectedSourceNode={selectedSourceNode}
+            graphCenterNode={graphCenterNode}
             onNodeClick={isConnectionMode
               ? (node) => handleNodeClickInConnectionMode(node.id)
               : onNodeSelect

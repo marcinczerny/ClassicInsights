@@ -1,47 +1,66 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import {
   createEntityRequest,
   deleteEntityRequest,
   fetchEntities,
   updateEntityRequest,
-} from "@/lib/services/entities.api";
+} from '@/lib/services/entities.api';
 import type {
   EntitiesFilterState,
   EntitiesSortState,
   EntitiesViewController,
-  PaginationState,
-} from "@/components/entities/types.ts";
-import type { CreateEntityCommand, EntityWithCountDTO, UpdateEntityCommand } from "@/types";
+} from '@/components/entities/types.ts';
+import type { CreateEntityCommand, EntityWithCountDTO, UpdateEntityCommand } from '@/types';
+import type { Enums } from '@/db/database.types';
 
-const DEFAULT_PAGE_LIMIT = 20;
-
-const INITIAL_FILTERS: EntitiesFilterState = {
-  search: "",
-  type: "all",
-};
-
-const INITIAL_SORTING: EntitiesSortState = {
-  column: "name",
-  order: "asc",
-};
+const INITIAL_FILTERS: EntitiesFilterState = { search: '', type: 'all' };
+const INITIAL_SORTING: EntitiesSortState = { column: 'name', order: 'asc' };
 
 function normalizeError(error: unknown, fallbackMessage: string): Error {
-  if (error instanceof Error) {
-    return error;
-  }
-  return new Error(fallbackMessage);
+  return error instanceof Error ? error : new Error(fallbackMessage);
 }
 
+// Client-side filtering and sorting logic
+const applyFiltersAndSorting = (
+  entities: EntityWithCountDTO[],
+  filters: EntitiesFilterState,
+  sorting: EntitiesSortState,
+): EntityWithCountDTO[] => {
+  let result = [...entities];
+
+  // Filtering
+  if (filters.search) {
+    const searchTerm = filters.search.toLowerCase();
+    result = result.filter(e => e.name.toLowerCase().includes(searchTerm));
+  }
+  if (filters.type !== 'all') {
+    result = result.filter(e => e.type === filters.type);
+  }
+
+  // Sorting
+  result.sort((a, b) => {
+    const aValue = a[sorting.column];
+    const bValue = b[sorting.column];
+    
+    let comparison = 0;
+    if (aValue > bValue) comparison = 1;
+    else if (aValue < bValue) comparison = -1;
+
+    return sorting.order === 'asc' ? comparison : -comparison;
+  });
+
+  return result;
+};
+
 export function useEntitiesView(): EntitiesViewController {
-  const [entities, setEntities] = useState<EntityWithCountDTO[]>([]);
-  const [pagination, setPagination] = useState<PaginationState | null>(null);
-  const [page, setPage] = useState<number>(1);
-  const [pageLimit, setPageLimit] = useState<number>(DEFAULT_PAGE_LIMIT);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [allEntities, setAllEntities] = useState<EntityWithCountDTO[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [filters, setFilters] = useState<EntitiesFilterState>(INITIAL_FILTERS);
   const [sorting, setSorting] = useState<EntitiesSortState>(INITIAL_SORTING);
+  
+  // Modals and form state
   const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [entityToEdit, setEntityToEdit] = useState<EntityWithCountDTO | null>(null);
@@ -50,109 +69,43 @@ export function useEntitiesView(): EntitiesViewController {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  const requestIdRef = useRef<number>(0);
 
   const runFetch = useCallback(async () => {
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    const requestId = ++requestIdRef.current;
-
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetchEntities(
-        {
-          page,
-          limit: pageLimit,
-          search: filters.search.trim() ? filters.search.trim() : undefined,
-          type: filters.type !== "all" ? filters.type : undefined,
-          sort: sorting.column,
-          order: sorting.order,
-        },
-        controller.signal,
-      );
-
-      if (requestIdRef.current !== requestId) {
-        return;
-      }
-
-      setEntities(response.data);
-      setPagination(response.pagination);
-      setPageLimit(response.pagination.limit);
+  try {
+    const response = await fetchEntities({}, controller.signal);
+    setAllEntities(response);
     } catch (err) {
-      if (controller.signal.aborted) {
-        return;
-      }
-      if (requestIdRef.current !== requestId) {
-        return;
-      }
-      const normalized = normalizeError(err, "Nie udało się pobrać listy bytów.");
-      setError(normalized);
+      if (controller.signal.aborted) return;
+      setError(normalizeError(err, 'Nie udało się pobrać listy bytów.'));
     } finally {
-      if (requestIdRef.current === requestId && !controller.signal.aborted) {
-        setIsLoading(false);
-      }
+      if (!controller.signal.aborted) setIsLoading(false);
     }
-  }, [page, pageLimit, filters.search, filters.type, sorting.column, sorting.order]);
+  }, []);
 
   useEffect(() => {
     runFetch();
-
-    return () => {
-      abortControllerRef.current?.abort();
-    };
+    return () => abortControllerRef.current?.abort();
   }, [runFetch]);
+  
+  const displayedEntities = useMemo(
+    () => applyFiltersAndSorting(allEntities, filters, sorting),
+    [allEntities, filters, sorting]
+  );
 
-  const setSearch = useCallback((value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      search: value,
+  const setSortingHandler = useCallback((column: EntitiesSortState['column']) => {
+    setSorting(prev => ({
+      column,
+      order: prev.column === column && prev.order === 'asc' ? 'desc' : 'asc',
     }));
-    setPage(1);
-    setPagination((prev) => (prev ? { ...prev, page: 1 } : prev));
   }, []);
-
-  const setTypeFilter = useCallback(
-    (value: EntitiesFilterState["type"]) => {
-      setFilters((prev) => ({
-        ...prev,
-        type: value,
-      }));
-      setPage(1);
-      setPagination((prev) => (prev ? { ...prev, page: 1 } : prev));
-    },
-    [],
-  );
-
-  const setSortingHandler = useCallback(
-    (column: EntitiesSortState["column"]) => {
-      setSorting((prev) => {
-        if (prev.column === column) {
-          return {
-            column,
-            order: prev.order === "asc" ? "desc" : "asc",
-          };
-        }
-
-        return {
-          column,
-          order: "asc",
-        };
-      });
-      setPage(1);
-      setPagination((prev) => (prev ? { ...prev, page: 1 } : prev));
-    },
-    [],
-  );
-
-  const setPageHandler = useCallback((nextPage: number) => {
-    setPage(nextPage);
-    setPagination((prev) => (prev ? { ...prev, page: nextPage } : prev));
-  }, []);
-
+  
   const openAddModal = useCallback(() => {
     setEntityToEdit(null);
     setIsFormModalOpen(true);
@@ -162,96 +115,53 @@ export function useEntitiesView(): EntitiesViewController {
     setEntityToEdit(entity);
     setIsFormModalOpen(true);
   }, []);
-
-  const closeFormModal = useCallback(() => {
-    setIsFormModalOpen(false);
-    setEntityToEdit(null);
-  }, []);
+  
+  const closeFormModal = useCallback(() => setIsFormModalOpen(false), []);
 
   const openDeleteModal = useCallback((entity: EntityWithCountDTO) => {
     setEntityToDelete(entity);
     setIsDeleteModalOpen(true);
   }, []);
+  
+  const closeDeleteModal = useCallback(() => setIsDeleteModalOpen(false), []);
 
-  const closeDeleteModal = useCallback(() => {
-    setIsDeleteModalOpen(false);
-    setEntityToDelete(null);
-  }, []);
-
-  const submitForm = useCallback(
-    async (data: CreateEntityCommand | UpdateEntityCommand) => {
-      const isEditing = Boolean(entityToEdit);
-      setIsSubmitting(true);
-      try {
-        if (isEditing && entityToEdit) {
-          await updateEntityRequest(entityToEdit.id, data as UpdateEntityCommand);
-          toast.success(`Byt "${entityToEdit.name}" został zaktualizowany.`);
-        } else {
-          await createEntityRequest(data as CreateEntityCommand);
-          toast.success("Nowy byt został utworzony.");
-        }
-
-        closeFormModal();
-        if (!isEditing && page !== 1) {
-          setPage(1);
-          setPagination((prev) => (prev ? { ...prev, page: 1 } : prev));
-        } else {
-          await runFetch();
-        }
-      } catch (err) {
-        const message = normalizeError(err, "Nie udało się zapisać bytu.").message;
-        toast.error(message);
-      } finally {
-        setIsSubmitting(false);
+  const submitForm = useCallback(async (data: CreateEntityCommand | UpdateEntityCommand) => {
+    setIsSubmitting(true);
+    try {
+      if (entityToEdit) {
+        await updateEntityRequest(entityToEdit.id, data as UpdateEntityCommand);
+        toast.success(`Byt "${entityToEdit.name}" został zaktualizowany.`);
+      } else {
+        await createEntityRequest(data as CreateEntityCommand);
+        toast.success('Nowy byt został utworzony.');
       }
-    },
-    [closeFormModal, entityToEdit, page, runFetch],
-  );
+      closeFormModal();
+      await runFetch(); // Refetch all data
+    } catch (err) {
+      toast.error(normalizeError(err, 'Nie udało się zapisać bytu.').message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [entityToEdit, runFetch, closeFormModal]);
 
   const confirmDelete = useCallback(async () => {
-    if (!entityToDelete) {
-      return;
-    }
-
+    if (!entityToDelete) return;
     setIsDeleting(true);
-
     try {
       await deleteEntityRequest(entityToDelete.id);
-      const deletedEntityName = entityToDelete.name;
-      toast.success(`Byt "${deletedEntityName}" został usunięty.`);
+      toast.success(`Byt "${entityToDelete.name}" został usunięty.`);
       closeDeleteModal();
-
-      const shouldGoToPreviousPage =
-        pagination !== null && pagination.page > 1 && entities.length <= 1;
-
-      if (shouldGoToPreviousPage) {
-        setPage((prevPage) => Math.max(1, prevPage - 1));
-        setPagination((prev) =>
-          prev
-            ? {
-                ...prev,
-                page: Math.max(1, prev.page - 1),
-              }
-            : prev,
-        );
-      } else {
-        await runFetch();
-      }
+      await runFetch(); // Refetch all data
     } catch (err) {
-      const message = normalizeError(err, "Nie udało się usunąć bytu.").message;
-      toast.error(message);
+      toast.error(normalizeError(err, 'Nie udało się usunąć bytu.').message);
     } finally {
       setIsDeleting(false);
     }
-  }, [closeDeleteModal, entityToDelete, entities.length, pagination, runFetch]);
+  }, [entityToDelete, runFetch, closeDeleteModal]);
 
-  const retry = useCallback(async () => {
-    await runFetch();
-  }, [runFetch]);
-
-  const controllerState = useMemo<EntitiesViewController>(() => ({
-    entities,
-    pagination,
+  return useMemo(() => ({
+    entities: displayedEntities,
+    pagination: null, // Pagination is removed
     isLoading,
     error,
     filters,
@@ -262,10 +172,10 @@ export function useEntitiesView(): EntitiesViewController {
     entityToDelete,
     isSubmitting,
     isDeleting,
-    setSearch,
-    setTypeFilter,
+    setSearch: (search: string) => setFilters(f => ({ ...f, search })),
+    setTypeFilter: (type: Enums<'entity_type'> | 'all') => setFilters(f => ({ ...f, type })),
     setSorting: setSortingHandler,
-    setPage: setPageHandler,
+    setPage: () => {}, // No-op, pagination removed
     openAddModal,
     openEditModal,
     closeFormModal,
@@ -273,34 +183,13 @@ export function useEntitiesView(): EntitiesViewController {
     closeDeleteModal,
     submitForm,
     confirmDelete,
-    retry,
+    retry: runFetch,
   }), [
-    entities,
-    pagination,
-    isLoading,
-    error,
-    filters,
-    sorting,
-    isFormModalOpen,
-    isDeleteModalOpen,
-    entityToEdit,
-    entityToDelete,
-    isSubmitting,
-    isDeleting,
-    setSearch,
-    setTypeFilter,
-    setSortingHandler,
-    setPageHandler,
-    openAddModal,
-    openEditModal,
-    closeFormModal,
-    openDeleteModal,
-    closeDeleteModal,
-    submitForm,
-    confirmDelete,
-    retry,
+    displayedEntities, isLoading, error, filters, sorting, 
+    isFormModalOpen, isDeleteModalOpen, entityToEdit, entityToDelete,
+    isSubmitting, isDeleting, setSortingHandler, openAddModal, openEditModal,
+    closeFormModal, openDeleteModal, closeDeleteModal, submitForm,
+    confirmDelete, runFetch
   ]);
-
-  return controllerState;
 }
 

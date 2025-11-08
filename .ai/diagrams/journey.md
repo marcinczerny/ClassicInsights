@@ -121,3 +121,4 @@ stateDiagram-v2
     end note
     StronaStartowa --> PanelUzytkownika: Sesja aktywna
 ```
+
