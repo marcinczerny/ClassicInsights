@@ -5,7 +5,6 @@
 
 import type { APIRoute } from "astro";
 import { ZodError } from "zod";
-import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { RelationshipsService } from "../../../lib/services/relationships.service";
 import {
 	getRelationshipsQuerySchema,
@@ -20,6 +19,11 @@ export const prerender = false;
  * Retrieves a list of relationships with optional filtering and pagination
  */
 export const GET: APIRoute = async ({ url, locals }) => {
+	const { user } = locals;
+	if (!user) {
+		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+	}
+
 	try {
 		// Parse and validate query parameters
 		const queryParams = Object.fromEntries(url.searchParams.entries());
@@ -27,9 +31,9 @@ export const GET: APIRoute = async ({ url, locals }) => {
 		const validatedQuery = getRelationshipsQuerySchema.parse(queryParams);
 
 		// Get relationships from service
-		const service = new RelationshipsService(locals.supabase);
+		const service = new RelationshipsService();
 		const response = await service.getRelationships(
-			DEFAULT_USER_ID,
+			user.id,
 			validatedQuery
 		);
 
@@ -82,15 +86,20 @@ export const GET: APIRoute = async ({ url, locals }) => {
  * Creates a new relationship between two entities
  */
 export const POST: APIRoute = async ({ request, locals }) => {
+	const { user } = locals;
+	if (!user) {
+		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+	}
+
 	try {
 		// Parse and validate request body
 		const body = await request.json();
 		const validatedData = createRelationshipSchema.parse(body);
 
 		// Create relationship via service
-		const service = new RelationshipsService(locals.supabase);
+		const service = new RelationshipsService();
 		const relationship = await service.createRelationship(
-			DEFAULT_USER_ID,
+			user.id,
 			validatedData
 		);
 

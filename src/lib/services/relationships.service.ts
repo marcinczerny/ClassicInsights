@@ -3,8 +3,7 @@
  * Handles all business logic for relationship CRUD operations
  */
 
-import type { SupabaseClient } from "../../db/supabase.client";
-import { handleSupabaseError } from "../../db/supabase.client";
+import { supabaseClient, handleSupabaseError } from "../../db/supabase.client";
 import type {
 	RelationshipDTO,
 	RelationshipWithEntitiesDTO,
@@ -18,7 +17,6 @@ import type { GetRelationshipsQuery } from "../validation/relationships.validati
  * Service class for relationship operations
  */
 export class RelationshipsService {
-	constructor(private readonly supabase: SupabaseClient) {}
 
 	/**
 	 * Retrieves relationships with optional filtering and pagination
@@ -33,7 +31,7 @@ export class RelationshipsService {
 		const { page, limit, source_entity_id, target_entity_id, type } = params;
 		const offset = (page - 1) * limit;
 
-		let query = this.supabase
+		let query = supabaseClient
 			.from("relationships")
 			.select(
 				`
@@ -129,7 +127,7 @@ export class RelationshipsService {
 		}
 
 		// Verify both entities exist and belong to the user
-		const { data: entities, error: entitiesError } = await this.supabase
+		const { data: entities, error: entitiesError } = await supabaseClient
 			.from("entities")
 			.select("id")
 			.eq("user_id", userId)
@@ -144,7 +142,7 @@ export class RelationshipsService {
 		}
 
 		// Insert the relationship
-		const { data: relationship, error: insertError } = await this.supabase
+		const { data: relationship, error: insertError } = await supabaseClient
 			.from("relationships")
 			.insert({
 				user_id: userId,
@@ -179,7 +177,7 @@ export class RelationshipsService {
 		relationshipId: string,
 		data: UpdateRelationshipCommand
 	): Promise<RelationshipDTO> {
-		const { data: relationship, error } = await this.supabase
+		const { data: relationship, error } = await supabaseClient
 			.from("relationships")
 			.update({ type: data.type })
 			.eq("id", relationshipId)
@@ -208,7 +206,7 @@ export class RelationshipsService {
 		userId: string,
 		relationshipId: string
 	): Promise<void> {
-		const { error, count } = await this.supabase
+		const { error, count } = await supabaseClient
 			.from("relationships")
 			.delete({ count: "exact" })
 			.eq("id", relationshipId)

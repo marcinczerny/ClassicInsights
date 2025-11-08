@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
 import { getNoteSchema, getSuggestionsSchema } from "@/lib/validation";
 import { getSuggestionsForNote } from "@/lib/services/suggestions.service";
-import { DEFAULT_USER_ID } from "@/db/supabase.client";
 import { handleServiceError, createErrorResponse } from "@/lib/errors";
 
 export const prerender = false;
@@ -45,13 +44,11 @@ export const prerender = false;
  * - 500: Database error
  */
 export const GET: APIRoute = async ({ params, url, locals }) => {
-	// TODO: Replace with actual authentication
-	// const session = await locals.supabase.auth.getSession();
-	// if (!session.data.session) {
-	//   return createUnauthorizedResponse();
-	// }
-	// const userId = session.data.session.user.id;
-	const userId = DEFAULT_USER_ID;
+	const { user } = locals;
+	if (!user) {
+		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+	}
+	const userId = user.id;
 
 	// Validate URL parameter (note ID)
 	const paramsValidation = getNoteSchema.safeParse(params);
@@ -85,7 +82,6 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 		// Call service to retrieve suggestions
 		const result = await getSuggestionsForNote(
 			noteId,
-			locals.supabase,
 			userId,
 			queryValidation.data
 		);

@@ -9,7 +9,8 @@ import type {
   PaginationDTO,
   GraphDTO,
   GraphNodeDTO,
-  GraphEdgeDTO
+  GraphEdgeDTO,
+  CreateRelationshipCommand
 } from "@/types";
 
 /**
@@ -61,7 +62,7 @@ export interface DashboardViewController extends DashboardState {
 
   // Graph actions
   handleNodeSelect: (node: { id: string; type: 'note' | 'entity' }) => void;
-  handleCreateRelationship: (sourceId: string, targetId: string) => Promise<void>;
+  handleCreateRelationship: (command: CreateRelationshipCommand) => Promise<void>;
   handleCreateNoteEntity: (noteId: string, entityName: string) => Promise<void>;
   setGraphPanelState: (state: 'collapsed' | 'open' | 'fullscreen') => void;
 }

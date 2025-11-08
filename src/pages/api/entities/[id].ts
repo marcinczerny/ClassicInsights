@@ -3,7 +3,7 @@ import {
   getEntityById,
   updateEntity,
 } from '@/lib/services/entities.service';
-import { entitySchema } from '@/lib/validation';
+import { updateEntitySchema } from '@/lib/validation';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 
@@ -47,7 +47,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
   try {
     const body = await request.json();
-    const validatedData = entitySchema.partial().parse(body);
+    const validatedData = updateEntitySchema.parse(body);
 
     const updatedEntity = await updateEntity(user.id, entityId, validatedData);
 

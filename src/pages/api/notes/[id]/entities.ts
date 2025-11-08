@@ -1,19 +1,16 @@
 import type { APIRoute } from "astro";
 import { addEntityToNoteSchema, getNoteSchema } from "@/lib/validation";
 import { addEntityToNote } from "@/lib/services/notes.service";
-import { DEFAULT_USER_ID } from "@/db/supabase.client";
 import { handleServiceError, createErrorResponse } from "@/lib/errors";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  // TODO: Replace with actual authentication
-  // const session = await locals.supabase.auth.getSession();
-  // if (!session.data.session) {
-  //   return createUnauthorizedResponse();
-  // }
-  // const userId = session.data.session.user.id;
-  const userId = DEFAULT_USER_ID;
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+  const userId = user.id;
 
   // 1. Validate URL parameter (noteId)
   const paramsValidation = getNoteSchema.safeParse(params);
@@ -43,7 +40,6 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 
     // 3. Call the service to create the association with relationship type
     const newAssociation = await addEntityToNote(
-      locals.supabase,
       noteId,
       entityId,
       userId,

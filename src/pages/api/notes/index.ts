@@ -1,5 +1,5 @@
 import { createNote, getNotes } from '@/lib/services/notes.service';
-import { noteSchema } from '@/lib/validation';
+import { createNoteSchema } from '@/lib/validation';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 
@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const validatedData = noteSchema.parse(body);
+    const validatedData = createNoteSchema.parse(body);
 
     const newNote = await createNote(user.id, validatedData);
 

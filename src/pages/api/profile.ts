@@ -1,5 +1,5 @@
 import { getProfile, updateProfile } from '@/lib/services/profile.service';
-import { profileSchema } from '@/lib/validation';
+import { updateProfileSchema } from '@/lib/validation/profile.validation';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 
@@ -33,7 +33,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const validatedData = profileSchema.partial().parse(body);
+    const validatedData = updateProfileSchema.parse(body);
 
     const updatedProfile = await updateProfile(user.id, validatedData);
 

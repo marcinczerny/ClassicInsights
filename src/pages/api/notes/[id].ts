@@ -3,7 +3,7 @@ import {
   findNoteById,
   updateNote,
 } from '@/lib/services/notes.service';
-import { noteSchema } from '@/lib/validation';
+import { updateNoteSchema } from '@/lib/validation';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 
@@ -47,7 +47,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
   try {
     const body = await request.json();
-    const validatedData = noteSchema.partial().parse(body);
+    const validatedData = updateNoteSchema.parse(body);
 
     const updatedNote = await updateNote(noteId, user.id, validatedData);
 

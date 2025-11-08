@@ -1,5 +1,5 @@
 import { getEntities, createEntity } from '@/lib/services/entities.service';
-import { entitySchema } from '@/lib/validation';
+import { createEntitySchema } from '@/lib/validation';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 
@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const validatedData = entitySchema.parse(body);
+    const validatedData = createEntitySchema.parse(body);
 
     const newEntity = await createEntity(user.id, validatedData);
 

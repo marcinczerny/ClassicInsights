@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { DashboardState, DashboardViewController } from '../types';
-import type { NoteDTO } from '@/types';
+import type { NoteDTO, CreateRelationshipCommand } from '@/types';
 
 const INITIAL_STATE: Omit<DashboardState, 'notes'> = {
   pagination: null,
@@ -98,7 +98,27 @@ export function useDashboard(): DashboardViewController {
 
     // Graph actions
     handleNodeSelect,
-    handleCreateRelationship: async () => {},
+    handleCreateRelationship: async (command: CreateRelationshipCommand) => {
+      try {
+        const response = await fetch('/api/relationships', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(command),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create relationship');
+        }
+
+        // Refresh graph data after creating relationship
+        await fetchAllData();
+      } catch (error) {
+        console.error('Error creating relationship:', error);
+        throw error;
+      }
+    },
     handleCreateNoteEntity: async () => {},
     setGraphPanelState: () => {},
     handleEntitySelectionChange: () => {},

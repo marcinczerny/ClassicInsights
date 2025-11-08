@@ -1,5 +1,5 @@
 import { updateSuggestionStatus } from '@/lib/services/suggestions.service';
-import { suggestionStatusUpdateSchema } from '@/lib/validation';
+import { updateSuggestionSchema } from '@/lib/validation';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 
@@ -16,7 +16,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
   try {
     const body = await request.json();
-    const validatedData = suggestionStatusUpdateSchema.parse(body);
+    const validatedData = updateSuggestionSchema.parse(body);
 
     const updatedSuggestion = await updateSuggestionStatus(
       user.id,

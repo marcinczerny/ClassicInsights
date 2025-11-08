@@ -5,7 +5,6 @@
 
 import type { APIRoute } from "astro";
 import { ZodError } from "zod";
-import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { RelationshipsService } from "../../../lib/services/relationships.service";
 import {
 	updateRelationshipSchema,
@@ -20,6 +19,11 @@ export const prerender = false;
  * Updates a relationship's type
  */
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
+	const { user } = locals;
+	if (!user) {
+		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+	}
+
 	try {
 		// Validate ID parameter
 		const validatedParams = relationshipIdSchema.parse(params);
@@ -29,9 +33,9 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 		const validatedData = updateRelationshipSchema.parse(body);
 
 		// Update relationship via service
-		const service = new RelationshipsService(locals.supabase);
+		const service = new RelationshipsService();
 		const relationship = await service.updateRelationship(
-			DEFAULT_USER_ID,
+			user.id,
 			validatedParams.id,
 			validatedData
 		);
@@ -106,13 +110,18 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
  * Deletes a relationship
  */
 export const DELETE: APIRoute = async ({ params, locals }) => {
+	const { user } = locals;
+	if (!user) {
+		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+	}
+
 	try {
 		// Validate ID parameter
 		const validatedParams = relationshipIdSchema.parse(params);
 
 		// Delete relationship via service
-		const service = new RelationshipsService(locals.supabase);
-		await service.deleteRelationship(DEFAULT_USER_ID, validatedParams.id);
+		const service = new RelationshipsService();
+		await service.deleteRelationship(user.id, validatedParams.id);
 
 		// Return 204 No Content on success
 		return new Response(null, {

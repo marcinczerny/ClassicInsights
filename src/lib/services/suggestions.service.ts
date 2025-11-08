@@ -89,6 +89,31 @@ export async function generateSuggestionsForNote(noteId: string, userId: string)
   return savedSuggestions || [];
 }
 
+export async function getSuggestionsForNote(
+  noteId: string,
+  userId: string,
+  filters?: { status?: 'pending' | 'accepted' | 'rejected' }
+): Promise<SuggestionDTO[]> {
+  let query = supabaseClient
+    .from('ai_suggestions')
+    .select('*')
+    .eq('note_id', noteId)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (filters?.status) {
+    query = query.eq('status', filters.status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    handleSupabaseError(error);
+  }
+
+  return data || [];
+}
+
 async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string): Promise<void> {
   const noteId = suggestion.note_id;
   if (!noteId) throw new Error('Suggestion has no associated note');
