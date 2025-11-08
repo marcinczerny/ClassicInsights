@@ -18,7 +18,7 @@ import type {
  */
 export interface DashboardState {
   notes: NoteDTO[];
-  pagination: PaginationDTO | null;
+  pagination: PaginationDTO;
   isLoadingNotes: boolean;
   notesError: Error | null;
 

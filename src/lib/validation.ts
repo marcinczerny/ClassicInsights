@@ -5,6 +5,16 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Hasło jest wymagane.'),
 });
 
+export const registerSchema = z.object({
+  email: z.string().email('Nieprawidłowy adres email.'),
+  password: z.string().min(8, 'Hasło musi mieć co najmniej 8 znaków.'),
+  confirmPassword: z.string().min(1, 'Powtórzenie hasła jest wymagane.'),
+  aiConsent: z.boolean().refine((val) => val === true, 'Zgoda na analizę notatek przez AI jest wymagana.'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Hasła nie są takie same.",
+  path: ["confirmPassword"],
+});
+
 // ============================================================================
 // RELATIONSHIP TYPE SCHEMA
 // ============================================================================
