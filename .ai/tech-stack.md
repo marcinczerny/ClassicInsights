@@ -18,3 +18,9 @@ AI - Komunikacja z modelami przez usługę Openrouter.ai:
 CI/CD i Hosting:
 - Github Actions do tworzenia pipeline’ów CI/CD
 - DigitalOcean do hostowania aplikacji za pośrednictwem obrazu docker
+
+Testowanie - kompleksowe podejście do zapewnienia jakości kodu:
+- Vitest jako framework do testów jednostkowych i integracyjnych, kompatybilny z Vite (na którym bazuje Astro)
+- React Testing Library do testowania komponentów React z perspektywy użytkownika
+- Playwright do testów End-to-End, umożliwiający symulację rzeczywistych scenariuszy w przeglądarce
+- Mock Service Worker (MSW) do mockowania API w testach integracyjnych

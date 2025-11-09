@@ -24,6 +24,10 @@ The project is built with a modern, component-based architecture. The main techn
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
 - **UI Components**: [Shadcn/ui](https://ui.shadcn.com/)
 - **Database**: [Supabase](https://supabase.com/) (as inferred from project structure guidelines)
+- **Testing**:
+  - **Unit/Integration Tests**: [Vitest](https://vitest.dev/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+  - **E2E Tests**: [Playwright](https://playwright.dev/)
+  - **API Mocking**: [Mock Service Worker (MSW)](https://mswjs.io/)
 
 ## Getting Started Locally
 
