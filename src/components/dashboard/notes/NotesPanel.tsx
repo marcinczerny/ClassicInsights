@@ -60,7 +60,7 @@ export function NotesPanel({
 
       {/* New note button */}
       <div className="border-b p-4">
-        <Button asChild className="w-full">
+        <Button asChild className="w-full" data-testid="create-note-button">
           <a href="/notes/new">+ Nowa notatka</a>
         </Button>
       </div>

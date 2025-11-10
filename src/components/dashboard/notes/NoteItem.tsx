@@ -67,9 +67,10 @@ export function NoteItem({ note, isSelected = false, onSelect, onDelete }: NoteI
       <Card
         className={`cursor-pointer transition-colors hover:bg-accent ${isSelected ? 'border-primary border-2' : ''}`}
         onClick={handleCardClick}
+        data-testid={`note-item-${note.id}`}
       >
         <CardHeader className="p-4">
-          <CardTitle className="text-base">{note.title}</CardTitle>
+          <CardTitle className="text-base" data-testid="note-title">{note.title}</CardTitle>
           <CardDescription className="text-xs">
             Zaktualizowano: {formattedDate}
           </CardDescription>
@@ -101,6 +102,7 @@ export function NoteItem({ note, isSelected = false, onSelect, onDelete }: NoteI
               size="sm"
               className="flex-1"
               asChild
+              data-testid="note-view-button"
             >
               <a href={`/notes/${note.id}`}>
                 <Eye className="mr-2 h-4 w-4" />
@@ -116,6 +118,7 @@ export function NoteItem({ note, isSelected = false, onSelect, onDelete }: NoteI
                   e.stopPropagation();
                   setShowDeleteDialog(true);
                 }}
+                data-testid="note-delete-button"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -139,6 +142,7 @@ export function NoteItem({ note, isSelected = false, onSelect, onDelete }: NoteI
               onClick={handleDelete}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="note-delete-confirm-button"
             >
               {isDeleting ? "Usuwanie..." : "Usuń"}
             </AlertDialogAction>

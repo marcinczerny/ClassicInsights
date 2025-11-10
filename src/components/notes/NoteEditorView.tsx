@@ -206,6 +206,7 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
             <Button
               onClick={handleSave}
               disabled={isSaveDisabled}
+              data-testid="save-note-button"
             >
               {isSaving ? "Zapisywanie..." : "Zapisz"}
             </Button>

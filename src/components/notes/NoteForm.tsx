@@ -42,6 +42,7 @@ export function NoteForm({
           onChange={(e) => onTitleChange(e.target.value)}
           maxLength={255}
           className={titleError ? "border-destructive" : ""}
+          data-testid="note-title-input"
         />
         {titleError && (
           <p className="text-xs text-destructive">{titleError}</p>
@@ -59,6 +60,7 @@ export function NoteForm({
           maxLength={10000}
           rows={12}
           className={contentError ? "border-destructive" : ""}
+          data-testid="note-content-textarea"
         />
         <div className="flex justify-between items-center">
           <div>

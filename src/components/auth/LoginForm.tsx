@@ -71,7 +71,7 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Logowanie</CardTitle>
+        <CardTitle data-testid="login-header">Logowanie</CardTitle>
         <CardDescription>
           Zaloguj się na swoje konto, aby kontynuować.
         </CardDescription>
@@ -88,6 +88,7 @@ export function LoginForm() {
               value={formData.email}
               onChange={handleInputChange}
               disabled={isLoading}
+              data-testid="login-email-input"
             />
             {getErrorForField('email') && (
               <p className="text-sm text-red-500">{getErrorForField('email')}</p>
@@ -107,6 +108,7 @@ export function LoginForm() {
               value={formData.password}
               onChange={handleInputChange}
               disabled={isLoading}
+              data-testid="login-password-input"
             />
             {getErrorForField('password') && (
               <p className="text-sm text-red-500">{getErrorForField('password')}</p>
@@ -114,7 +116,7 @@ export function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch">
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} data-testid="login-submit-button">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Zaloguj się
           </Button>
