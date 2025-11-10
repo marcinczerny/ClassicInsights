@@ -29,6 +29,50 @@ The project is built with a modern, component-based architecture. The main techn
   - **E2E Tests**: [Playwright](https://playwright.dev/)
   - **API Mocking**: [Mock Service Worker (MSW)](https://mswjs.io/)
 
+## Testing
+
+The project includes comprehensive testing setup following modern testing practices:
+
+### Test Types
+
+- **Unit Tests**: Test individual functions, components, and utilities in isolation using Vitest and React Testing Library
+- **Integration Tests**: Test component integration with mocked API calls using MSW
+- **E2E Tests**: Test complete user flows in the browser using Playwright with Chromium
+
+### Running Tests
+
+```bash
+# Unit tests
+npm test                    # Run all unit tests
+npm run test:watch         # Run tests in watch mode
+npm run test:ui            # Open Vitest UI for interactive testing
+npm run test:coverage      # Run tests with coverage report
+
+# Integration tests
+npm run test:integration   # Run integration tests
+
+# E2E tests
+npm run test:e2e           # Run E2E tests
+npm run test:e2e:ui        # Open Playwright UI
+npm run test:e2e:debug     # Debug E2E tests
+npm run test:e2e:headed    # Run with visible browser
+```
+
+### Test Structure
+
+- Unit tests are located alongside source files as `*.test.ts` or `*.test.tsx`
+- Integration tests use `*.integration.test.ts` pattern
+- E2E tests are in the `e2e/` directory as `*.spec.ts` files
+- Test utilities and mocks are in `src/test/` directory
+
+### Coverage Goals
+
+The project aims to maintain high test coverage:
+- Branches: 70%
+- Functions: 70%
+- Lines: 70%
+- Statements: 70%
+
 ## Getting Started Locally
 
 To set up and run the project on your local machine, follow these steps.
@@ -82,6 +126,15 @@ The following scripts are available in the `package.json`:
 | `npm run lint`   | Lints the codebase for errors.                     |
 | `npm run lint:fix`| Lints the codebase and automatically fixes issues. |
 | `npm run format` | Formats the code using Prettier.                   |
+| `npm test`       | Runs unit tests with Vitest.                       |
+| `npm run test:watch`| Runs unit tests in watch mode.                     |
+| `npm run test:ui`| Opens Vitest UI for interactive testing.            |
+| `npm run test:coverage`| Runs tests with coverage report.                   |
+| `npm run test:integration`| Runs integration tests.                            |
+| `npm run test:e2e`| Runs end-to-end tests with Playwright.             |
+| `npm run test:e2e:ui`| Opens Playwright UI for E2E testing.               |
+| `npm run test:e2e:debug`| Runs E2E tests in debug mode.                      |
+| `npm run test:e2e:headed`| Runs E2E tests with visible browser.               |
 
 ## Project Scope
 
