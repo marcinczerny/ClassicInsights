@@ -9,7 +9,16 @@
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",
@@ -29,6 +38,7 @@
     "@supabase/supabase-js": "^2.76.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.16",
+    "@tanstack/react-query": "^5.90.7",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@xyflow/react": "^12.9.2",
@@ -41,6 +51,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.9.5",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.1.0",
     "tailwindcss": "^4.1.16",
@@ -50,6 +61,11 @@
   "devDependencies": {
     "@eslint/compat": "1.2.7",
     "@eslint/js": "9.23.0",
+    "@playwright/test": "^1.56.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.10.0",
     "@typescript-eslint/eslint-plugin": "8.28.0",
     "@typescript-eslint/parser": "8.28.0",
     "eslint": "9.23.0",
@@ -63,10 +79,13 @@
     "eslint-plugin-react-compiler": "19.0.0-beta-aeaed83-20250323",
     "eslint-plugin-react-hooks": "5.2.0",
     "husky": "9.1.7",
+    "jsdom": "^27.1.0",
     "lint-staged": "15.5.0",
+    "msw": "^2.12.1",
     "prettier-plugin-astro": "0.14.1",
     "supabase": "^2.53.6",
-    "typescript-eslint": "8.28.0"
+    "typescript-eslint": "8.28.0",
+    "vitest": "^4.0.8"
   },
   "lint-staged": {
     "*.{ts,tsx,astro}": [
