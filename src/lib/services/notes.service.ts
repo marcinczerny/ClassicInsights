@@ -30,7 +30,7 @@ async function _validateEntities(entityIds: string[], userId: string): Promise<v
   }
 }
 
-export async function getNotes(userId: string, params: GetNotesParams = {}): Promise<NotesListResponseDTO> {
+export async function getNotes(userId: string, params: Partial<GetNotesParams> = {}): Promise<NotesListResponseDTO> {
   const {
     page = 1,
     limit = 20,
@@ -48,12 +48,12 @@ export async function getNotes(userId: string, params: GetNotesParams = {}): Pro
 
   // Apply entity filter to count if provided
   if (entityFilter && entityFilter.length > 0) {
-    countQuery = countQuery.in('id',
-      supabaseClient
-        .from('note_entities')
-        .select('note_id')
-        .in('entity_id', entityFilter)
-    );
+    const { data: noteIds } = await supabaseClient
+      .from('note_entities')
+      .select('note_id')
+      .in('entity_id', entityFilter);
+    const filteredNoteIds = noteIds?.map(ne => ne.note_id) || [];
+    countQuery = countQuery.in('id', filteredNoteIds);
   }
 
   // Apply search filter to count if provided
@@ -100,12 +100,12 @@ export async function getNotes(userId: string, params: GetNotesParams = {}): Pro
 
   // Apply entity filter
   if (entityFilter && entityFilter.length > 0) {
-    query = query.in('id',
-      supabaseClient
-        .from('note_entities')
-        .select('note_id')
-        .in('entity_id', entityFilter)
-    );
+    const { data: noteIds } = await supabaseClient
+      .from('note_entities')
+      .select('note_id')
+      .in('entity_id', entityFilter);
+    const filteredNoteIds = noteIds?.map(ne => ne.note_id) || [];
+    query = query.in('id', filteredNoteIds);
   }
 
   // Apply search filter
