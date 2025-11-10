@@ -27,6 +27,24 @@ export const getEntities = async (
   );
 };
 
+export const findEntityByName = async (
+  userId: string,
+  name: string,
+): Promise<EntityDTO | null> => {
+  const { data, error } = await supabaseClient
+    .from('entities')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('name', name)
+    .maybeSingle();
+
+  if (error) {
+    handleSupabaseError(error);
+  }
+
+  return data;
+};
+
 export const createEntity = async (
   userId: string,
   data: CreateEntityCommand,

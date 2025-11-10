@@ -4,7 +4,7 @@ import type { Enums } from '@/db/database.types';
 import { z } from 'zod';
 import { getProfile } from './profile.service';
 import { findNoteById, addEntityToNote, updateNote } from './notes.service';
-import { createEntity, getEntities } from './entities.service';
+import { createEntity, findEntityByName, getEntities } from './entities.service';
 import { OpenRouterService } from './ai.service';
 
 const MIN_CONTENT_LENGTH = 10;
@@ -92,20 +92,23 @@ export async function generateSuggestionsForNote(noteId: string, userId: string)
 export async function getSuggestionsForNote(
   noteId: string,
   userId: string,
-  filters?: { status?: 'pending' | 'accepted' | 'rejected' }
+  status?: Enums<'suggestion_status'> | Enums<'suggestion_status'>[]
 ): Promise<SuggestionDTO[]> {
   let query = supabaseClient
     .from('ai_suggestions')
     .select('*')
     .eq('note_id', noteId)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .eq('user_id', userId);
 
-  if (filters?.status) {
-    query = query.eq('status', filters.status);
+  if (status) {
+    if (Array.isArray(status)) {
+      query = query.in('status', status);
+    } else {
+      query = query.eq('status', status);
+    }
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) {
     handleSupabaseError(error);
@@ -118,27 +121,44 @@ async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string)
   const noteId = suggestion.note_id;
   if (!noteId) throw new Error('Suggestion has no associated note');
 
+  const note = await findNoteById(noteId, userId);
+  if (!note) throw new Error('Note not found');
+
   switch (suggestion.type) {
     case 'new_entity': {
       if (!suggestion.name) throw new Error('Suggestion name is required for new_entity');
-      const entityName = suggestion.name.includes(':') ? suggestion.name.split(':')[1].trim() : suggestion.name;
-      const newEntity = await createEntity(userId, {
-        name: entityName,
-        type: 'person', // Default type
-        description: suggestion.content || '',
-      });
-      await addEntityToNote(noteId, newEntity.id, userId, 'is_related_to');
+      
+      const entityName = suggestion.name.includes(':') 
+        ? suggestion.name.split(':')[1].trim() 
+        : suggestion.name;
+
+      let entity = await findEntityByName(userId, entityName);
+
+      if (!entity) {
+        entity = await createEntity(userId, {
+          name: entityName,
+          type: 'person', // Default type
+          description: suggestion.content || '',
+        });
+      }
+
+      const isAlreadyLinked = note.entities.some(e => e.id === entity!.id);
+      if (!isAlreadyLinked) {
+        await addEntityToNote(noteId, entity.id, userId, 'is_related_to');
+      }
       break;
     }
     case 'existing_entity_link': {
       if (!suggestion.suggested_entity_id) throw new Error('No entity ID provided');
-      await addEntityToNote(noteId, suggestion.suggested_entity_id, userId, 'is_related_to');
+      
+      const isAlreadyLinked = note.entities.some(e => e.id === suggestion.suggested_entity_id);
+      if (!isAlreadyLinked) {
+        await addEntityToNote(noteId, suggestion.suggested_entity_id, userId, 'is_related_to');
+      }
       break;
     }
     case 'quote':
     case 'summary': {
-      const note = await findNoteById(noteId, userId);
-      if (!note) throw new Error('Note not found');
       const header = suggestion.type === 'quote' ? '## Quotes' : '## Summary';
       const newContent = `${note.content || ''}\n\n${header}\n\n${suggestion.content}`;
       await updateNote(noteId, userId, { content: newContent });

@@ -81,17 +81,17 @@ export function useNoteEditor(noteId: string | 'new') {
    */
   const fetchSuggestions = useCallback(async (id: string) => {
     try {
-      const response = await fetch(`/api/notes/${id}/suggestions`);
+      const response = await fetch(`/api/notes/${id}/suggestions?status=pending`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch suggestions");
       }
 
       const result = await response.json();
-      const suggestions: SuggestionViewModel[] = result.data.map((dto: any) => ({
+      const suggestions: SuggestionViewModel[] = Array.isArray(result) ? result.map((dto: any) => ({
         ...dto,
         isSubmitting: false,
-      }));
+      })) : [];
 
       setState((prev) => ({ ...prev, suggestions }));
     } catch (error) {

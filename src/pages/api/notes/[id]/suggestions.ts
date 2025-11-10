@@ -83,7 +83,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 		const result = await getSuggestionsForNote(
 			noteId,
 			userId,
-			queryValidation.data
+			queryValidation.data.status
 		);
 
 		return new Response(JSON.stringify(result), {
