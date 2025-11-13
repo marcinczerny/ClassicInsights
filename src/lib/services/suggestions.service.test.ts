@@ -3,7 +3,6 @@ import { supabaseClient } from "@/db/supabase.client";
 import { getProfile } from "./profile.service";
 import { findNoteById, addEntityToNote, updateNote } from "./notes.service";
 import { createEntity, findEntityByName, getEntities } from "./entities.service";
-import { OpenRouterService } from "./ai.service";
 
 // Import all functions to test
 import { generateSuggestionsForNote, getSuggestionsForNote, updateSuggestionStatus } from "./suggestions.service";

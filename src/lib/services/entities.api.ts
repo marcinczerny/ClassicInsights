@@ -1,10 +1,4 @@
-import type {
-  CreateEntityCommand,
-  EntitiesListResponseDTO,
-  EntityDTO,
-  EntityWithCountDTO,
-  UpdateEntityCommand,
-} from "@/types";
+import type { CreateEntityCommand, EntityDTO, EntityWithCountDTO, UpdateEntityCommand } from "@/types";
 
 import type { EntitiesSortColumn, SortOrder } from "@/components/entities/types";
 
@@ -95,5 +89,14 @@ export async function deleteEntityRequest(entityId: string): Promise<void> {
     },
   });
 
-  await handleResponse<void>(response);
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type");
+
+    if (contentType?.includes("application/json")) {
+      const errorBody = await response.json();
+      throw new Error(errorBody?.message ?? "Request failed");
+    }
+
+    throw new Error(`Request failed with status ${response.status}`);
+  }
 }

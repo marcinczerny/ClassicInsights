@@ -2,24 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { supabaseClient } from "@/db/supabase.client";
 
 // Import all functions to test
-import {
-  getNotes,
-  createNote,
-  updateNote,
-  deleteNote,
-  removeEntityFromNote,
-  addEntityToNote,
-  findNoteById,
-} from "./notes.service";
+import { getNotes, createNote, updateNote, addEntityToNote, findNoteById } from "./notes.service";
 
 // Import types
-import type {
-  NoteDTO,
-  CreateNoteCommand,
-  UpdateNoteCommand,
-  NotesListResponseDTO,
-  NoteEntityAssociationDTO,
-} from "@/types";
+import type { CreateNoteCommand, UpdateNoteCommand } from "@/types";
 
 // Mock Supabase client
 vi.mock("@/db/supabase.client", () => ({

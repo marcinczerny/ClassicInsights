@@ -5,7 +5,7 @@
  * Handles panning, zooming, node selection, and creating connections.
  */
 
-import { useCallback, useMemo, useEffect, useRef } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -15,7 +15,6 @@ import {
   useNodesState,
   useEdgesState,
   useReactFlow,
-  type OnConnect,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -26,7 +25,6 @@ import type { GraphDTO } from "@/types";
 interface GraphViewProps {
   graphData: GraphDTO | null;
   hasNotes: boolean;
-  isConnectionMode?: boolean;
   selectedSourceNode?: string | null;
   graphCenterNode?: { id: string; type: "note" | "entity" } | null;
   onNodeClick?: (node: { id: string; type: "note" | "entity" }) => void;
@@ -36,7 +34,6 @@ interface GraphViewProps {
 function GraphViewInner({
   graphData,
   hasNotes,
-  isConnectionMode = false,
   selectedSourceNode = null,
   graphCenterNode,
   onNodeClick,

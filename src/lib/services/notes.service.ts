@@ -1,5 +1,5 @@
 import { supabaseClient } from "@/db/supabase.client";
-import type { CreateNoteCommand, NoteDTO, UpdateNoteCommand, NoteEntityAssociationDTO, PaginationDTO } from "@/types";
+import type { CreateNoteCommand, NoteDTO, UpdateNoteCommand, NoteEntityAssociationDTO } from "@/types";
 import type { GetNotesParams } from "@/lib/validation";
 import type { NotesListResponseDTO } from "@/types";
 

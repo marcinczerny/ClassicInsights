@@ -70,7 +70,7 @@ export function AISuggestionsPanel({
       {!isAnalyzing && suggestions.length === 0 && noteId !== "new" && (
         <div className="text-center py-8 text-sm text-muted-foreground">
           <p>Brak sugestii dla tej notatki.</p>
-          <p className="mt-1">Kliknij "Analizuj", aby wygenerować sugestie.</p>
+          <p className="mt-1">Kliknij &quot;Analizuj&quot;, aby wygenerować sugestie.</p>
         </div>
       )}
 

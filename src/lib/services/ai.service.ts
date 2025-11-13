@@ -81,7 +81,7 @@ export class OpenRouterService {
       $refStrategy: "none", // Use this strategy to avoid $ref issues
     });
 
-    const { $schema, ...rest } = jsonSchema; // Remove top-level $schema if present
+    const { ...rest } = jsonSchema; // Remove top-level $schema if present
 
     // Add JSON schema to system prompt for better compliance
     const enhancedSystemPrompt = `${systemPrompt}

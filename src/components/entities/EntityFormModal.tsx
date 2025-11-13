@@ -114,7 +114,6 @@ export function EntityFormModal({
               placeholder="np. Immanuel Kant"
               maxLength={100}
               required
-              autoFocus
               aria-invalid={Boolean(errors.name)}
               aria-describedby={errors.name ? "entity-name-error" : undefined}
             />
