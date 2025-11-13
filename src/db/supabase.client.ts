@@ -19,8 +19,16 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
   });
 }
 
-export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
-  const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+export const createSupabaseServerInstance = (context: {
+  headers: Headers;
+  cookies: AstroCookies;
+  runtime?: { env: Record<string, string> };
+}) => {
+  // For Cloudflare Pages runtime, use runtime.env, otherwise fallback to import.meta.env
+  const supabaseUrl = context.runtime?.env?.SUPABASE_URL ?? import.meta.env.SUPABASE_URL;
+  const supabaseKey = context.runtime?.env?.SUPABASE_KEY ?? import.meta.env.SUPABASE_KEY;
+
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,
     cookies: {
       getAll() {
@@ -35,8 +43,9 @@ export const createSupabaseServerInstance = (context: { headers: Headers; cookie
   return supabase;
 };
 
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
+// Use PUBLIC_ prefixed variables for client-side Supabase client
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
 

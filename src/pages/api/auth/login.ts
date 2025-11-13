@@ -3,7 +3,7 @@ import { createSupabaseServerInstance } from "@/db/supabase.client";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
   const { email, password } = await request.json();
 
   if (!email || !password) {
@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 
-  const supabase = createSupabaseServerInstance({ cookies, headers: request.headers });
+  const supabase = createSupabaseServerInstance({ cookies, headers: request.headers, runtime: locals.runtime });
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
