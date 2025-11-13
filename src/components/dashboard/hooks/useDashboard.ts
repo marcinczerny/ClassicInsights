@@ -136,9 +136,21 @@ export function useDashboard(): DashboardViewController {
         throw error;
       }
     },
-    handleCreateNoteEntity: async () => {},
-    setGraphPanelState: () => {},
-    handleEntitySelectionChange: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    handleCreateNoteEntity: async (_noteId: string, _entityName: string) => {
+      // TODO: Implement note-entity creation
+      throw new Error("handleCreateNoteEntity not implemented");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setGraphPanelState: (_state: "collapsed" | "open" | "fullscreen") => {
+      // TODO: Implement graph panel state management
+      throw new Error("setGraphPanelState not implemented");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    handleEntitySelectionChange: (_entityIds: string[]) => {
+      // TODO: Implement entity selection change handling
+      throw new Error("handleEntitySelectionChange not implemented");
+    },
 
     // State
     graphCenterNode,

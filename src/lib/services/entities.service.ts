@@ -95,8 +95,10 @@ export const getEntityById = async (userId: string, entityId: string): Promise<E
 
   const transformedData = {
     ...data,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     notes: (data.note_entities || []).map((ne: any) => ({
-      ...ne.notes,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...(ne as any).notes,
       relationship_type: ne.type,
     })),
     note_entities: undefined,

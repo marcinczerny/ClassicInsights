@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { NoteViewModel, NoteEntityViewModel, SuggestionViewModel, NoteEditorState } from "../types";
-import type { NoteDTO, CreateNoteCommand, UpdateNoteCommand } from "@/types";
+import type { NoteDTO, CreateNoteCommand, UpdateNoteCommand, SuggestionDTO } from "@/types";
 
 const INITIAL_STATE: NoteEditorState = {
   note: null,
@@ -92,7 +92,7 @@ export function useNoteEditor(noteId: string | "new") {
 
       const result = await response.json();
       const suggestions: SuggestionViewModel[] = Array.isArray(result)
-        ? result.map((dto: any) => ({
+        ? result.map((dto: SuggestionDTO) => ({
             ...dto,
             isSubmitting: false,
           }))
@@ -275,7 +275,7 @@ export function useNoteEditor(noteId: string | "new") {
       }
 
       const result = await response.json();
-      const suggestions: SuggestionViewModel[] = result.suggestions.map((dto: any) => ({
+      const suggestions: SuggestionViewModel[] = result.suggestions.map((dto: SuggestionDTO) => ({
         ...dto,
         isSubmitting: false,
       }));

@@ -175,7 +175,10 @@ export function useEntitiesView(): EntitiesViewController {
       setSearch: (search: string) => setFilters((f) => ({ ...f, search })),
       setTypeFilter: (type: Enums<"entity_type"> | "all") => setFilters((f) => ({ ...f, type })),
       setSorting: setSortingHandler,
-      setPage: () => {}, // No-op, pagination removed
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      setPage: (_page: number) => {
+        // No-op, pagination removed
+      },
       openAddModal,
       openEditModal,
       closeFormModal,

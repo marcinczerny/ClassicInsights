@@ -8,30 +8,40 @@ Object.defineProperty(window, "matchMedia", {
     matches: false,
     media: query,
     onchange: null,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     addListener: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     removeListener: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     addEventListener: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     removeEventListener: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     dispatchEvent: () => {},
   }),
 });
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   observe() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   unobserve() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   disconnect() {}
 };
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   observe() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   unobserve() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   disconnect() {}
   root = null;
   rootMargin = "";
   thresholds = [];
-  constructor() {}
   takeRecords() {
     return [];
   }

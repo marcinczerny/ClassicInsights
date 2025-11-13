@@ -19,6 +19,7 @@ describe("Notes Service - Business Rules", () => {
   const mockNoteId = "note-456";
   const mockEntityId = "entity-789";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockSupabaseClient: any;
 
   beforeEach(() => {
@@ -401,7 +402,7 @@ describe("Notes Service - Business Rules", () => {
       const result = await findNoteById(mockNoteId, mockUserId);
 
       expect(result?.entities).toEqual([]);
-      expect((result as any)?.note_entities).toBeUndefined();
+      expect((result as unknown as { note_entities?: unknown })?.note_entities).toBeUndefined();
     });
   });
 
