@@ -1,5 +1,5 @@
-import { supabaseClient } from '@/db/supabase.client';
-import type { GraphDTO, GraphNodeDTO, GraphEdgeDTO } from '@/types';
+import { supabaseClient } from "@/db/supabase.client";
+import type { GraphDTO, GraphNodeDTO, GraphEdgeDTO } from "@/types";
 
 export async function getGraphData(userId: string): Promise<GraphDTO> {
   const nodes: GraphNodeDTO[] = [];
@@ -8,20 +8,20 @@ export async function getGraphData(userId: string): Promise<GraphDTO> {
 
   // Fetch all entities for the user
   const { data: entities, error: entitiesError } = await supabaseClient
-    .from('entities')
-    .select('*')
-    .eq('user_id', userId);
+    .from("entities")
+    .select("*")
+    .eq("user_id", userId);
 
   if (entitiesError) {
-    console.error('Error fetching entities for graph:', entitiesError);
-    throw new Error('Failed to fetch entities.');
+    console.error("Error fetching entities for graph:", entitiesError);
+    throw new Error("Failed to fetch entities.");
   }
 
   entities.forEach((entity) => {
     if (!nodeIds.has(entity.id)) {
       nodes.push({
         id: entity.id,
-        type: 'entity',
+        type: "entity",
         name: entity.name,
         entity_type: entity.type,
         description: entity.description,
@@ -32,24 +32,21 @@ export async function getGraphData(userId: string): Promise<GraphDTO> {
   });
 
   // Fetch all notes for the user
-  const { data: notes, error: notesError } = await supabaseClient
-    .from('notes')
-    .select('*')
-    .eq('user_id', userId);
+  const { data: notes, error: notesError } = await supabaseClient.from("notes").select("*").eq("user_id", userId);
 
   if (notesError) {
-    console.error('Error fetching notes for graph:', notesError);
-    throw new Error('Failed to fetch notes.');
+    console.error("Error fetching notes for graph:", notesError);
+    throw new Error("Failed to fetch notes.");
   }
 
   notes.forEach((note) => {
     if (!nodeIds.has(note.id)) {
       const notePreview = note.content
-        ? note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '')
+        ? note.content.substring(0, 100) + (note.content.length > 100 ? "..." : "")
         : undefined;
       nodes.push({
         id: note.id,
-        type: 'note',
+        type: "note",
         name: note.title,
         note_preview: notePreview,
         created_at: note.created_at,
@@ -59,16 +56,16 @@ export async function getGraphData(userId: string): Promise<GraphDTO> {
   });
 
   // Fetch all note-entity relationships for the user's notes
-  const noteIdsList = notes.map(n => n.id);
+  const noteIdsList = notes.map((n) => n.id);
   if (noteIdsList.length > 0) {
     const { data: noteEntityLinks, error: noteEntityLinksError } = await supabaseClient
-      .from('note_entities')
-      .select('*')
-      .in('note_id', noteIdsList);
+      .from("note_entities")
+      .select("*")
+      .in("note_id", noteIdsList);
 
     if (noteEntityLinksError) {
-      console.error('Error fetching note-entity links:', noteEntityLinksError);
-      throw new Error('Failed to fetch note-entity links.');
+      console.error("Error fetching note-entity links:", noteEntityLinksError);
+      throw new Error("Failed to fetch note-entity links.");
     }
 
     noteEntityLinks.forEach((link) => {
@@ -81,31 +78,30 @@ export async function getGraphData(userId: string): Promise<GraphDTO> {
       });
     });
   }
-  
+
   // Fetch all entity-entity relationships for the user's entities
-  const entityIdsList = entities.map(e => e.id);
+  const entityIdsList = entities.map((e) => e.id);
   if (entityIdsList.length > 0) {
-      const { data: relationships, error: relationshipsError } = await supabaseClient
-      .from('relationships')
-      .select('*')
-      .in('source_entity_id', entityIdsList);
+    const { data: relationships, error: relationshipsError } = await supabaseClient
+      .from("relationships")
+      .select("*")
+      .in("source_entity_id", entityIdsList);
 
     if (relationshipsError) {
-      console.error('Error fetching relationships:', relationshipsError);
-      throw new Error('Failed to fetch relationships.');
+      console.error("Error fetching relationships:", relationshipsError);
+      throw new Error("Failed to fetch relationships.");
     }
-    
+
     relationships.forEach((rel) => {
-        edges.push({
-            id: rel.id,
-            source_id: rel.source_entity_id,
-            target_id: rel.target_entity_id,
-            type: rel.type,
-            created_at: rel.created_at
-        });
+      edges.push({
+        id: rel.id,
+        source_id: rel.source_entity_id,
+        target_id: rel.target_entity_id,
+        type: rel.type,
+        created_at: rel.created_at,
+      });
     });
   }
-
 
   return { nodes, edges };
 }

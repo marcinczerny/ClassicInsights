@@ -6,7 +6,14 @@
  */
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +27,7 @@ interface CreateEntityModalProps {
   onSave: (entity: CreateEntityCommand) => Promise<EntityDTO>;
 }
 
-const ENTITY_TYPES: Array<{ value: Enums<"entity_type">; label: string }> = [
+const ENTITY_TYPES: { value: Enums<"entity_type">; label: string }[] = [
   { value: "person", label: "Osoba" },
   { value: "work", label: "Dzieło" },
   { value: "epoch", label: "Epoka" },
@@ -117,9 +124,7 @@ export function CreateEntityModal({ isOpen, onClose, onSave }: CreateEntityModal
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Utwórz nowy byt</DialogTitle>
-          <DialogDescription>
-            Dodaj nowy byt do swojej bazy wiedzy
-          </DialogDescription>
+          <DialogDescription>Dodaj nowy byt do swojej bazy wiedzy</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -139,9 +144,7 @@ export function CreateEntityModal({ isOpen, onClose, onSave }: CreateEntityModal
               maxLength={100}
               disabled={isSaving}
             />
-            {validationErrors.name && (
-              <p className="text-xs text-destructive">{validationErrors.name}</p>
-            )}
+            {validationErrors.name && <p className="text-xs text-destructive">{validationErrors.name}</p>}
           </div>
 
           {/* Type field */}
@@ -168,9 +171,7 @@ export function CreateEntityModal({ isOpen, onClose, onSave }: CreateEntityModal
                 ))}
               </SelectContent>
             </Select>
-            {validationErrors.type && (
-              <p className="text-xs text-destructive">{validationErrors.type}</p>
-            )}
+            {validationErrors.type && <p className="text-xs text-destructive">{validationErrors.type}</p>}
           </div>
 
           {/* Description field */}
@@ -190,9 +191,7 @@ export function CreateEntityModal({ isOpen, onClose, onSave }: CreateEntityModal
               rows={4}
               disabled={isSaving}
             />
-            {validationErrors.description && (
-              <p className="text-xs text-destructive">{validationErrors.description}</p>
-            )}
+            {validationErrors.description && <p className="text-xs text-destructive">{validationErrors.description}</p>}
           </div>
 
           {/* Error message */}

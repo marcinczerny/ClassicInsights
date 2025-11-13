@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { EntitiesSortState, EntitiesSortColumn, PaginationState } from "@/components/entities/types.ts";
 import type { EntityWithCountDTO } from "@/types";
 
-type EntitiesDataTableProps = {
+interface EntitiesDataTableProps {
   entities: EntityWithCountDTO[];
   pagination: PaginationState | null;
   sorting: EntitiesSortState;
@@ -22,13 +22,13 @@ type EntitiesDataTableProps = {
   onPageChange: (page: number) => void;
   onEdit: (entity: EntityWithCountDTO) => void;
   onDelete: (entity: EntityWithCountDTO) => void;
-};
+}
 
-type TableColumn = {
+interface TableColumn {
   key: EntitiesSortColumn;
   label: string;
   align?: "left" | "right";
-};
+}
 
 const TABLE_COLUMNS: TableColumn[] = [
   { key: "name", label: "Nazwa", align: "left" },
@@ -65,11 +65,7 @@ export function EntitiesDataTable({
     if (sorting.column !== column) {
       return <ArrowUpDown className="size-4 text-muted-foreground" />;
     }
-    return sorting.order === "asc" ? (
-      <ArrowUp className="size-4" />
-    ) : (
-      <ArrowDown className="size-4" />
-    );
+    return sorting.order === "asc" ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
   };
 
   const handlePreviousPage = () => {
@@ -92,8 +88,7 @@ export function EntitiesDataTable({
             <tr>
               {TABLE_COLUMNS.map((column) => {
                 const isActive = sorting.column === column.key;
-                const ariaSort =
-                  isActive ? (sorting.order === "asc" ? "ascending" : "descending") : "none";
+                const ariaSort = isActive ? (sorting.order === "asc" ? "ascending" : "descending") : "none";
 
                 return (
                   <th
@@ -122,15 +117,16 @@ export function EntitiesDataTable({
                 Powiązania
               </th>
 
-              <th scope="col" className="border-b border-border px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th
+                scope="col"
+                className="border-b border-border px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Akcje
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {isLoading && (
-              <LoadingRows columns={TABLE_COLUMNS.length + 2} rows={loadingRowsCount} />
-            )}
+            {isLoading && <LoadingRows columns={TABLE_COLUMNS.length + 2} rows={loadingRowsCount} />}
 
             {!isLoading && entities.length === 0 && (
               <tr>
@@ -147,25 +143,26 @@ export function EntitiesDataTable({
                     <div className="space-y-1">
                       <div>{entity.name}</div>
                       {entity.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {entity.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{entity.description}</p>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 align-top text-sm text-muted-foreground">
                     <Badge variant="outline">{mapEntityTypeToLabel(entity.type)}</Badge>
                   </td>
-                  <td className="px-6 py-4 align-top text-sm text-muted-foreground">
-                    {formatDate(entity.created_at)}
-                  </td>
+                  <td className="px-6 py-4 align-top text-sm text-muted-foreground">{formatDate(entity.created_at)}</td>
                   <td className="px-6 py-4 align-top text-right text-sm text-muted-foreground">
                     <Badge variant="secondary">{entity.note_count}</Badge>
                   </td>
                   <td className="px-6 py-4 align-top text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-9" aria-label={`Akcje dla bytu ${entity.name}`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-9"
+                          aria-label={`Akcje dla bytu ${entity.name}`}
+                        >
                           <MoreHorizontal className="size-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -200,7 +197,8 @@ export function EntitiesDataTable({
         <div>
           {pageRange ? (
             <span>
-              Wyświetlanie <span className="font-medium text-foreground">{pageRange.from}</span>–<span className="font-medium text-foreground">{pageRange.to}</span> z{" "}
+              Wyświetlanie <span className="font-medium text-foreground">{pageRange.from}</span>–
+              <span className="font-medium text-foreground">{pageRange.to}</span> z{" "}
               <span className="font-medium text-foreground">{pagination?.total}</span> bytów
             </span>
           ) : (
@@ -209,12 +207,7 @@ export function EntitiesDataTable({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePreviousPage}
-            disabled={currentPage <= 1 || isLoading}
-          >
+          <Button variant="outline" size="sm" onClick={handlePreviousPage} disabled={currentPage <= 1 || isLoading}>
             Poprzednia
           </Button>
           <span className="text-xs font-medium text-muted-foreground">
@@ -234,10 +227,10 @@ export function EntitiesDataTable({
   );
 }
 
-type LoadingRowsProps = {
+interface LoadingRowsProps {
   columns: number;
   rows: number;
-};
+}
 
 function LoadingRows({ columns, rows }: LoadingRowsProps): JSX.Element {
   return (
@@ -288,4 +281,3 @@ function formatDate(input: string): string {
     return input;
   }
 }
-

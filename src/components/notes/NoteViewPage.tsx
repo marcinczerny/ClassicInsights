@@ -108,9 +108,7 @@ export function NoteViewPage({ noteId }: NoteViewPageProps) {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Notatka nie została znaleziona</h1>
-          <p className="text-muted-foreground">
-            Notatka, której szukasz, nie istnieje lub została usunięta.
-          </p>
+          <p className="text-muted-foreground">Notatka, której szukasz, nie istnieje lub została usunięta.</p>
           <Button asChild>
             <a href="/">Powrót do listy notatek</a>
           </Button>
@@ -164,25 +162,19 @@ export function NoteViewPage({ noteId }: NoteViewPageProps) {
           {/* Title */}
           <div>
             <h1 className="text-4xl font-bold mb-2">{note.title}</h1>
-            <p className="text-sm text-muted-foreground">
-              Zaktualizowano: {formattedDate}
-            </p>
+            <p className="text-sm text-muted-foreground">Zaktualizowano: {formattedDate}</p>
           </div>
 
           {/* Entities */}
           {note.entities.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold mb-3 text-muted-foreground">
-                Powiązane byty
-              </h2>
+              <h2 className="text-sm font-semibold mb-3 text-muted-foreground">Powiązane byty</h2>
               <div className="flex flex-wrap gap-2">
                 {note.entities.map((entity) => (
                   <Badge key={entity.id} variant="secondary" className="text-sm">
                     {entity.name}
                     {entity.relationship_type && (
-                      <span className="ml-1 text-xs opacity-70">
-                        ({entity.relationship_type})
-                      </span>
+                      <span className="ml-1 text-xs opacity-70">({entity.relationship_type})</span>
                     )}
                   </Badge>
                 ))}

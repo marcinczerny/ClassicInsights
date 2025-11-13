@@ -44,53 +44,39 @@ export const prerender = false;
  * - 500: Database error
  */
 export const GET: APIRoute = async ({ params, url, locals }) => {
-	const { user } = locals;
-	if (!user) {
-		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-	}
-	const userId = user.id;
+  const { user } = locals;
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+  const userId = user.id;
 
-	// Validate URL parameter (note ID)
-	const paramsValidation = getNoteSchema.safeParse(params);
-	if (!paramsValidation.success) {
-		return createErrorResponse(
-			"VALIDATION_ERROR",
-			"Invalid note ID",
-			400,
-			paramsValidation.error.errors
-		);
-	}
+  // Validate URL parameter (note ID)
+  const paramsValidation = getNoteSchema.safeParse(params);
+  if (!paramsValidation.success) {
+    return createErrorResponse("VALIDATION_ERROR", "Invalid note ID", 400, paramsValidation.error.errors);
+  }
 
-	const { id: noteId } = paramsValidation.data;
+  const { id: noteId } = paramsValidation.data;
 
-	// Parse and validate query parameters
-	const queryParams = {
-		status: url.searchParams.get("status") || undefined,
-	};
+  // Parse and validate query parameters
+  const queryParams = {
+    status: url.searchParams.get("status") || undefined,
+  };
 
-	const queryValidation = getSuggestionsSchema.safeParse(queryParams);
-	if (!queryValidation.success) {
-		return createErrorResponse(
-			"INVALID_QUERY_PARAM",
-			"Invalid query parameter",
-			400,
-			queryValidation.error.errors
-		);
-	}
+  const queryValidation = getSuggestionsSchema.safeParse(queryParams);
+  if (!queryValidation.success) {
+    return createErrorResponse("INVALID_QUERY_PARAM", "Invalid query parameter", 400, queryValidation.error.errors);
+  }
 
-	try {
-		// Call service to retrieve suggestions
-		const result = await getSuggestionsForNote(
-			noteId,
-			userId,
-			queryValidation.data.status
-		);
+  try {
+    // Call service to retrieve suggestions
+    const result = await getSuggestionsForNote(noteId, userId, queryValidation.data.status);
 
-		return new Response(JSON.stringify(result), {
-			status: 200,
-			headers: { "Content-Type": "application/json" },
-		});
-	} catch (error) {
-		return handleServiceError(error);
-	}
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    return handleServiceError(error);
+  }
 };

@@ -10,7 +10,7 @@ import { AISuggestionCard } from "./AISuggestionCard";
 import type { SuggestionViewModel } from "./types";
 
 interface AISuggestionsPanelProps {
-  noteId: string | 'new';
+  noteId: string | "new";
   suggestions: SuggestionViewModel[];
   isAnalyzing: boolean;
   isAnalyzeDisabled: boolean;
@@ -61,18 +61,13 @@ export function AISuggestionsPanel({
       {!isAnalyzing && suggestions.length > 0 && (
         <div className="space-y-3">
           {suggestions.map((suggestion) => (
-            <AISuggestionCard
-              key={suggestion.id}
-              suggestion={suggestion}
-              onAccept={onAccept}
-              onReject={onReject}
-            />
+            <AISuggestionCard key={suggestion.id} suggestion={suggestion} onAccept={onAccept} onReject={onReject} />
           ))}
         </div>
       )}
 
       {/* Empty state */}
-      {!isAnalyzing && suggestions.length === 0 && noteId !== 'new' && (
+      {!isAnalyzing && suggestions.length === 0 && noteId !== "new" && (
         <div className="text-center py-8 text-sm text-muted-foreground">
           <p>Brak sugestii dla tej notatki.</p>
           <p className="mt-1">Kliknij "Analizuj", aby wygenerować sugestie.</p>
@@ -80,14 +75,14 @@ export function AISuggestionsPanel({
       )}
 
       {/* New note state */}
-      {noteId === 'new' && (
+      {noteId === "new" && (
         <div className="text-center py-8 text-sm text-muted-foreground">
           <p>Zapisz notatkę, aby móc wygenerować sugestie AI.</p>
         </div>
       )}
 
       {/* Disabled reason */}
-      {isAnalyzeDisabled && analyzeDisabledReason && noteId !== 'new' && !isAnalyzing && (
+      {isAnalyzeDisabled && analyzeDisabledReason && noteId !== "new" && !isAnalyzing && (
         <div className="rounded-md bg-muted p-3">
           <p className="text-xs text-muted-foreground">{analyzeDisabledReason}</p>
         </div>

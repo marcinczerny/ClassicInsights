@@ -56,7 +56,7 @@ export function NoteItem({ note, isSelected = false, onSelect, onDelete }: NoteI
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't trigger onSelect if clicking on action buttons
     const target = e.target as HTMLElement;
-    if (target.closest('button[data-action]') || target.closest('[role="dialog"]')) {
+    if (target.closest("button[data-action]") || target.closest('[role="dialog"]')) {
       return;
     }
     onSelect(note.id);
@@ -65,15 +65,15 @@ export function NoteItem({ note, isSelected = false, onSelect, onDelete }: NoteI
   return (
     <>
       <Card
-        className={`cursor-pointer transition-colors hover:bg-accent ${isSelected ? 'border-primary border-2' : ''}`}
+        className={`cursor-pointer transition-colors hover:bg-accent ${isSelected ? "border-primary border-2" : ""}`}
         onClick={handleCardClick}
         data-testid={`note-item-${note.id}`}
       >
         <CardHeader className="p-4">
-          <CardTitle className="text-base" data-testid="note-title">{note.title}</CardTitle>
-          <CardDescription className="text-xs">
-            Zaktualizowano: {formattedDate}
-          </CardDescription>
+          <CardTitle className="text-base" data-testid="note-title">
+            {note.title}
+          </CardTitle>
+          <CardDescription className="text-xs">Zaktualizowano: {formattedDate}</CardDescription>
           {note.entities.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {note.entities.slice(0, 3).map((entity) => (

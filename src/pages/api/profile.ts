@@ -1,26 +1,26 @@
-import { getProfile, updateProfile } from '@/lib/services/profile.service';
-import { updateProfileSchema } from '@/lib/validation/profile.validation';
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
+import { getProfile, updateProfile } from "@/lib/services/profile.service";
+import { updateProfileSchema } from "@/lib/validation/profile.validation";
+import type { APIRoute } from "astro";
+import { z } from "zod";
 
 export const GET: APIRoute = async ({ locals }) => {
   const { user } = locals;
   if (!user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   try {
     const profile = await getProfile(user.id);
     if (!profile) {
-      return new Response(JSON.stringify({ error: 'Profile not found' }), { status: 404 });
+      return new Response(JSON.stringify({ error: "Profile not found" }), { status: 404 });
     }
     return new Response(JSON.stringify(profile), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error(error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 };
@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ locals }) => {
 export const PATCH: APIRoute = async ({ request, locals }) => {
   const { user } = locals;
   if (!user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   try {
@@ -39,16 +39,16 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
 
     return new Response(JSON.stringify(updatedProfile), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify({ error: 'Invalid input', details: error.errors }), {
+      return new Response(JSON.stringify({ error: "Invalid input", details: error.errors }), {
         status: 400,
       });
     }
     console.error(error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 };

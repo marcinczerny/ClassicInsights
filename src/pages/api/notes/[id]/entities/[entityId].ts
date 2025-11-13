@@ -8,7 +8,7 @@ export const prerender = false;
 export const DELETE: APIRoute = async ({ params, locals }) => {
   const { user } = locals;
   if (!user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
   const userId = user.id;
 
@@ -16,12 +16,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
   const validationResult = removeEntityFromNoteSchema.safeParse(params);
 
   if (!validationResult.success) {
-    return createErrorResponse(
-      "VALIDATION_ERROR",
-      "Invalid note or entity ID",
-      400,
-      validationResult.error.errors
-    );
+    return createErrorResponse("VALIDATION_ERROR", "Invalid note or entity ID", 400, validationResult.error.errors);
   }
 
   const { id: noteId, entityId } = validationResult.data;

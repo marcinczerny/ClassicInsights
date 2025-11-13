@@ -20,7 +20,7 @@ const INITIAL_STATE: NoteEditorState = {
   isDirty: false,
 };
 
-export function useNoteEditor(noteId: string | 'new') {
+export function useNoteEditor(noteId: string | "new") {
   const [state, setState] = useState<NoteEditorState>(INITIAL_STATE);
   const initialNoteRef = useRef<NoteViewModel | null>(null);
 
@@ -31,12 +31,12 @@ export function useNoteEditor(noteId: string | 'new') {
     return {
       id: dto.id,
       title: dto.title,
-      content: dto.content || '',
-      entities: dto.entities.map(entity => ({
+      content: dto.content || "",
+      entities: dto.entities.map((entity) => ({
         id: entity.id,
         name: entity.name,
         type: entity.type,
-        relationship_type: entity.relationship_type || 'is_related_to',
+        relationship_type: entity.relationship_type || "is_related_to",
       })),
     };
   }, []);
@@ -44,37 +44,40 @@ export function useNoteEditor(noteId: string | 'new') {
   /**
    * Fetch note from API
    */
-  const fetchNote = useCallback(async (id: string) => {
-    setState((prev) => ({ ...prev, isLoadingNote: true, error: null }));
+  const fetchNote = useCallback(
+    async (id: string) => {
+      setState((prev) => ({ ...prev, isLoadingNote: true, error: null }));
 
-    try {
-      const response = await fetch(`/api/notes/${id}`);
+      try {
+        const response = await fetch(`/api/notes/${id}`);
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Note not found");
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error("Note not found");
+          }
+          throw new Error("Failed to fetch note");
         }
-        throw new Error("Failed to fetch note");
+
+        const dto: NoteDTO = await response.json();
+        const viewModel = dtoToViewModel(dto);
+
+        initialNoteRef.current = viewModel;
+        setState((prev) => ({
+          ...prev,
+          note: viewModel,
+          isLoadingNote: false,
+          isDirty: false,
+        }));
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          isLoadingNote: false,
+          error: error instanceof Error ? error : new Error("Unknown error"),
+        }));
       }
-
-      const dto: NoteDTO = await response.json();
-      const viewModel = dtoToViewModel(dto);
-
-      initialNoteRef.current = viewModel;
-      setState((prev) => ({
-        ...prev,
-        note: viewModel,
-        isLoadingNote: false,
-        isDirty: false,
-      }));
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isLoadingNote: false,
-        error: error instanceof Error ? error : new Error("Unknown error"),
-      }));
-    }
-  }, [dtoToViewModel]);
+    },
+    [dtoToViewModel]
+  );
 
   /**
    * Fetch suggestions for note
@@ -88,10 +91,12 @@ export function useNoteEditor(noteId: string | 'new') {
       }
 
       const result = await response.json();
-      const suggestions: SuggestionViewModel[] = Array.isArray(result) ? result.map((dto: any) => ({
-        ...dto,
-        isSubmitting: false,
-      })) : [];
+      const suggestions: SuggestionViewModel[] = Array.isArray(result)
+        ? result.map((dto: any) => ({
+            ...dto,
+            isSubmitting: false,
+          }))
+        : [];
 
       setState((prev) => ({ ...prev, suggestions }));
     } catch (error) {
@@ -103,11 +108,11 @@ export function useNoteEditor(noteId: string | 'new') {
    * Initialize note - fetch existing or create empty
    */
   useEffect(() => {
-    if (noteId === 'new') {
+    if (noteId === "new") {
       const emptyNote: NoteViewModel = {
-        id: 'new',
-        title: '',
-        content: '',
+        id: "new",
+        title: "",
+        content: "",
         entities: [],
       };
       initialNoteRef.current = emptyNote;
@@ -126,7 +131,7 @@ export function useNoteEditor(noteId: string | 'new') {
   /**
    * Update a field in the note
    */
-  const setNoteField = useCallback((field: 'title' | 'content', value: string) => {
+  const setNoteField = useCallback((field: "title" | "content", value: string) => {
     setState((prev) => {
       if (!prev.note) return prev;
 
@@ -170,14 +175,14 @@ export function useNoteEditor(noteId: string | 'new') {
     setState((prev) => ({ ...prev, isSaving: true, error: null }));
 
     try {
-      const isNew = state.note.id === 'new';
-      const url = isNew ? '/api/notes' : `/api/notes/${state.note.id}`;
-      const method = isNew ? 'POST' : 'PATCH';
+      const isNew = state.note.id === "new";
+      const url = isNew ? "/api/notes" : `/api/notes/${state.note.id}`;
+      const method = isNew ? "POST" : "PATCH";
 
       const command: CreateNoteCommand | UpdateNoteCommand = {
         title: state.note.title,
         content: state.note.content,
-        entities: state.note.entities.map(entity => ({
+        entities: state.note.entities.map((entity) => ({
           entity_id: entity.id,
           relationship_type: entity.relationship_type,
         })),
@@ -185,7 +190,7 @@ export function useNoteEditor(noteId: string | 'new') {
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(command),
       });
 
@@ -225,13 +230,13 @@ export function useNoteEditor(noteId: string | 'new') {
    * Delete note
    */
   const deleteNote = useCallback(async () => {
-    if (!state.note || state.note.id === 'new') return;
+    if (!state.note || state.note.id === "new") return;
 
     setState((prev) => ({ ...prev, isDeleting: true, error: null }));
 
     try {
       const response = await fetch(`/api/notes/${state.note.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
@@ -239,7 +244,7 @@ export function useNoteEditor(noteId: string | 'new') {
       }
 
       // Redirect to home/notes list after deletion
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error) {
       setState((prev) => ({
         ...prev,
@@ -254,14 +259,14 @@ export function useNoteEditor(noteId: string | 'new') {
    * Run AI analysis on note
    */
   const runAnalysis = useCallback(async () => {
-    if (!state.note || state.note.id === 'new') return;
+    if (!state.note || state.note.id === "new") return;
     if (!state.note.content.trim() || state.note.content.length < 10) return;
 
     setState((prev) => ({ ...prev, isAnalyzing: true, error: null }));
 
     try {
       const response = await fetch(`/api/notes/${state.note.id}/analyze`, {
-        method: 'POST',
+        method: "POST",
       });
 
       if (!response.ok) {
@@ -293,47 +298,46 @@ export function useNoteEditor(noteId: string | 'new') {
   /**
    * Accept AI suggestion
    */
-  const acceptSuggestion = useCallback(async (suggestionId: string) => {
-    // Mark suggestion as submitting
-    setState((prev) => ({
-      ...prev,
-      suggestions: prev.suggestions.map(s =>
-        s.id === suggestionId ? { ...s, isSubmitting: true } : s
-      ),
-    }));
-
-    try {
-      const response = await fetch(`/api/suggestions/${suggestionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'accepted' }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to accept suggestion");
-      }
-
-      // Remove suggestion from list
+  const acceptSuggestion = useCallback(
+    async (suggestionId: string) => {
+      // Mark suggestion as submitting
       setState((prev) => ({
         ...prev,
-        suggestions: prev.suggestions.filter(s => s.id !== suggestionId),
+        suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: true } : s)),
       }));
 
-      // Refresh note data if suggestion added entity
-      if (state.note && state.note.id !== 'new') {
-        await fetchNote(state.note.id);
+      try {
+        const response = await fetch(`/api/suggestions/${suggestionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "accepted" }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to accept suggestion");
+        }
+
+        // Remove suggestion from list
+        setState((prev) => ({
+          ...prev,
+          suggestions: prev.suggestions.filter((s) => s.id !== suggestionId),
+        }));
+
+        // Refresh note data if suggestion added entity
+        if (state.note && state.note.id !== "new") {
+          await fetchNote(state.note.id);
+        }
+      } catch (error) {
+        // Reset submitting state on error
+        setState((prev) => ({
+          ...prev,
+          suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: false } : s)),
+        }));
+        throw error;
       }
-    } catch (error) {
-      // Reset submitting state on error
-      setState((prev) => ({
-        ...prev,
-        suggestions: prev.suggestions.map(s =>
-          s.id === suggestionId ? { ...s, isSubmitting: false } : s
-        ),
-      }));
-      throw error;
-    }
-  }, [state.note, fetchNote]);
+    },
+    [state.note, fetchNote]
+  );
 
   /**
    * Reject AI suggestion
@@ -342,16 +346,14 @@ export function useNoteEditor(noteId: string | 'new') {
     // Mark suggestion as submitting
     setState((prev) => ({
       ...prev,
-      suggestions: prev.suggestions.map(s =>
-        s.id === suggestionId ? { ...s, isSubmitting: true } : s
-      ),
+      suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: true } : s)),
     }));
 
     try {
       const response = await fetch(`/api/suggestions/${suggestionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'rejected' }),
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "rejected" }),
       });
 
       if (!response.ok) {
@@ -361,15 +363,13 @@ export function useNoteEditor(noteId: string | 'new') {
       // Remove suggestion from list
       setState((prev) => ({
         ...prev,
-        suggestions: prev.suggestions.filter(s => s.id !== suggestionId),
+        suggestions: prev.suggestions.filter((s) => s.id !== suggestionId),
       }));
     } catch (error) {
       // Reset submitting state on error
       setState((prev) => ({
         ...prev,
-        suggestions: prev.suggestions.map(s =>
-          s.id === suggestionId ? { ...s, isSubmitting: false } : s
-        ),
+        suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: false } : s)),
       }));
       throw error;
     }

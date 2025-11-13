@@ -1,9 +1,4 @@
-import type {
-  CreateEntityCommand,
-  EntityWithCountDTO,
-  PaginationDTO,
-  UpdateEntityCommand,
-} from "@/types";
+import type { CreateEntityCommand, EntityWithCountDTO, PaginationDTO, UpdateEntityCommand } from "@/types";
 import type { Enums } from "@/db/database.types";
 
 export type EntityType = Enums<"entity_type"> | "other";
@@ -12,19 +7,19 @@ export type EntitiesSortColumn = "name" | "type" | "created_at";
 
 export type SortOrder = "asc" | "desc";
 
-export type EntitiesSortState = {
+export interface EntitiesSortState {
   column: EntitiesSortColumn;
   order: SortOrder;
-};
+}
 
-export type EntitiesFilterState = {
+export interface EntitiesFilterState {
   search: string;
   type: EntityType | "all";
-};
+}
 
 export type PaginationState = PaginationDTO;
 
-export type EntitiesViewState = {
+export interface EntitiesViewState {
   entities: EntityWithCountDTO[];
   pagination: PaginationState | null;
   isLoading: boolean;
@@ -37,9 +32,9 @@ export type EntitiesViewState = {
   entityToDelete: EntityWithCountDTO | null;
   isSubmitting: boolean;
   isDeleting: boolean;
-};
+}
 
-export type EntitiesViewHandlers = {
+export interface EntitiesViewHandlers {
   setSearch: (value: string) => void;
   setTypeFilter: (value: EntitiesFilterState["type"]) => void;
   setSorting: (column: EntitiesSortColumn) => void;
@@ -52,7 +47,6 @@ export type EntitiesViewHandlers = {
   submitForm: (data: CreateEntityCommand | UpdateEntityCommand) => Promise<void>;
   confirmDelete: () => Promise<void>;
   retry: () => Promise<void>;
-};
+}
 
 export type EntitiesViewController = EntitiesViewState & EntitiesViewHandlers;
-

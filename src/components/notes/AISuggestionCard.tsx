@@ -29,12 +29,12 @@ export function AISuggestionCard({ suggestion, onAccept, onReject }: AISuggestio
   // Format suggestion type for display
   const formatType = (type: string) => {
     switch (type) {
-      case 'add_entity':
-        return 'Dodaj byt';
-      case 'add_relationship':
-        return 'Dodaj relację';
-      case 'content_improvement':
-        return 'Poprawa treści';
+      case "add_entity":
+        return "Dodaj byt";
+      case "add_relationship":
+        return "Dodaj relację";
+      case "content_improvement":
+        return "Poprawa treści";
       default:
         return type;
     }
@@ -48,27 +48,15 @@ export function AISuggestionCard({ suggestion, onAccept, onReject }: AISuggestio
       </CardHeader>
 
       <CardContent>
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-          {suggestion.content}
-        </p>
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{suggestion.content}</p>
       </CardContent>
 
       <CardFooter className="flex gap-2 justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleReject}
-          disabled={suggestion.isSubmitting}
-        >
+        <Button variant="outline" size="sm" onClick={handleReject} disabled={suggestion.isSubmitting}>
           Odrzuć
         </Button>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handleAccept}
-          disabled={suggestion.isSubmitting}
-        >
-          {suggestion.isSubmitting ? 'Przetwarzanie...' : 'Akceptuj'}
+        <Button variant="default" size="sm" onClick={handleAccept} disabled={suggestion.isSubmitting}>
+          {suggestion.isSubmitting ? "Przetwarzanie..." : "Akceptuj"}
         </Button>
       </CardFooter>
     </Card>

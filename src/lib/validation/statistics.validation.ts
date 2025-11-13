@@ -7,7 +7,7 @@ import { z } from "zod";
 export const getStatisticsQuerySchema = z.object({
   period: z
     .enum(["all", "week", "month", "year"], {
-      errorMap: () => ({ message: "period must be one of: all, week, month, year" })
+      errorMap: () => ({ message: "period must be one of: all, week, month, year" }),
     })
     .default("all")
     .optional(),

@@ -8,14 +8,14 @@ import type {
 
 import type { EntitiesSortColumn, SortOrder } from "@/components/entities/types";
 
-type EntitiesQueryParams = {
+interface EntitiesQueryParams {
   page?: number;
   limit?: number;
   search?: string;
   type?: string;
   sort?: EntitiesSortColumn;
   order?: SortOrder;
-};
+}
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -38,7 +38,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export async function fetchEntities(
   params: EntitiesQueryParams = {},
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<EntityWithCountDTO[]> {
   const searchParams = new URLSearchParams();
 
@@ -53,7 +53,7 @@ export async function fetchEntities(
   const response = await fetch(url, {
     method: "GET",
     headers: {
-      "Accept": "application/json",
+      Accept: "application/json",
     },
     signal,
   });
@@ -66,7 +66,7 @@ export async function createEntityRequest(payload: CreateEntityCommand): Promise
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify(payload),
   });
@@ -74,15 +74,12 @@ export async function createEntityRequest(payload: CreateEntityCommand): Promise
   return handleResponse<EntityDTO>(response);
 }
 
-export async function updateEntityRequest(
-  entityId: string,
-  payload: UpdateEntityCommand,
-): Promise<EntityDTO> {
+export async function updateEntityRequest(entityId: string, payload: UpdateEntityCommand): Promise<EntityDTO> {
   const response = await fetch(`/api/entities/${entityId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify(payload),
   });
@@ -94,10 +91,9 @@ export async function deleteEntityRequest(entityId: string): Promise<void> {
   const response = await fetch(`/api/entities/${entityId}`, {
     method: "DELETE",
     headers: {
-      "Accept": "application/json",
+      Accept: "application/json",
     },
   });
 
   await handleResponse<void>(response);
 }
-

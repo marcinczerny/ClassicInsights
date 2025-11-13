@@ -47,11 +47,7 @@ export function ThemeToggle() {
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
       <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-      <Switch
-        checked={isDark}
-        onCheckedChange={toggleTheme}
-        aria-label="Przełącz motyw"
-      />
+      <Switch checked={isDark} onCheckedChange={toggleTheme} aria-label="Przełącz motyw" />
       <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
     </div>
   );

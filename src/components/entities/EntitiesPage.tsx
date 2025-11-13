@@ -72,4 +72,3 @@ export function EntitiesPage(): JSX.Element {
     </div>
   );
 }
-

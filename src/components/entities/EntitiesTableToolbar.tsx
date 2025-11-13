@@ -2,31 +2,29 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import type { JSX } from "react";
 import { Plus, Search as SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { entityTypes } from "@/lib/validation";
 import type { EntitiesFilterState } from "@/components/entities/types.ts";
 import { memo } from "react";
 
-type EntitiesTableToolbarProps = {
+interface EntitiesTableToolbarProps {
   filterType: EntitiesFilterState["type"];
   onSearchChange: (value: string) => void;
   onFilterChange: (value: EntitiesFilterState["type"]) => void;
   onAddClick: () => void;
   isDisabled?: boolean;
-};
+}
 
 const SEARCH_DEBOUNCE_MS = 350;
 
-function EntitiesTableToolbarComponent(
-  { filterType, onSearchChange, onFilterChange, onAddClick, isDisabled = false }: EntitiesTableToolbarProps
-): JSX.Element {
+function EntitiesTableToolbarComponent({
+  filterType,
+  onSearchChange,
+  onFilterChange,
+  onAddClick,
+  isDisabled = false,
+}: EntitiesTableToolbarProps): JSX.Element {
   const [localSearchValue, setLocalSearchValue] = useState<string>("");
   const debounceTimerRef = useRef<number | null>(null);
 
@@ -120,4 +118,3 @@ function mapEntityTypeToLabel(type: string): string {
       return type;
   }
 }
-

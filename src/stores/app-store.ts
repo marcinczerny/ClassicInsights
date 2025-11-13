@@ -6,7 +6,7 @@
  * - Graph panel visibility
  */
 
-import { atom } from 'nanostores';
+import { atom } from "nanostores";
 
 /**
  * Temporary user type for layout purposes

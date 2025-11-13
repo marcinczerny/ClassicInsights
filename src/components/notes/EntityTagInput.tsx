@@ -22,7 +22,7 @@ interface EntityTagInputProps {
   onEntitiesChange: (entities: NoteEntityViewModel[]) => void;
 }
 
-const RELATIONSHIP_TYPES: Array<{ value: Enums<"relationship_type">; label: string }> = [
+const RELATIONSHIP_TYPES: { value: Enums<"relationship_type">; label: string }[] = [
   { value: "criticizes", label: "Krytykuje" },
   { value: "is_student_of", label: "Jest uczniem" },
   { value: "expands_on", label: "Rozszerza" },
@@ -125,11 +125,7 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
    * Update relationship type for an entity
    */
   const handleUpdateRelationshipType = (entityId: string, relationshipType: Enums<"relationship_type">) => {
-    onEntitiesChange(
-      entities.map((e) =>
-        e.id === entityId ? { ...e, relationship_type: relationshipType } : e
-      )
-    );
+    onEntitiesChange(entities.map((e) => (e.id === entityId ? { ...e, relationship_type: relationshipType } : e)));
   };
 
   /**
@@ -161,9 +157,7 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
   /**
    * Get filtered suggestions (exclude already added entities)
    */
-  const filteredSuggestions = suggestions.filter(
-    (suggestion) => !entities.some((e) => e.id === suggestion.id)
-  );
+  const filteredSuggestions = suggestions.filter((suggestion) => !entities.some((e) => e.id === suggestion.id));
 
   /**
    * Cleanup timeout on unmount
@@ -184,19 +178,14 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
       {entities.length > 0 && (
         <div className="space-y-2">
           {entities.map((entity) => (
-            <div
-              key={entity.id}
-              className="flex items-center gap-2 rounded-md border p-2 bg-muted/50"
-            >
+            <div key={entity.id} className="flex items-center gap-2 rounded-md border p-2 bg-muted/50">
               <Badge variant="secondary" className="flex-shrink-0">
                 {entity.name}
               </Badge>
 
               <Select
                 value={entity.relationship_type}
-                onValueChange={(value) =>
-                  handleUpdateRelationshipType(entity.id, value as Enums<"relationship_type">)
-                }
+                onValueChange={(value) => handleUpdateRelationshipType(entity.id, value as Enums<"relationship_type">)}
               >
                 <SelectTrigger className="h-7 text-xs flex-1">
                   <SelectValue />
@@ -216,8 +205,7 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
                 className="h-7 w-7 p-0 flex-shrink-0"
                 onClick={() => handleRemoveEntity(entity.id)}
               >
-                <span className="sr-only">Usuń</span>
-                ×
+                <span className="sr-only">Usuń</span>×
               </Button>
             </div>
           ))}
@@ -247,9 +235,7 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {isLoadingSuggestions ? (
-            <div className="p-4 text-sm text-muted-foreground text-center">
-              Wyszukiwanie...
-            </div>
+            <div className="p-4 text-sm text-muted-foreground text-center">Wyszukiwanie...</div>
           ) : filteredSuggestions.length > 0 ? (
             <div className="max-h-[300px] overflow-y-auto">
               {filteredSuggestions.map((suggestion) => (
@@ -264,9 +250,7 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
               ))}
             </div>
           ) : searchTerm.trim() ? (
-            <div className="p-4 text-sm text-muted-foreground text-center">
-              Nie znaleziono bytów
-            </div>
+            <div className="p-4 text-sm text-muted-foreground text-center">Nie znaleziono bytów</div>
           ) : null}
 
           {/* Create new entity button */}

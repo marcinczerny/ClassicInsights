@@ -42,25 +42,25 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
     try {
       setIsLoggingOut(true);
 
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Logout failed');
+        throw new Error(errorData.error || "Logout failed");
       }
 
-      toast.success('Pomyślnie wylogowano');
+      toast.success("Pomyślnie wylogowano");
 
       // Redirect to login page after successful logout
-      window.location.href = '/login';
+      window.location.href = "/login";
     } catch (error) {
-      console.error('Logout error:', error);
-      toast.error(error instanceof Error ? error.message : 'Wystąpił błąd podczas wylogowywania');
+      console.error("Logout error:", error);
+      toast.error(error instanceof Error ? error.message : "Wystąpił błąd podczas wylogowywania");
     } finally {
       setIsLoggingOut(false);
     }
@@ -114,7 +114,7 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
           className="cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>{isLoggingOut ? 'Wylogowywanie...' : 'Wyloguj się'}</span>
+          <span>{isLoggingOut ? "Wylogowywanie..." : "Wyloguj się"}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

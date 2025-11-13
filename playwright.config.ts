@@ -28,7 +28,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         // Configure the test id attribute for this project
-        testIdAttribute: 'data-testid',
+        testIdAttribute: "data-testid",
       },
     },
   ],

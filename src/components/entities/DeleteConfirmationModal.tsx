@@ -1,14 +1,23 @@
 import type { JSX } from "react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { EntityWithCountDTO } from "@/types";
 
-type DeleteConfirmationModalProps = {
+interface DeleteConfirmationModalProps {
   isOpen: boolean;
   entity: EntityWithCountDTO | null;
   isDeleting: boolean;
   onConfirmDelete: () => Promise<void>;
   onCancel: () => void;
-};
+}
 
 export function DeleteConfirmationModal({
   isOpen,
@@ -29,7 +38,8 @@ export function DeleteConfirmationModal({
         <AlertDialogHeader>
           <AlertDialogTitle>Usuń byt</AlertDialogTitle>
           <AlertDialogDescription>
-            Czy na pewno chcesz usunąć {entity?.name ? `byt "${entity.name}"` : "wybrany byt"}? Ta operacja jest nieodwracalna i usunie powiązania z notatkami.
+            Czy na pewno chcesz usunąć {entity?.name ? `byt "${entity.name}"` : "wybrany byt"}? Ta operacja jest
+            nieodwracalna i usunie powiązania z notatkami.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -48,4 +58,3 @@ export function DeleteConfirmationModal({
     </AlertDialog>
   );
 }
-
