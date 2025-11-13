@@ -49,13 +49,21 @@ describe("Suggestions Service - Business Rules", () => {
   const mockSuggestionId = "suggestion-789";
   const mockEntityId = "entity-999";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockSupabaseClient: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockGetProfile: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockFindNoteById: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockAddEntityToNote: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockUpdateNote: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockCreateEntity: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockGetEntities: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockFindEntityByName: any;
 
   beforeEach(() => {
