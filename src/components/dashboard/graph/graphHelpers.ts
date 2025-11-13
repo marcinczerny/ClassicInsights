@@ -5,7 +5,7 @@
  */
 
 import type { Node, Edge } from "@xyflow/react";
-import type { GraphDTO, GraphNodeDTO, GraphEdgeDTO } from "@/types";
+import type { GraphDTO } from "@/types";
 
 /**
  * Transform GraphDTO to @xyflow/react format
@@ -48,7 +48,7 @@ export function transformGraphData(
       width: 20,
       height: 20,
     },
-    data: edge,
+    data: edge as unknown as Record<string, unknown>,
   }));
 
   return { nodes, edges };

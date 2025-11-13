@@ -93,14 +93,16 @@ export function EditRelationshipModal({
         <DialogHeader>
           <DialogTitle>Edytuj relację</DialogTitle>
           <DialogDescription>
-            Zmień typ relacji między bytami "{sourceEntityName}" i "{targetEntityName}"
+            Zmień typ relacji między bytami &quot;{sourceEntityName}&quot; i &quot;{targetEntityName}&quot;
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
-          <label className="mb-2 block text-sm font-medium">Typ relacji</label>
+          <label htmlFor="edit-relationship-type-select" className="mb-2 block text-sm font-medium">
+            Typ relacji
+          </label>
           <Select value={selectedType} onValueChange={(value) => setSelectedType(value as Enums<"relationship_type">)}>
-            <SelectTrigger>
+            <SelectTrigger id="edit-relationship-type-select">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

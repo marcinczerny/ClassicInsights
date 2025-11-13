@@ -7,7 +7,9 @@ describe("cn utility function", () => {
   });
 
   it("should handle conditional classes", () => {
-    expect(cn("class1", true && "class2", false && "class3")).toBe("class1 class2");
+    const shouldIncludeClass2 = true;
+    const shouldIncludeClass3 = false;
+    expect(cn("class1", shouldIncludeClass2 && "class2", shouldIncludeClass3 && "class3")).toBe("class1 class2");
   });
 
   it("should handle clsx syntax", () => {

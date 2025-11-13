@@ -10,7 +10,7 @@ import {
   getRelationshipsQuerySchema,
   createRelationshipSchema,
 } from "../../../lib/validation/relationships.validation";
-import type { RelationshipsListResponseDTO, ErrorDTO } from "../../../types";
+import type { ErrorDTO } from "../../../types";
 
 export const prerender = false;
 

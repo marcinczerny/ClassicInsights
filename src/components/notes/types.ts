@@ -4,7 +4,7 @@
  * ViewModels extend DTOs with UI-specific state and structure
  */
 
-import type { SuggestionDTO, EntityDTO } from "@/types";
+import type { SuggestionDTO } from "@/types";
 import type { Enums } from "@/db/database.types";
 
 /**

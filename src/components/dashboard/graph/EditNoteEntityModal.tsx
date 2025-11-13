@@ -115,12 +115,14 @@ export function EditNoteEntityModal({
 
         {!showDeleteConfirm && (
           <div className="py-4">
-            <label className="mb-2 block text-sm font-medium">Typ relacji</label>
+            <label htmlFor="relationship-type-select" className="mb-2 block text-sm font-medium">
+              Typ relacji
+            </label>
             <Select
               value={selectedType}
               onValueChange={(value) => setSelectedType(value as Enums<"relationship_type">)}
             >
-              <SelectTrigger>
+              <SelectTrigger id="relationship-type-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -6,7 +6,6 @@
 import { supabaseClient, handleSupabaseError } from "../../db/supabase.client";
 import type {
   RelationshipDTO,
-  RelationshipWithEntitiesDTO,
   RelationshipsListResponseDTO,
   CreateRelationshipCommand,
   UpdateRelationshipCommand,

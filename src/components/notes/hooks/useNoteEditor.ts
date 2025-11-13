@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { NoteViewModel, NoteEntityViewModel, SuggestionViewModel, NoteEditorState } from "../types";
-import type { NoteDTO, CreateNoteCommand, UpdateNoteCommand, EntityDTO } from "@/types";
+import type { NoteDTO, CreateNoteCommand, UpdateNoteCommand } from "@/types";
 
 const INITIAL_STATE: NoteEditorState = {
   note: null,

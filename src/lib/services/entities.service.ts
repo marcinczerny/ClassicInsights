@@ -1,5 +1,4 @@
 import { supabaseClient, handleSupabaseError } from "@/db/supabase.client";
-import type { Enums } from "@/db/database.types";
 import type { EntityWithCountDTO } from "@/types";
 import type { CreateEntityCommand, EntityDTO } from "@/types";
 import type { EntityWithNotesDTO, UpdateEntityCommand } from "@/types";
