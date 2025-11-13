@@ -136,6 +136,12 @@ The following scripts are available in the `package.json`:
 | `npm run test:e2e:debug`| Runs E2E tests in debug mode.                      |
 | `npm run test:e2e:headed`| Runs E2E tests with visible browser.               |
 
+## Deployment
+
+The application is deployed on **Cloudflare Pages**.
+
+Every push to the `main` branch triggers an automatic deployment to the production environment. Preview deployments are created for each pull request. The CI/CD process is managed via **GitHub Actions**.
+
 ## Project Scope
 
 This project is currently being developed as an MVP. The scope is defined as follows:
