@@ -19,7 +19,7 @@ export interface StructuredResponseParams<T extends z.ZodTypeAny> {
   userPrompt: string;
   schema: T;
   model?: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 /**
@@ -57,7 +57,8 @@ export class OpenRouterService {
   }: StructuredResponseParams<T>): Promise<z.infer<T>> {
     const payload = this.buildRequestPayload({ systemPrompt, userPrompt, schema, model, params });
     const response = await this.executeRequest(payload);
-    const content = response.choices[0]?.message?.content;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const content = (response as any).choices?.[0]?.message?.content;
 
     if (!content) {
       throw new ResponseValidationError("Response from AI is empty or missing content.");
@@ -76,7 +77,7 @@ export class OpenRouterService {
     schema,
     model,
     params,
-  }: StructuredResponseParams<T>): Record<string, any> {
+  }: StructuredResponseParams<T>): Record<string, unknown> {
     const jsonSchema = zodToJsonSchema(schema, {
       $refStrategy: "none", // Use this strategy to avoid $ref issues
     });
@@ -127,7 +128,8 @@ ${JSON.stringify(rest, null, 2)}`;
    * Execute HTTP request to OpenRouter API
    * @private
    */
-  private async executeRequest(body: Record<string, any>): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async executeRequest(body: Record<string, unknown>): Promise<any> {
     try {
       const response = await fetch(`${this.apiBaseUrl}/chat/completions`, {
         method: "POST",

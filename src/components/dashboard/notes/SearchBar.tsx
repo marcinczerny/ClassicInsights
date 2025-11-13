@@ -34,13 +34,6 @@ export function SearchBar({
   const [showEntityPopover, setShowEntityPopover] = useState(false);
 
   /**
-   * Fetch all user's entities on mount
-   */
-  useEffect(() => {
-    fetchAllEntities();
-  }, []);
-
-  /**
    * Fetch entities that match search input
    */
   const fetchAllEntities = useCallback(async () => {
@@ -58,6 +51,13 @@ export function SearchBar({
       setIsLoadingEntities(false);
     }
   }, []);
+
+  /**
+   * Fetch all user's entities on mount
+   */
+  useEffect(() => {
+    fetchAllEntities();
+  }, [fetchAllEntities]);
 
   /**
    * Filter entities based on search input

@@ -3,6 +3,27 @@ import type { CreateNoteCommand, NoteDTO, UpdateNoteCommand, NoteEntityAssociati
 import type { GetNotesParams } from "@/lib/validation";
 import type { NotesListResponseDTO } from "@/types";
 
+// Types for joined query results
+interface NoteWithEntitiesQueryResult {
+  id: string;
+  title: string;
+  content: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  note_entities:
+    | {
+        type: string;
+        entities: {
+          id: string;
+          name: string;
+          type: string;
+          description: string | null;
+        };
+      }[]
+    | null;
+}
+
 async function _validateEntities(entityIds: string[], userId: string): Promise<void> {
   if (!entityIds || entityIds.length === 0) {
     return;
@@ -104,11 +125,14 @@ export async function getNotes(userId: string, params: Partial<GetNotesParams> =
     throw new Error("Failed to fetch notes from the database.");
   }
 
-  const transformedData = (data || []).map((note: any) => ({
+  const transformedData = (data || []).map((note: NoteWithEntitiesQueryResult) => ({
     ...note,
-    entities: (note.note_entities || []).map((ne: any) => ({
+    entities: (note.note_entities || []).map((ne) => ({
       ...ne.entities,
-      relationship_type: ne.type,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: ne.entities.type as any, // Cast to enum type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      relationship_type: ne.type as any, // Cast to enum type
     })),
     note_entities: undefined,
   }));
@@ -214,9 +238,12 @@ export async function createNote(userId: string, command: CreateNoteCommand): Pr
 
   const transformedNote = {
     ...fullNote,
-    entities: (fullNote.note_entities || []).map((ne: any) => ({
+    entities: (fullNote.note_entities || []).map((ne) => ({
       ...ne.entities,
-      relationship_type: ne.type,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: ne.entities.type as any, // Cast to enum type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      relationship_type: ne.type as any, // Cast to enum type
     })),
     note_entities: undefined,
   };
@@ -341,9 +368,12 @@ export async function updateNote(noteId: string, userId: string, command: Update
 
   const transformedNote = {
     ...updatedNote,
-    entities: (updatedNote.note_entities || []).map((ne: any) => ({
+    entities: (updatedNote.note_entities || []).map((ne) => ({
       ...ne.entities,
-      relationship_type: ne.type,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: ne.entities.type as any, // Cast to enum type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      relationship_type: ne.type as any, // Cast to enum type
     })),
     note_entities: undefined,
   };
@@ -517,9 +547,12 @@ export async function findNoteById(noteId: string, userId: string): Promise<Note
 
   const transformedNote = {
     ...data,
-    entities: (data.note_entities || []).map((ne: any) => ({
+    entities: (data.note_entities || []).map((ne) => ({
       ...ne.entities,
-      relationship_type: ne.type,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: ne.entities.type as any, // Cast to enum type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      relationship_type: ne.type as any, // Cast to enum type
     })),
     note_entities: undefined,
   };

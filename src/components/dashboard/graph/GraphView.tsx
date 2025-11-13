@@ -16,6 +16,7 @@ import {
   useEdgesState,
   useReactFlow,
 } from "@xyflow/react";
+import type { Node, Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { nodeTypes } from "./CustomNodes";
@@ -81,7 +82,7 @@ function GraphViewInner({
    * Handle node click - reload graph centered on clicked node
    */
   const handleNodeClick = useCallback(
-    (_event: React.MouseEvent, node: any) => {
+    (_event: React.MouseEvent, node: Node) => {
       if (onNodeClick) {
         onNodeClick({
           id: node.id,
@@ -96,7 +97,7 @@ function GraphViewInner({
    * Handle edge click - edit relationship
    */
   const handleEdgeClick = useCallback(
-    (_event: React.MouseEvent, edge: any) => {
+    (_event: React.MouseEvent, edge: Edge) => {
       if (onEdgeClick) {
         onEdgeClick({
           id: edge.id,

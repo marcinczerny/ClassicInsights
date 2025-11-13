@@ -138,7 +138,11 @@ async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string)
         });
       }
 
-      const isAlreadyLinked = note.entities.some((e) => e.id === entity!.id);
+      if (!entity) {
+        throw new Error("Failed to create or find entity");
+      }
+
+      const isAlreadyLinked = note.entities.some((e) => e.id === entity.id);
       if (!isAlreadyLinked) {
         await addEntityToNote(noteId, entity.id, userId, "is_related_to");
       }

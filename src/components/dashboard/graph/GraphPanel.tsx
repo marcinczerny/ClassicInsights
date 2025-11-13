@@ -13,7 +13,7 @@ import { RelationshipModal } from "./RelationshipModal";
 import { EditRelationshipModal } from "./EditRelationshipModal";
 import { EditNoteEntityModal } from "./EditNoteEntityModal";
 import { Button } from "@/components/ui/button";
-import type { GraphDTO, CreateRelationshipCommand } from "@/types";
+import type { GraphDTO, CreateRelationshipCommand, GraphNodeDTO } from "@/types";
 import type { Enums } from "@/db/database.types";
 
 interface GraphPanelProps {
@@ -46,23 +46,23 @@ export function GraphPanel({
   const [pendingConnection, setPendingConnection] = useState<{
     source: string;
     target: string;
-    sourceNode?: any;
-    targetNode?: any;
+    sourceNode?: GraphNodeDTO;
+    targetNode?: GraphNodeDTO;
   } | null>(null);
   const [editingEdge, setEditingEdge] = useState<{
     id: string;
     source: string;
     target: string;
     type: Enums<"relationship_type">;
-    sourceNode?: any;
-    targetNode?: any;
+    sourceNode?: GraphNodeDTO;
+    targetNode?: GraphNodeDTO;
   } | null>(null);
   const [editingNoteEntity, setEditingNoteEntity] = useState<{
     noteId: string;
     entityId: string;
     type: Enums<"relationship_type">;
-    noteNode?: any;
-    entityNode?: any;
+    noteNode?: GraphNodeDTO;
+    entityNode?: GraphNodeDTO;
   } | null>(null);
 
   /**
@@ -137,17 +137,19 @@ export function GraphPanel({
         const { sourceNode, targetNode } = pendingConnection;
 
         // Check if this is a note-entity connection or entity-entity relationship
-        if (sourceNode.type === "note" && targetNode.type === "entity") {
-          // Create note-entity association
-          await onCreateNoteEntity(pendingConnection.source, pendingConnection.target, type);
-        } else if (sourceNode.type === "entity" && targetNode.type === "entity") {
-          // Create entity-entity relationship
-          const command: CreateRelationshipCommand = {
-            source_entity_id: pendingConnection.source,
-            target_entity_id: pendingConnection.target,
-            type,
-          };
-          await onCreateRelationship(command);
+        if (sourceNode && targetNode) {
+          if (sourceNode.type === "note" && targetNode.type === "entity") {
+            // Create note-entity association
+            await onCreateNoteEntity(pendingConnection.source, pendingConnection.target, type);
+          } else if (sourceNode.type === "entity" && targetNode.type === "entity") {
+            // Create entity-entity relationship
+            const command: CreateRelationshipCommand = {
+              source_entity_id: pendingConnection.source,
+              target_entity_id: pendingConnection.target,
+              type,
+            };
+            await onCreateRelationship(command);
+          }
         }
 
         setPendingConnection(null);
@@ -431,7 +433,6 @@ export function GraphPanel({
           <GraphView
             graphData={graphData}
             hasNotes={hasNotes}
-            isConnectionMode={isConnectionMode}
             selectedSourceNode={selectedSourceNode}
             graphCenterNode={graphCenterNode}
             onNodeClick={isConnectionMode ? (node) => handleNodeClickInConnectionMode(node.id) : onNodeSelect}
