@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { supabaseClient } from '@/db/supabase.client';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { supabaseClient } from "@/db/supabase.client";
 
 // Import all functions to test
 import {
@@ -10,7 +10,7 @@ import {
   removeEntityFromNote,
   addEntityToNote,
   findNoteById,
-} from './notes.service';
+} from "./notes.service";
 
 // Import types
 import type {
@@ -19,19 +19,19 @@ import type {
   UpdateNoteCommand,
   NotesListResponseDTO,
   NoteEntityAssociationDTO,
-} from '@/types';
+} from "@/types";
 
 // Mock Supabase client
-vi.mock('@/db/supabase.client', () => ({
+vi.mock("@/db/supabase.client", () => ({
   supabaseClient: {
     from: vi.fn(),
   },
 }));
 
-describe('Notes Service - Business Rules', () => {
-  const mockUserId = 'user-123';
-  const mockNoteId = 'note-456';
-  const mockEntityId = 'entity-789';
+describe("Notes Service - Business Rules", () => {
+  const mockUserId = "user-123";
+  const mockNoteId = "note-456";
+  const mockEntityId = "entity-789";
 
   let mockSupabaseClient: any;
 
@@ -44,11 +44,11 @@ describe('Notes Service - Business Rules', () => {
     vi.restoreAllMocks();
   });
 
-  describe('Business Rules - Title Uniqueness', () => {
-    it('should prevent creating notes with duplicate titles', async () => {
+  describe("Business Rules - Title Uniqueness", () => {
+    it("should prevent creating notes with duplicate titles", async () => {
       const command: CreateNoteCommand = {
-        title: 'Duplicate Title',
-        content: 'Test content',
+        title: "Duplicate Title",
+        content: "Test content",
       };
 
       // Mock duplicate check - title exists
@@ -56,20 +56,18 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 'existing-note', title: 'Duplicate Title' },
+          data: { id: "existing-note", title: "Duplicate Title" },
           error: null,
         }),
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(createNote(mockUserId, command)).rejects.toThrow(
-        'A note with this title already exists.'
-      );
+      await expect(createNote(mockUserId, command)).rejects.toThrow("A note with this title already exists.");
     });
 
-    it('should prevent updating notes to duplicate titles', async () => {
+    it("should prevent updating notes to duplicate titles", async () => {
       const updateCommand: UpdateNoteCommand = {
-        title: 'Existing Title',
+        title: "Existing Title",
       };
 
       // Mock existing note fetch
@@ -77,7 +75,7 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
-          data: { id: mockNoteId, title: 'Original Title', user_id: mockUserId },
+          data: { id: mockNoteId, title: "Original Title", user_id: mockUserId },
           error: null,
         }),
       };
@@ -88,7 +86,7 @@ describe('Notes Service - Business Rules', () => {
         eq: vi.fn().mockReturnThis(),
         neq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValueOnce({
-          data: { id: 'other-note', title: 'Existing Title' },
+          data: { id: "other-note", title: "Existing Title" },
           error: null,
         }),
       };
@@ -96,14 +94,14 @@ describe('Notes Service - Business Rules', () => {
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
       await expect(updateNote(mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
-        'A note with this title already exists.'
+        "A note with this title already exists."
       );
     });
 
-    it('should allow updating note with same title', async () => {
+    it("should allow updating note with same title", async () => {
       const updateCommand: UpdateNoteCommand = {
-        title: 'Same Title', // Same as existing
-        content: 'Updated content',
+        title: "Same Title", // Same as existing
+        content: "Updated content",
       };
 
       // Mock existing note fetch
@@ -111,7 +109,7 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
-          data: { id: mockNoteId, title: 'Same Title', user_id: mockUserId },
+          data: { id: mockNoteId, title: "Same Title", user_id: mockUserId },
           error: null,
         }),
       };
@@ -129,8 +127,8 @@ describe('Notes Service - Business Rules', () => {
         single: vi.fn().mockResolvedValueOnce({
           data: {
             id: mockNoteId,
-            title: 'Same Title',
-            content: 'Updated content',
+            title: "Same Title",
+            content: "Updated content",
             note_entities: [],
           },
           error: null,
@@ -144,16 +142,16 @@ describe('Notes Service - Business Rules', () => {
 
       const result = await updateNote(mockNoteId, mockUserId, updateCommand);
 
-      expect(result.title).toBe('Same Title');
-      expect(result.content).toBe('Updated content');
+      expect(result.title).toBe("Same Title");
+      expect(result.content).toBe("Updated content");
     });
   });
 
-  describe('Business Rules - Entity Ownership Validation', () => {
-    it('should validate entity ownership during note creation', async () => {
+  describe("Business Rules - Entity Ownership Validation", () => {
+    it("should validate entity ownership during note creation", async () => {
       const command: CreateNoteCommand = {
-        title: 'Test Note',
-        entities: [{ entity_id: mockEntityId, relationship_type: 'is_related_to' }],
+        title: "Test Note",
+        entities: [{ entity_id: mockEntityId, relationship_type: "is_related_to" }],
       };
 
       // Mock duplicate check
@@ -173,13 +171,13 @@ describe('Notes Service - Business Rules', () => {
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
       await expect(createNote(mockUserId, command)).rejects.toThrow(
-        'One or more entities not found or do not belong to the user.'
+        "One or more entities not found or do not belong to the user."
       );
     });
 
-    it('should validate entity ownership during update', async () => {
+    it("should validate entity ownership during update", async () => {
       const updateCommand: UpdateNoteCommand = {
-        entities: [{ entity_id: mockEntityId, relationship_type: 'is_related_to' }],
+        entities: [{ entity_id: mockEntityId, relationship_type: "is_related_to" }],
       };
 
       // Mock existing note fetch
@@ -187,7 +185,7 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
-          data: { id: mockNoteId, title: 'Test Note', user_id: mockUserId },
+          data: { id: mockNoteId, title: "Test Note", user_id: mockUserId },
           error: null,
         }),
       };
@@ -202,20 +200,20 @@ describe('Notes Service - Business Rules', () => {
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
       await expect(updateNote(mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
-        'One or more entities not found or do not belong to the user.'
+        "One or more entities not found or do not belong to the user."
       );
     });
   });
 
-  describe('Business Rules - Permission Checks', () => {
-    it('should prevent accessing notes from other users', async () => {
+  describe("Business Rules - Permission Checks", () => {
+    it("should prevent accessing notes from other users", async () => {
       // Mock note fetch - note not found (wrong user)
       const fromMock = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { code: 'PGRST116' }, // No rows found
+          error: { code: "PGRST116" }, // No rows found
         }),
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
@@ -225,9 +223,9 @@ describe('Notes Service - Business Rules', () => {
       expect(result).toBeNull();
     });
 
-    it('should prevent updating notes from other users', async () => {
+    it("should prevent updating notes from other users", async () => {
       const updateCommand: UpdateNoteCommand = {
-        content: 'Updated content',
+        content: "Updated content",
       };
 
       // Mock note fetch - note not found (wrong user)
@@ -236,21 +234,19 @@ describe('Notes Service - Business Rules', () => {
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { code: 'PGRST116' },
+          error: { code: "PGRST116" },
         }),
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
       await expect(updateNote(mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
-        'Note not found or you do not have permission to edit it.'
+        "Note not found or you do not have permission to edit it."
       );
     });
-
-    
   });
 
-  describe('Business Rules - Entity Association Management', () => {
-    it('should prevent duplicate entity associations', async () => {
+  describe("Business Rules - Entity Association Management", () => {
+    it("should prevent duplicate entity associations", async () => {
       // Mock note check
       const fromMock1 = {
         select: vi.fn().mockReturnThis(),
@@ -287,15 +283,15 @@ describe('Notes Service - Business Rules', () => {
         .mockReturnValueOnce(fromMock3);
 
       await expect(addEntityToNote(mockNoteId, mockEntityId, mockUserId)).rejects.toThrow(
-        'This entity is already associated with the note.'
+        "This entity is already associated with the note."
       );
     });
 
-    it('should successfully add entity association', async () => {
+    it("should successfully add entity association", async () => {
       const expectedAssociation = {
         note_id: mockNoteId,
         entity_id: mockEntityId,
-        type: 'is_related_to',
+        type: "is_related_to",
       };
 
       // Mock note check
@@ -347,25 +343,23 @@ describe('Notes Service - Business Rules', () => {
     });
   });
 
-  
-
-  describe('Business Rules - Data Transformation', () => {
-    it('should properly transform note data with entities', async () => {
+  describe("Business Rules - Data Transformation", () => {
+    it("should properly transform note data with entities", async () => {
       const mockNoteData = {
         id: mockNoteId,
-        title: 'Test Note',
-        content: 'Test content',
+        title: "Test Note",
+        content: "Test content",
         user_id: mockUserId,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
         note_entities: [
           {
-            type: 'is_related_to',
+            type: "is_related_to",
             entities: {
               id: mockEntityId,
-              name: 'Test Entity',
-              type: 'person',
-              description: 'Test description',
+              name: "Test Entity",
+              type: "person",
+              description: "Test description",
             },
           },
         ],
@@ -382,32 +376,32 @@ describe('Notes Service - Business Rules', () => {
 
       expect(result).toEqual({
         id: mockNoteId,
-        title: 'Test Note',
-        content: 'Test content',
+        title: "Test Note",
+        content: "Test content",
         user_id: mockUserId,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
         entities: [
           {
             id: mockEntityId,
-            name: 'Test Entity',
-            type: 'person',
-            description: 'Test description',
-            relationship_type: 'is_related_to',
+            name: "Test Entity",
+            type: "person",
+            description: "Test description",
+            relationship_type: "is_related_to",
           },
         ],
         note_entities: undefined, // Should be removed
       });
     });
 
-    it('should handle notes without entities', async () => {
+    it("should handle notes without entities", async () => {
       const mockNoteData = {
         id: mockNoteId,
-        title: 'Note Without Entities',
-        content: 'Content',
+        title: "Note Without Entities",
+        content: "Content",
         user_id: mockUserId,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
         note_entities: [],
       };
 
@@ -425,14 +419,14 @@ describe('Notes Service - Business Rules', () => {
     });
   });
 
-  describe('Business Rules - Relationship Types', () => {
-    it('should support different relationship types', async () => {
+  describe("Business Rules - Relationship Types", () => {
+    it("should support different relationship types", async () => {
       const command: CreateNoteCommand = {
-        title: 'Relationship Test',
+        title: "Relationship Test",
         entities: [
-          { entity_id: 'entity-1', relationship_type: 'criticizes' },
-          { entity_id: 'entity-2', relationship_type: 'is_student_of' },
-          { entity_id: 'entity-3', relationship_type: 'expands_on' },
+          { entity_id: "entity-1", relationship_type: "criticizes" },
+          { entity_id: "entity-2", relationship_type: "is_student_of" },
+          { entity_id: "entity-3", relationship_type: "expands_on" },
         ],
       };
 
@@ -448,7 +442,7 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         in: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValueOnce({
-          data: [{ id: 'entity-1' }, { id: 'entity-2' }, { id: 'entity-3' }],
+          data: [{ id: "entity-1" }, { id: "entity-2" }, { id: "entity-3" }],
           error: null,
         }),
       };
@@ -458,7 +452,7 @@ describe('Notes Service - Business Rules', () => {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
-          data: { id: mockNoteId, title: 'Relationship Test' },
+          data: { id: mockNoteId, title: "Relationship Test" },
           error: null,
         }),
       };
@@ -473,7 +467,7 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
-          data: { id: mockNoteId, title: 'Relationship Test', note_entities: [] },
+          data: { id: mockNoteId, title: "Relationship Test", note_entities: [] },
           error: null,
         }),
       };
@@ -487,7 +481,7 @@ describe('Notes Service - Business Rules', () => {
 
       const result = await createNote(mockUserId, command);
 
-      expect(result.title).toBe('Relationship Test');
+      expect(result.title).toBe("Relationship Test");
     });
 
     it('should default to "is_related_to" when no relationship type specified', async () => {
@@ -523,7 +517,7 @@ describe('Notes Service - Business Rules', () => {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
-          data: { note_id: mockNoteId, entity_id: mockEntityId, type: 'is_related_to' },
+          data: { note_id: mockNoteId, entity_id: mockEntityId, type: "is_related_to" },
           error: null,
         }),
       };
@@ -536,27 +530,27 @@ describe('Notes Service - Business Rules', () => {
 
       const result = await addEntityToNote(mockNoteId, mockEntityId, mockUserId);
 
-      expect(result.type).toBe('is_related_to');
+      expect(result.type).toBe("is_related_to");
     });
   });
 
-  describe('Business Rules - Error Handling', () => {
-    it('should handle database connection errors', async () => {
+  describe("Business Rules - Error Handling", () => {
+    it("should handle database connection errors", async () => {
       const fromMock = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({
           count: null,
-          error: { message: 'Connection failed' },
+          error: { message: "Connection failed" },
         }),
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(getNotes(mockUserId)).rejects.toThrow('Failed to count notes.');
+      await expect(getNotes(mockUserId)).rejects.toThrow("Failed to count notes.");
     });
 
-    it('should handle note creation errors', async () => {
+    it("should handle note creation errors", async () => {
       const command: CreateNoteCommand = {
-        title: 'Test Note',
+        title: "Test Note",
       };
 
       // Mock duplicate check
@@ -572,18 +566,16 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
           data: null,
-          error: { message: 'Insert failed' },
+          error: { message: "Insert failed" },
         }),
       };
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      await expect(createNote(mockUserId, command)).rejects.toThrow(
-        'Failed to create the note.'
-      );
+      await expect(createNote(mockUserId, command)).rejects.toThrow("Failed to create the note.");
     });
 
-    it('should handle association creation errors', async () => {
+    it("should handle association creation errors", async () => {
       // Mock note check
       const fromMock1 = {
         select: vi.fn().mockReturnThis(),
@@ -620,7 +612,7 @@ describe('Notes Service - Business Rules', () => {
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValueOnce({
           data: null,
-          error: { message: 'Association creation failed' },
+          error: { message: "Association creation failed" },
         }),
       };
 
@@ -631,7 +623,7 @@ describe('Notes Service - Business Rules', () => {
         .mockReturnValueOnce(fromMock4);
 
       await expect(addEntityToNote(mockNoteId, mockEntityId, mockUserId)).rejects.toThrow(
-        'Failed to create the association.'
+        "Failed to create the association."
       );
     });
   });

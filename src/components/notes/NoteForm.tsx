@@ -18,14 +18,13 @@ interface NoteFormProps {
   onEntitiesChange: (entities: NoteEntityViewModel[]) => void;
 }
 
-export function NoteForm({
-  note,
-  onTitleChange,
-  onContentChange,
-  onEntitiesChange,
-}: NoteFormProps) {
+export function NoteForm({ note, onTitleChange, onContentChange, onEntitiesChange }: NoteFormProps) {
   // Validation state
-  const titleError = !note.title.trim() ? "Tytuł jest wymagany" : note.title.length > 255 ? "Tytuł nie może przekraczać 255 znaków" : null;
+  const titleError = !note.title.trim()
+    ? "Tytuł jest wymagany"
+    : note.title.length > 255
+      ? "Tytuł nie może przekraczać 255 znaków"
+      : null;
   const contentError = note.content.length > 10000 ? "Treść nie może przekraczać 10 000 znaków" : null;
 
   return (
@@ -44,9 +43,7 @@ export function NoteForm({
           className={titleError ? "border-destructive" : ""}
           data-testid="note-title-input"
         />
-        {titleError && (
-          <p className="text-xs text-destructive">{titleError}</p>
-        )}
+        {titleError && <p className="text-xs text-destructive">{titleError}</p>}
       </div>
 
       {/* Content field */}
@@ -63,22 +60,13 @@ export function NoteForm({
           data-testid="note-content-textarea"
         />
         <div className="flex justify-between items-center">
-          <div>
-            {contentError && (
-              <p className="text-xs text-destructive">{contentError}</p>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {note.content.length} / 10 000 znaków
-          </p>
+          <div>{contentError && <p className="text-xs text-destructive">{contentError}</p>}</div>
+          <p className="text-xs text-muted-foreground">{note.content.length} / 10 000 znaków</p>
         </div>
       </div>
 
       {/* Entity tags */}
-      <EntityTagInput
-        entities={note.entities}
-        onEntitiesChange={onEntitiesChange}
-      />
+      <EntityTagInput entities={note.entities} onEntitiesChange={onEntitiesChange} />
     </div>
   );
 }

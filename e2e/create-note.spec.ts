@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage, DashboardPage, NoteEditorPage } from './page-objects';
+import { test, expect } from "@playwright/test";
+import { LoginPage, DashboardPage, NoteEditorPage } from "./page-objects";
 
 /**
  * Test suite for note creation scenario using Page Object Model
  * Tests the complete user journey: login -> create note -> verify creation
  */
-test.describe('Note Creation Workflow', () => {
+test.describe("Note Creation Workflow", () => {
   let loginPage: LoginPage;
   let dashboardPage: DashboardPage;
   let noteEditorPage: NoteEditorPage;
@@ -17,11 +17,12 @@ test.describe('Note Creation Workflow', () => {
     noteEditorPage = new NoteEditorPage(page);
   });
 
-  test('should create a new note successfully', async () => {
+  test("should create a new note successfully", async () => {
     // Arrange
     const timestamp = Date.now();
     const noteTitle = `Test Note - E2E ${timestamp}`;
-    const noteContent = 'This is a test note created by Playwright E2E test.\n\nIt contains multiple lines and should be saved successfully.';
+    const noteContent =
+      "This is a test note created by Playwright E2E test.\n\nIt contains multiple lines and should be saved successfully.";
 
     // Act: Login with test credentials
     await loginPage.goto();
@@ -49,7 +50,7 @@ test.describe('Note Creation Workflow', () => {
     await expect(dashboardPage.hasNoteWithTitle(noteTitle)).toBeTruthy();
   });
 
-  test('should validate note form requirements', async ({ page }) => {
+  test("should validate note form requirements", async ({ page }) => {
     // Arrange & Act: Login and navigate to note editor
     await loginPage.goto();
     await loginPage.loginWithTestCredentials();
@@ -61,16 +62,15 @@ test.describe('Note Creation Workflow', () => {
     await expect(noteEditorPage.isSaveDisabled()).toBeTruthy();
 
     // Act: Fill only content without title
-    await noteEditorPage.fillNoteForm('', 'Some content without title');
+    await noteEditorPage.fillNoteForm("", "Some content without title");
 
     // Assert: Save button should still be disabled
     await expect(noteEditorPage.isSaveDisabled()).toBeTruthy();
 
     // Act: Fill title but clear content
-    await noteEditorPage.fillNoteForm('Title without content', '');
+    await noteEditorPage.fillNoteForm("Title without content", "");
 
     // Assert: Save button should be enabled (title is required, content is optional)
     await expect(noteEditorPage.isSaveDisabled()).toBeFalsy();
   });
-
 });

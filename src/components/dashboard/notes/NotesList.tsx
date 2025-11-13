@@ -47,13 +47,9 @@ function EmptyState({ hasSearchTerm }: { hasSearchTerm: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <div className="mb-2 text-4xl">📝</div>
-      <h3 className="mb-1 font-semibold">
-        {hasSearchTerm ? "Brak wyników" : "Brak notatek"}
-      </h3>
+      <h3 className="mb-1 font-semibold">{hasSearchTerm ? "Brak wyników" : "Brak notatek"}</h3>
       <p className="mb-4 text-sm text-muted-foreground">
-        {hasSearchTerm
-          ? "Spróbuj zmienić kryteria wyszukiwania"
-          : "Zacznij od utworzenia pierwszej notatki"}
+        {hasSearchTerm ? "Spróbuj zmienić kryteria wyszukiwania" : "Zacznij od utworzenia pierwszej notatki"}
       </p>
       {!hasSearchTerm && (
         <a
@@ -67,7 +63,15 @@ function EmptyState({ hasSearchTerm }: { hasSearchTerm: boolean }) {
   );
 }
 
-export function NotesList({ notes, pagination, isLoading, selectedNoteId, onPageChange, onNoteSelect, onNoteDelete }: NotesListProps) {
+export function NotesList({
+  notes,
+  pagination,
+  isLoading,
+  selectedNoteId,
+  onPageChange,
+  onNoteSelect,
+  onNoteDelete,
+}: NotesListProps) {
   if (isLoading) {
     return <NotesListSkeleton />;
   }

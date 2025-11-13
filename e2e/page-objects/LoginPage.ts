@@ -1,4 +1,4 @@
-import type { Page, Locator } from '@playwright/test';
+import type { Page, Locator } from "@playwright/test";
 
 /**
  * LoginPage - Page Object Model for login page
@@ -16,16 +16,16 @@ export class LoginPage {
     this.page = page;
 
     // Initialize locators using data-testid convention
-    this.emailInput = page.getByTestId('login-email-input');
-    this.passwordInput = page.getByTestId('login-password-input');
-    this.submitButton = page.getByTestId('login-submit-button');
+    this.emailInput = page.getByTestId("login-email-input");
+    this.passwordInput = page.getByTestId("login-password-input");
+    this.submitButton = page.getByTestId("login-submit-button");
   }
 
   /**
    * Navigate to login page
    */
   async goto(): Promise<void> {
-    await this.page.goto('/login');
+    await this.page.goto("/login");
   }
 
   /**
@@ -48,7 +48,7 @@ export class LoginPage {
     const password = process.env.E2E_PASSWORD;
 
     if (!email || !password) {
-      throw new Error('E2E_USERNAME and E2E_PASSWORD environment variables must be set');
+      throw new Error("E2E_USERNAME and E2E_PASSWORD environment variables must be set");
     }
 
     await this.login(email, password);
@@ -58,7 +58,7 @@ export class LoginPage {
    * Wait for successful login redirect to dashboard
    */
   async waitForLoginSuccess(): Promise<void> {
-    await this.page.waitForURL('/', { timeout: 10000 });
+    await this.page.waitForURL("/", { timeout: 10000 });
   }
 
   /**

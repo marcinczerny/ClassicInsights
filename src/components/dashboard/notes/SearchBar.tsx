@@ -46,7 +46,7 @@ export function SearchBar({
   const fetchAllEntities = useCallback(async () => {
     setIsLoadingEntities(true);
     try {
-      const response = await fetch('/api/entities?limit=100');
+      const response = await fetch("/api/entities?limit=100");
       if (!response.ok) throw new Error("Failed to fetch entities");
 
       const data = await response.json();
@@ -64,17 +64,14 @@ export function SearchBar({
    */
   const filteredEntities = availableEntities.filter(
     (entity) =>
-      !selectedEntityIds.includes(entity.id) &&
-      entity.name.toLowerCase().includes(entitySearchInput.toLowerCase())
+      !selectedEntityIds.includes(entity.id) && entity.name.toLowerCase().includes(entitySearchInput.toLowerCase())
   );
 
   /**
    * Update selected entities display when selectedEntityIds changes
    */
   useEffect(() => {
-    const selected = availableEntities.filter((entity) =>
-      selectedEntityIds.includes(entity.id)
-    );
+    const selected = availableEntities.filter((entity) => selectedEntityIds.includes(entity.id));
     setSelectedEntities(selected);
   }, [selectedEntityIds, availableEntities]);
 
@@ -150,10 +147,7 @@ export function SearchBar({
       <div className="space-y-2">
         <Popover open={showEntityPopover} onOpenChange={setShowEntityPopover}>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-            >
+            <Button variant="outline" className="w-full justify-start text-left font-normal">
               {selectedEntities.length === 0 ? (
                 <span className="text-muted-foreground">Wybierz tagi (encje)...</span>
               ) : (
@@ -200,11 +194,7 @@ export function SearchBar({
         {selectedEntities.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {selectedEntities.map((entity) => (
-              <Badge
-                key={entity.id}
-                variant="secondary"
-                className="gap-1"
-              >
+              <Badge key={entity.id} variant="secondary" className="gap-1">
                 {entity.name}
                 <button
                   onClick={() => handleEntityRemove(entity.id)}
@@ -221,12 +211,7 @@ export function SearchBar({
 
       {/* Clear all button */}
       {(titleInput || selectedEntityIds.length > 0) && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleClearAll}
-          className="w-full"
-        >
+        <Button variant="ghost" size="sm" onClick={handleClearAll} className="w-full">
           Wyczyść wszystkie filtry
         </Button>
       )}

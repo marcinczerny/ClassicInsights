@@ -8,7 +8,7 @@
  * Should be converted to 404 Not Found HTTP response
  */
 export class NotFoundError extends Error {
-  constructor(message: string = "Resource not found") {
+  constructor(message = "Resource not found") {
     super(message);
     this.name = "NotFoundError";
   }
@@ -19,7 +19,7 @@ export class NotFoundError extends Error {
  * Should be converted to 403 Forbidden HTTP response
  */
 export class ForbiddenError extends Error {
-  constructor(message: string = "Access to this resource is forbidden") {
+  constructor(message = "Access to this resource is forbidden") {
     super(message);
     this.name = "ForbiddenError";
   }
@@ -30,7 +30,7 @@ export class ForbiddenError extends Error {
  * Should be converted to 401 Unauthorized HTTP response
  */
 export class UnauthorizedError extends Error {
-  constructor(message: string = "Authentication required") {
+  constructor(message = "Authentication required") {
     super(message);
     this.name = "UnauthorizedError";
   }
@@ -41,7 +41,7 @@ export class UnauthorizedError extends Error {
  * Should be converted to 400 Bad Request HTTP response
  */
 export class ValidationError extends Error {
-  constructor(message: string = "Invalid request data") {
+  constructor(message = "Invalid request data") {
     super(message);
     this.name = "ValidationError";
   }
@@ -52,7 +52,7 @@ export class ValidationError extends Error {
  * Should be converted to 409 Conflict HTTP response
  */
 export class ConflictError extends Error {
-  constructor(message: string = "Resource already exists") {
+  constructor(message = "Resource already exists") {
     super(message);
     this.name = "ConflictError";
   }

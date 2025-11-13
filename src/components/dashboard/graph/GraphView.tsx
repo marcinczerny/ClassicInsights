@@ -28,8 +28,8 @@ interface GraphViewProps {
   hasNotes: boolean;
   isConnectionMode?: boolean;
   selectedSourceNode?: string | null;
-  graphCenterNode?: { id: string; type: 'note' | 'entity' } | null;
-  onNodeClick?: (node: { id: string; type: 'note' | 'entity' }) => void;
+  graphCenterNode?: { id: string; type: "note" | "entity" } | null;
+  onNodeClick?: (node: { id: string; type: "note" | "entity" }) => void;
   onEdgeClick?: (edge: { id: string; source: string; target: string }) => void;
 }
 
@@ -64,7 +64,7 @@ function GraphViewInner({
    */
   useEffect(() => {
     if (graphCenterNode && nodes.length > 0) {
-      const centerNode = nodes.find(node => node.id === graphCenterNode.id);
+      const centerNode = nodes.find((node) => node.id === graphCenterNode.id);
       if (centerNode) {
         // Use setTimeout to ensure the DOM is updated
         setTimeout(() => {
@@ -88,7 +88,7 @@ function GraphViewInner({
       if (onNodeClick) {
         onNodeClick({
           id: node.id,
-          type: node.type as 'note' | 'entity',
+          type: node.type as "note" | "entity",
         });
       }
     },
@@ -154,9 +154,9 @@ function GraphViewInner({
         <Controls />
         <MiniMap
           nodeColor={(node) => {
-            if (node.type === 'entity') return '#6366f1';
-            if (node.type === 'note') return '#f59e0b';
-            return '#94a3b8';
+            if (node.type === "entity") return "#6366f1";
+            if (node.type === "note") return "#f59e0b";
+            return "#94a3b8";
           }}
           className="!bg-background !border !border-border"
         />

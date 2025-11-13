@@ -25,20 +25,10 @@ export function PaginationControls({ pagination, onPageChange }: PaginationContr
         Strona {page} z {total_pages}
       </div>
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(page - 1)}
-          disabled={isFirstPage}
-        >
+        <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={isFirstPage}>
           Poprzednia
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(page + 1)}
-          disabled={isLastPage}
-        >
+        <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={isLastPage}>
           Następna
         </Button>
       </div>

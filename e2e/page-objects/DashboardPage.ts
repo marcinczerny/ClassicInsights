@@ -1,4 +1,4 @@
-import type { Page, Locator } from '@playwright/test';
+import type { Page, Locator } from "@playwright/test";
 
 /**
  * DashboardPage - Page Object Model for dashboard page
@@ -14,14 +14,14 @@ export class DashboardPage {
     this.page = page;
 
     // Initialize locators using data-testid convention
-    this.createNoteButton = page.getByTestId('create-note-button');
+    this.createNoteButton = page.getByTestId("create-note-button");
   }
 
   /**
    * Navigate to dashboard page
    */
   async goto(): Promise<void> {
-    await this.page.goto('/');
+    await this.page.goto("/");
   }
 
   /**
@@ -29,7 +29,7 @@ export class DashboardPage {
    */
   async clickCreateNote(): Promise<void> {
     await this.createNoteButton.click();
-    await this.page.waitForURL('/notes/new', { timeout: 5000 });
+    await this.page.waitForURL("/notes/new", { timeout: 5000 });
   }
 
   /**
@@ -52,7 +52,7 @@ export class DashboardPage {
    * @param noteItem - Note item locator
    */
   getNoteTitle(noteItem: Locator): Locator {
-    return noteItem.getByTestId('note-title');
+    return noteItem.getByTestId("note-title");
   }
 
   /**
@@ -60,7 +60,7 @@ export class DashboardPage {
    * @param title - Note title to search for
    */
   async hasNoteWithTitle(title: string): Promise<boolean> {
-    const noteTitles = this.page.getByTestId('note-title');
+    const noteTitles = this.page.getByTestId("note-title");
     const count = await noteTitles.filter({ hasText: title }).count();
     return count > 0;
   }

@@ -1,5 +1,5 @@
-import type { APIRoute } from 'astro';
-import { createSupabaseServerInstance } from '@/db/supabase.client';
+import type { APIRoute } from "astro";
+import { createSupabaseServerInstance } from "@/db/supabase.client";
 
 export const prerender = false;
 
@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 
-  return new Response(JSON.stringify({ message: 'Successfully logged out' }), {
+  return new Response(JSON.stringify({ message: "Successfully logged out" }), {
     status: 200,
   });
 };

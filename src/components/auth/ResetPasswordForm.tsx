@@ -1,12 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -15,9 +8,7 @@ export function ResetPasswordForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Zresetuj hasło</CardTitle>
-        <CardDescription>
-          Podaj swój adres email, aby otrzymać link do zresetowania hasła.
-        </CardDescription>
+        <CardDescription>Podaj swój adres email, aby otrzymać link do zresetowania hasła.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">

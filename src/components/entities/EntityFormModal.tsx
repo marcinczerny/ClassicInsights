@@ -5,28 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { entityTypes } from "@/lib/validation";
 import type { CreateEntityCommand, EntityWithCountDTO, UpdateEntityCommand } from "@/types";
 
-type EntityFormModalProps = {
+interface EntityFormModalProps {
   isOpen: boolean;
   entityToEdit: EntityWithCountDTO | null;
   isSubmitting: boolean;
   onSubmit: (data: CreateEntityCommand | UpdateEntityCommand) => Promise<void>;
   onClose: () => void;
-};
+}
 
-type FormErrors = {
+interface FormErrors {
   name?: string;
   description?: string;
-};
+}
 
 const DEFAULT_ENTITY_TYPE = entityTypes[0] ?? "person";
 
@@ -57,11 +51,7 @@ export function EntityFormModal({
     if (isSubmitting) {
       return true;
     }
-    return (
-      name.trim().length === 0 ||
-      name.trim().length > 100 ||
-      description.trim().length > 1000
-    );
+    return name.trim().length === 0 || name.trim().length > 100 || description.trim().length > 1000;
   }, [description, isSubmitting, name]);
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -207,4 +197,3 @@ function mapEntityTypeToLabel(type: string): string {
       return type;
   }
 }
-

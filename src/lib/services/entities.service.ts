@@ -1,17 +1,15 @@
-import { supabaseClient, handleSupabaseError } from '@/db/supabase.client';
-import type { Enums } from '@/db/database.types';
-import type { EntityWithCountDTO } from '@/types';
-import type { CreateEntityCommand, EntityDTO } from '@/types';
-import type { EntityWithNotesDTO, UpdateEntityCommand } from '@/types';
+import { supabaseClient, handleSupabaseError } from "@/db/supabase.client";
+import type { Enums } from "@/db/database.types";
+import type { EntityWithCountDTO } from "@/types";
+import type { CreateEntityCommand, EntityDTO } from "@/types";
+import type { EntityWithNotesDTO, UpdateEntityCommand } from "@/types";
 
-export const getEntities = async (
-  userId: string,
-): Promise<EntityWithCountDTO[]> => {
+export const getEntities = async (userId: string): Promise<EntityWithCountDTO[]> => {
   const { data, error } = await supabaseClient
-    .from('entities')
-    .select('*, note_entities(count)')
-    .eq('user_id', userId)
-    .order('name', { ascending: true });
+    .from("entities")
+    .select("*, note_entities(count)")
+    .eq("user_id", userId)
+    .order("name", { ascending: true });
 
   if (error) {
     handleSupabaseError(error);
@@ -20,22 +18,17 @@ export const getEntities = async (
   return (
     data?.map((entity) => ({
       ...entity,
-      note_count: Array.isArray(entity.note_entities)
-        ? entity.note_entities[0]?.count ?? 0
-        : 0,
+      note_count: Array.isArray(entity.note_entities) ? (entity.note_entities[0]?.count ?? 0) : 0,
     })) || []
   );
 };
 
-export const findEntityByName = async (
-  userId: string,
-  name: string,
-): Promise<EntityDTO | null> => {
+export const findEntityByName = async (userId: string, name: string): Promise<EntityDTO | null> => {
   const { data, error } = await supabaseClient
-    .from('entities')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('name', name)
+    .from("entities")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("name", name)
     .maybeSingle();
 
   if (error) {
@@ -45,14 +38,11 @@ export const findEntityByName = async (
   return data;
 };
 
-export const createEntity = async (
-  userId: string,
-  data: CreateEntityCommand,
-): Promise<EntityDTO> => {
+export const createEntity = async (userId: string, data: CreateEntityCommand): Promise<EntityDTO> => {
   const { name, type, description } = data;
 
   const { data: newEntity, error } = await supabaseClient
-    .from('entities')
+    .from("entities")
     .insert({
       user_id: userId,
       name,
@@ -62,7 +52,7 @@ export const createEntity = async (
     .select()
     .single();
 
-  const UNIQUE_CONSTRAINT_VIOLATION_CODE = '23505';
+  const UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
   if (error) {
     if (error.code === UNIQUE_CONSTRAINT_VIOLATION_CODE) {
       throw new Error(`An entity with the name "${name}" already exists.`);
@@ -71,20 +61,17 @@ export const createEntity = async (
   }
 
   if (!newEntity) {
-    throw new Error('Failed to create entity.');
+    throw new Error("Failed to create entity.");
   }
 
   return newEntity;
 };
 
-const POSTGRES_ERROR_NOT_FOUND = 'PGRST116';
+const POSTGRES_ERROR_NOT_FOUND = "PGRST116";
 
-export const getEntityById = async (
-  userId: string,
-  entityId: string,
-): Promise<EntityWithNotesDTO | null> => {
+export const getEntityById = async (userId: string, entityId: string): Promise<EntityWithNotesDTO | null> => {
   const { data, error } = await supabaseClient
-    .from('entities')
+    .from("entities")
     .select(
       `
 			*,
@@ -93,10 +80,10 @@ export const getEntityById = async (
 				created_at,
 				notes(id, title, created_at)
 			)
-		`,
+		`
     )
-    .eq('id', entityId)
-    .eq('user_id', userId)
+    .eq("id", entityId)
+    .eq("user_id", userId)
     .single();
 
   if (error && error.code !== POSTGRES_ERROR_NOT_FOUND) {
@@ -119,18 +106,14 @@ export const getEntityById = async (
   return transformedData;
 };
 
-export const updateEntity = async (
-  userId: string,
-  entityId: string,
-  data: UpdateEntityCommand,
-): Promise<EntityDTO> => {
-  const UNIQUE_CONSTRAINT_VIOLATION_CODE = '23505';
+export const updateEntity = async (userId: string, entityId: string, data: UpdateEntityCommand): Promise<EntityDTO> => {
+  const UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
   const { data: updatedEntity, error } = await supabaseClient
-    .from('entities')
+    .from("entities")
     .update(data)
-    .eq('id', entityId)
-    .eq('user_id', userId)
+    .eq("id", entityId)
+    .eq("user_id", userId)
     .select()
     .single();
 
@@ -139,7 +122,7 @@ export const updateEntity = async (
       throw new Error(`An entity with the name "${data.name}" already exists.`);
     }
     if (error.code === POSTGRES_ERROR_NOT_FOUND) {
-      throw new Error('Entity not found or user does not have permission to update it.');
+      throw new Error("Entity not found or user does not have permission to update it.");
     }
     handleSupabaseError(error);
   }
@@ -147,15 +130,12 @@ export const updateEntity = async (
   return updatedEntity;
 };
 
-export const deleteEntity = async (
-  userId: string,
-  entityId: string,
-): Promise<{ success: boolean }> => {
+export const deleteEntity = async (userId: string, entityId: string): Promise<{ success: boolean }> => {
   const { error, count } = await supabaseClient
-    .from('entities')
-    .delete({ count: 'exact' })
-    .eq('id', entityId)
-    .eq('user_id', userId);
+    .from("entities")
+    .delete({ count: "exact" })
+    .eq("id", entityId)
+    .eq("user_id", userId);
 
   if (error) {
     handleSupabaseError(error);

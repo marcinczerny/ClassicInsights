@@ -1,7 +1,7 @@
 export function NavLinks({ currentPath }: { currentPath: string }) {
   const links = [
-    { href: '/', label: 'Notes' },
-    { href: '/entities', label: 'Entities' },
+    { href: "/", label: "Notes" },
+    { href: "/entities", label: "Entities" },
   ];
 
   return (
@@ -14,7 +14,7 @@ export function NavLinks({ currentPath }: { currentPath: string }) {
             key={link.href}
             href={link.href}
             className={`text-sm font-medium transition-colors hover:text-primary ${
-              isActive ? 'text-foreground' : 'text-muted-foreground'
+              isActive ? "text-foreground" : "text-muted-foreground"
             }`}
           >
             {link.label}

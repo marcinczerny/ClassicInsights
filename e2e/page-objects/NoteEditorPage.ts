@@ -1,4 +1,4 @@
-import type { Page, Locator } from '@playwright/test';
+import type { Page, Locator } from "@playwright/test";
 
 /**
  * NoteEditorPage - Page Object Model for note editor page
@@ -16,16 +16,16 @@ export class NoteEditorPage {
     this.page = page;
 
     // Initialize locators using data-testid convention
-    this.titleInput = page.getByTestId('note-title-input');
-    this.contentTextarea = page.getByTestId('note-content-textarea');
-    this.saveButton = page.getByTestId('save-note-button');
+    this.titleInput = page.getByTestId("note-title-input");
+    this.contentTextarea = page.getByTestId("note-content-textarea");
+    this.saveButton = page.getByTestId("save-note-button");
   }
 
   /**
    * Navigate to new note creation page
    */
   async gotoNewNote(): Promise<void> {
-    await this.page.goto('/notes/new');
+    await this.page.goto("/notes/new");
   }
 
   /**
@@ -61,7 +61,7 @@ export class NoteEditorPage {
    * Wait for successful save and redirect to dashboard
    */
   async waitForSaveSuccess(): Promise<void> {
-    await this.page.waitForURL('/', { timeout: 10000 });
+    await this.page.waitForURL("/", { timeout: 10000 });
   }
 
   /**
@@ -75,7 +75,7 @@ export class NoteEditorPage {
    * Check if save button is disabled
    */
   async isSaveDisabled(): Promise<boolean> {
-    const disabledAttr = await this.saveButton.getAttribute('disabled');
+    const disabledAttr = await this.saveButton.getAttribute("disabled");
     return disabledAttr !== null;
   }
 
@@ -83,7 +83,7 @@ export class NoteEditorPage {
    * Check if editor form is visible
    */
   async isEditorVisible(): Promise<boolean> {
-    return await this.titleInput.isVisible() && await this.contentTextarea.isVisible();
+    return (await this.titleInput.isVisible()) && (await this.contentTextarea.isVisible());
   }
 
   /**

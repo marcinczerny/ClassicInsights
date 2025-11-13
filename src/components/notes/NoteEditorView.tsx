@@ -24,7 +24,7 @@ import { useNoteEditor } from "./hooks/useNoteEditor";
 import { toast } from "sonner";
 
 interface NoteEditorViewProps {
-  noteId: string | 'new';
+  noteId: string | "new";
 }
 
 export function NoteEditorView({ noteId }: NoteEditorViewProps) {
@@ -138,9 +138,7 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Notatka nie została znaleziona</h1>
-          <p className="text-muted-foreground">
-            Notatka, której szukasz, nie istnieje lub została usunięta.
-          </p>
+          <p className="text-muted-foreground">Notatka, której szukasz, nie istnieje lub została usunięta.</p>
           <Button asChild>
             <a href="/">Powrót do listy notatek</a>
           </Button>
@@ -158,33 +156,28 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
   const isSaveDisabled = !isDirty || !note.title.trim() || isSaving;
 
   // Validation for analyze button
-  const isAnalyzeDisabled =
-    note.id === 'new' ||
-    !note.content.trim() ||
-    note.content.length < 10;
+  const isAnalyzeDisabled = note.id === "new" || !note.content.trim() || note.content.length < 10;
 
   const analyzeDisabledReason =
-    note.id === 'new'
+    note.id === "new"
       ? "Zapisz notatkę, aby móc wygenerować sugestie"
       : !note.content.trim() || note.content.length < 10
-      ? "Treść notatki jest zbyt krótka (minimum 10 znaków)"
-      : undefined;
+        ? "Treść notatki jest zbyt krótka (minimum 10 znaków)"
+        : undefined;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-7xl mx-auto py-8 px-4">
         {/* Header with actions */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">
-            {note.id === 'new' ? 'Nowa notatka' : 'Edycja notatki'}
-          </h1>
+          <h1 className="text-3xl font-bold">{note.id === "new" ? "Nowa notatka" : "Edycja notatki"}</h1>
 
           <div className="flex gap-2">
             <Button
               variant="outline"
               onClick={() => {
-                if (note.id === 'new') {
-                  window.location.href = '/';
+                if (note.id === "new") {
+                  window.location.href = "/";
                 } else {
                   window.location.href = `/notes/${note.id}`;
                 }
@@ -193,21 +186,13 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
               Anuluj
             </Button>
 
-            {note.id !== 'new' && (
-              <Button
-                variant="destructive"
-                onClick={() => setShowDeleteConfirmation(true)}
-                disabled={isDeleting}
-              >
+            {note.id !== "new" && (
+              <Button variant="destructive" onClick={() => setShowDeleteConfirmation(true)} disabled={isDeleting}>
                 {isDeleting ? "Usuwanie..." : "Usuń"}
               </Button>
             )}
 
-            <Button
-              onClick={handleSave}
-              disabled={isSaveDisabled}
-              data-testid="save-note-button"
-            >
+            <Button onClick={handleSave} disabled={isSaveDisabled} data-testid="save-note-button">
               {isSaving ? "Zapisywanie..." : "Zapisz"}
             </Button>
           </div>
@@ -220,8 +205,8 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
             <div className="bg-card rounded-lg border p-6">
               <NoteForm
                 note={note}
-                onTitleChange={(title) => setNoteField('title', title)}
-                onContentChange={(content) => setNoteField('content', content)}
+                onTitleChange={(title) => setNoteField("title", title)}
+                onContentChange={(content) => setNoteField("content", content)}
                 onEntitiesChange={setNoteEntities}
               />
             </div>

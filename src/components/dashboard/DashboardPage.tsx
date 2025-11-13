@@ -43,7 +43,7 @@ export function DashboardPage() {
 
   // Onboarding modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [onboardingDismissed, setOnboardingDismissed] = useSessionStorage('onboardingDismissed', false);
+  const [onboardingDismissed, setOnboardingDismissed] = useSessionStorage("onboardingDismissed", false);
 
   // Show onboarding modal for new users with no notes
   useEffect(() => {
@@ -55,7 +55,7 @@ export function DashboardPage() {
   // Handle CTA click - navigate to create note page
   const handleCtaClick = () => {
     setIsModalOpen(false);
-    window.location.href = '/notes/new';
+    window.location.href = "/notes/new";
   };
 
   // Handle modal close
@@ -75,7 +75,7 @@ export function DashboardPage() {
           error={notesError}
           searchTerm={searchTerm}
           selectedEntityIds={selectedEntityIds}
-          selectedNoteId={graphCenterNode?.type === 'note' ? graphCenterNode.id : undefined}
+          selectedNoteId={graphCenterNode?.type === "note" ? graphCenterNode.id : undefined}
           onSearchChange={handleSearchChange}
           onEntitySelectionChange={handleEntitySelectionChange}
           onPageChange={handlePageChange}
@@ -101,11 +101,7 @@ export function DashboardPage() {
       </div>
 
       {/* Onboarding Modal */}
-      <OnboardingModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onCtaClick={handleCtaClick}
-      />
+      <OnboardingModal isOpen={isModalOpen} onClose={handleModalClose} onCtaClick={handleCtaClick} />
     </div>
   );
 }

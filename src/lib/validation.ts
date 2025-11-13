@@ -1,19 +1,21 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.string().email('Nieprawidłowy adres email.'),
-  password: z.string().min(1, 'Hasło jest wymagane.'),
+  email: z.string().email("Nieprawidłowy adres email."),
+  password: z.string().min(1, "Hasło jest wymagane."),
 });
 
-export const registerSchema = z.object({
-  email: z.string().email('Nieprawidłowy adres email.'),
-  password: z.string().min(8, 'Hasło musi mieć co najmniej 8 znaków.'),
-  confirmPassword: z.string().min(1, 'Powtórzenie hasła jest wymagane.'),
-  aiConsent: z.boolean().refine((val) => val === true, 'Zgoda na analizę notatek przez AI jest wymagana.'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Hasła nie są takie same.",
-  path: ["confirmPassword"],
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email("Nieprawidłowy adres email."),
+    password: z.string().min(8, "Hasło musi mieć co najmniej 8 znaków."),
+    confirmPassword: z.string().min(1, "Powtórzenie hasła jest wymagane."),
+    aiConsent: z.boolean().refine((val) => val === true, "Zgoda na analizę notatek przez AI jest wymagana."),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Hasła nie są takie same.",
+    path: ["confirmPassword"],
+  });
 
 // ============================================================================
 // RELATIONSHIP TYPE SCHEMA
@@ -125,11 +127,7 @@ export const removeEntityFromNoteSchema = z.object({
  * Suggestion status enum schema
  * Used for filtering suggestions by their status
  */
-export const suggestionStatusSchema = z.enum([
-  "pending",
-  "accepted",
-  "rejected",
-]);
+export const suggestionStatusSchema = z.enum(["pending", "accepted", "rejected"]);
 
 export type SuggestionStatus = z.infer<typeof suggestionStatusSchema>;
 
@@ -168,44 +166,30 @@ export type UpdateSuggestionCommand = z.infer<typeof updateSuggestionSchema>;
 // ENTITY SCHEMAS
 // ============================================================================
 
-export const entityTypes = [
-	"person",
-	"work",
-	"epoch",
-	"idea",
-	"school",
-	"system",
-	"other",
-] as const;
+export const entityTypes = ["person", "work", "epoch", "idea", "school", "system", "other"] as const;
 
 export const getEntitiesSchema = z.object({
-	page: z.coerce.number().int().min(1).default(1),
-	limit: z.coerce.number().int().positive().max(100).optional().default(50),
-	search: z.string().optional(),
-	type: z.enum(entityTypes).optional(),
-	sort: z
-		.enum(["name", "created_at", "type"])
-		.optional()
-		.default("name"),
-	order: z.enum(["asc", "desc"]).optional().default("asc"),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().positive().max(100).optional().default(50),
+  search: z.string().optional(),
+  type: z.enum(entityTypes).optional(),
+  sort: z.enum(["name", "created_at", "type"]).optional().default("name"),
+  order: z.enum(["asc", "desc"]).optional().default("asc"),
 });
 
 export const createEntitySchema = z.object({
-	name: z.string().min(1).max(100),
-	type: z.enum(entityTypes),
-	description: z.string().max(1000).optional(),
+  name: z.string().min(1).max(100),
+  type: z.enum(entityTypes),
+  description: z.string().max(1000).optional(),
 });
 
 export const getEntitySchema = z.object({
   id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
 });
 
-export const updateEntitySchema = createEntitySchema.partial().refine(
-  (data) => Object.keys(data).length > 0,
-  {
-    message: "At least one field to update must be provided.",
-  }
-);
+export const updateEntitySchema = createEntitySchema.partial().refine((data) => Object.keys(data).length > 0, {
+  message: "At least one field to update must be provided.",
+});
 
 export const deleteEntitySchema = z.object({
   id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),

@@ -32,8 +32,7 @@ export function transformGraphData(
         label: node.name,
         isSelected: node.id === selectedSourceNode,
       },
-      className:
-        node.id === selectedSourceNode ? "ring-4 ring-primary" : undefined,
+      className: node.id === selectedSourceNode ? "ring-4 ring-primary" : undefined,
     };
   });
 
@@ -45,7 +44,7 @@ export function transformGraphData(
     animated: false,
     label: formatRelationshipType(edge.type),
     markerEnd: {
-      type: 'arrowclosed',
+      type: "arrowclosed",
       width: 20,
       height: 20,
     },
@@ -58,10 +57,7 @@ export function transformGraphData(
 /**
  * Calculate node position in a circular layout
  */
-function calculatePosition(
-  index: number,
-  total: number
-): { x: number; y: number } {
+function calculatePosition(index: number, total: number): { x: number; y: number } {
   const centerX = 400;
   const centerY = 300;
   const radius = 200;

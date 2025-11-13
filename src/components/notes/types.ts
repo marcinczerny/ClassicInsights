@@ -11,7 +11,7 @@ import type { Enums } from "@/db/database.types";
  * ViewModel for a note in the editor. Stores the current form state.
  */
 export interface NoteViewModel {
-  id: string | 'new'; // 'new' for newly created notes
+  id: string | "new"; // 'new' for newly created notes
   title: string;
   content: string;
   entities: NoteEntityViewModel[];

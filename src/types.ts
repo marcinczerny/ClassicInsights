@@ -1,6 +1,6 @@
 /**
  * Type definitions for DTOs (Data Transfer Objects) and Command Models
- * 
+ *
  * This file contains all type definitions used for API requests and responses.
  * All types are derived from database table definitions to ensure type safety.
  */
@@ -14,23 +14,23 @@ import type { Tables, Enums } from "./db/database.types";
 /**
  * Pagination metadata for list responses
  */
-export type PaginationDTO = {
+export interface PaginationDTO {
   page: number;
   limit: number;
   total: number;
   total_pages: number;
-};
+}
 
 /**
  * Standard error response format
  */
-export type ErrorDTO = {
+export interface ErrorDTO {
   error: {
     code: string;
     message: string;
     details?: unknown;
   };
-};
+}
 
 // ============================================================================
 // PROFILE MANAGEMENT
@@ -46,9 +46,9 @@ export type ProfileDTO = Tables<"profiles">;
  * Command to update user profile (PATCH /api/profile request)
  * Only has_agreed_to_ai_data_processing can be updated
  */
-export type UpdateProfileCommand = {
+export interface UpdateProfileCommand {
   has_agreed_to_ai_data_processing?: boolean;
-};
+}
 
 // ============================================================================
 // ENTITY TYPES
@@ -65,10 +65,7 @@ export type EntityDTO = Tables<"entities">;
  * Used when including entity info in notes or relationships
  * Includes relationship_type when embedded in notes
  */
-export type EntityBasicDTO = Pick<
-  EntityDTO,
-  "id" | "name" | "type" | "description"
-> & {
+export type EntityBasicDTO = Pick<EntityDTO, "id" | "name" | "type" | "description"> & {
   relationship_type?: Enums<"relationship_type">;
 };
 
@@ -84,10 +81,7 @@ export type EntityWithCountDTO = EntityDTO & {
  * Preview of a note for entity details
  * Minimal note information for display in entity context
  */
-export type NotePreviewDTO = Pick<
-  Tables<"notes">,
-  "id" | "title" | "created_at"
->;
+export type NotePreviewDTO = Pick<Tables<"notes">, "id" | "title" | "created_at">;
 
 /**
  * Entity with associated notes (GET /api/entities/:id response)
@@ -101,30 +95,29 @@ export type EntityWithNotesDTO = EntityDTO & {
  * Command to create a new entity (POST /api/entities request)
  * Omits auto-generated fields (id, timestamps, user_id)
  */
-export type CreateEntityCommand = {
+export interface CreateEntityCommand {
   name: string;
   type: Enums<"entity_type">;
   description?: string;
-};
+}
 
 /**
  * Command to update an entity (PATCH /api/entities/:id request)
  * All fields are optional for partial updates
  */
-export type UpdateEntityCommand = {
+export interface UpdateEntityCommand {
   name?: string;
   type?: Enums<"entity_type">;
   description?: string;
-};
+}
 
 /**
  * List of entities response (GET /api/entities response)
  */
-export type EntitiesListResponseDTO = {
+export interface EntitiesListResponseDTO {
   data: EntityWithCountDTO[];
   pagination: PaginationDTO;
-};
-
+}
 
 // ============================================================================
 // NOTE TYPES
@@ -143,49 +136,49 @@ export type NoteDTO = Tables<"notes"> & {
  * Omits auto-generated fields (id, timestamps, user_id)
  * Supports both new format (entities with relationship_type) and legacy format (entity_ids)
  */
-export type CreateNoteCommand = {
+export interface CreateNoteCommand {
   title: string;
   content?: string;
   /** @deprecated Use 'entities' instead for typed relationships */
   entity_ids?: string[];
-  entities?: Array<{
+  entities?: {
     entity_id: string;
     relationship_type?: Enums<"relationship_type">;
-  }>;
-};
+  }[];
+}
 
 /**
  * Command to update a note (PATCH /api/notes/:id request)
  * All fields are optional for partial updates
  * Supports both new format (entities with relationship_type) and legacy format (entity_ids)
  */
-export type UpdateNoteCommand = {
+export interface UpdateNoteCommand {
   title?: string;
   content?: string;
   /** @deprecated Use 'entities' instead for typed relationships */
   entity_ids?: string[];
-  entities?: Array<{
+  entities?: {
     entity_id: string;
     relationship_type?: Enums<"relationship_type">;
-  }>;
-};
+  }[];
+}
 
 /**
  * Paginated list of notes response (GET /api/notes response)
  */
-export type NotesListResponseDTO = {
+export interface NotesListResponseDTO {
   data: NoteDTO[];
   pagination: PaginationDTO;
-};
+}
 
 /**
  * Command to add entity to note (POST /api/notes/:id/entities request)
  * Supports optional relationship_type (defaults to 'is_related_to')
  */
-export type AddEntityToNoteCommand = {
+export interface AddEntityToNoteCommand {
   entity_id: string;
   relationship_type?: Enums<"relationship_type">;
-};
+}
 
 /**
  * Note-entity association response (POST /api/notes/:id/entities response)
@@ -216,27 +209,27 @@ export type RelationshipWithEntitiesDTO = RelationshipDTO & {
  * Command to create a relationship (POST /api/relationships request)
  * Omits auto-generated fields (id, created_at, user_id)
  */
-export type CreateRelationshipCommand = {
+export interface CreateRelationshipCommand {
   source_entity_id: string;
   target_entity_id: string;
   type: Enums<"relationship_type">;
-};
+}
 
 /**
  * Command to update a relationship (PATCH /api/relationships/:id request)
  * Only the type can be updated
  */
-export type UpdateRelationshipCommand = {
+export interface UpdateRelationshipCommand {
   type: Enums<"relationship_type">;
-};
+}
 
 /**
  * List of relationships response (GET /api/relationships response)
  */
-export type RelationshipsListResponseDTO = {
+export interface RelationshipsListResponseDTO {
   data: RelationshipWithEntitiesDTO[];
   pagination: PaginationDTO;
-};
+}
 
 // ============================================================================
 // AI SUGGESTION TYPES
@@ -261,26 +254,26 @@ export type SuggestionPreviewDTO = Pick<
  * Response from note analysis (POST /api/notes/:id/analyze response)
  * Contains generated suggestions and timing metrics
  */
-export type AnalyzeNoteResponseDTO = {
+export interface AnalyzeNoteResponseDTO {
   note_id: string;
   suggestions: SuggestionPreviewDTO[];
   generation_duration_ms: number;
-};
+}
 
 /**
  * Command to update suggestion status (PATCH /api/suggestions/:id request)
  * Only status transitions from pending to accepted/rejected are allowed
  */
-export type UpdateSuggestionCommand = {
+export interface UpdateSuggestionCommand {
   status: "accepted" | "rejected";
-};
+}
 
 /**
  * List of suggestions response (GET /api/notes/:id/suggestions response)
  */
-export type SuggestionsListResponseDTO = {
+export interface SuggestionsListResponseDTO {
   data: SuggestionDTO[];
-};
+}
 
 // ============================================================================
 // GRAPH TYPES
@@ -289,7 +282,7 @@ export type SuggestionsListResponseDTO = {
 /**
  * Node in the thought graph visualization
  * Can represent either an entity or a note
- * 
+ *
  * @property type - Discriminator field for node type
  * @property entity_type - Only present when type is "entity"
  * @property description - Only present when type is "entity"
@@ -321,22 +314,22 @@ export type GraphNodeDTO = {
  *
  * @property type - relationship_type enum for both entity-entity and note-entity edges
  */
-export type GraphEdgeDTO = {
+export interface GraphEdgeDTO {
   id: string;
   source_id: string;
   target_id: string;
   type: Enums<"relationship_type">;
   created_at: string;
-};
+}
 
 /**
  * Complete graph structure (GET /api/graph response)
  * Contains all nodes and edges for visualization
  */
-export type GraphDTO = {
+export interface GraphDTO {
   nodes: GraphNodeDTO[];
   edges: GraphEdgeDTO[];
-};
+}
 
 // ============================================================================
 // STATISTICS TYPES
@@ -346,17 +339,17 @@ export type GraphDTO = {
  * Statistics for a specific suggestion type
  * Includes counts and calculated acceptance rate
  */
-export type SuggestionTypeStatsDTO = {
+export interface SuggestionTypeStatsDTO {
   generated: number;
   accepted: number;
   acceptance_rate: number;
-};
+}
 
 /**
  * Comprehensive user statistics (GET /api/statistics response)
  * Aggregated metrics about notes, entities, relationships, and AI suggestions
  */
-export type StatisticsDTO = {
+export interface StatisticsDTO {
   notes: {
     total: number;
     created_this_period: number;
@@ -376,7 +369,7 @@ export type StatisticsDTO = {
     acceptance_rate: number;
     by_type: Record<Enums<"suggestion_type">, SuggestionTypeStatsDTO>;
   };
-};
+}
 
 // ============================================================================
 // TYPE GUARDS (Utility functions for type narrowing)
@@ -401,9 +394,7 @@ export function isNoteNode(node: GraphNodeDTO): node is GraphNodeDTO & { type: "
  * Note: This requires additional context beyond the edge type alone,
  * as both relationship and note-entity edges now use relationship_type enum
  */
-export function isRelationshipEdge(
-  edge: GraphEdgeDTO
-): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
+export function isRelationshipEdge(edge: GraphEdgeDTO): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
   // This type guard is now primarily for semantic clarity
   // Additional logic may be needed based on source/target node types
   return true;
@@ -414,11 +405,8 @@ export function isRelationshipEdge(
  * Note: This requires additional context beyond the edge type alone,
  * as both relationship and note-entity edges now use relationship_type enum
  */
-export function isNoteEntityEdge(
-  edge: GraphEdgeDTO
-): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
+export function isNoteEntityEdge(edge: GraphEdgeDTO): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
   // This type guard is now primarily for semantic clarity
   // Additional logic may be needed based on source/target node types
   return true;
 }
-

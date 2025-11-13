@@ -29,13 +29,13 @@ export interface StructuredResponseParams<T extends z.ZodTypeAny> {
 export class OpenRouterService {
   private apiKey: string;
   private apiBaseUrl: string;
-  private defaultModel = 'anthropic/claude-3.5-sonnet';
+  private defaultModel = "anthropic/claude-3.5-sonnet";
 
   constructor() {
     // API Key is loaded from environment variables for security
     // Ensure `OPENROUTER_API_KEY` is set in your .env file
     this.apiKey = import.meta.env.OPENROUTER_API_KEY;
-    this.apiBaseUrl = 'https://openrouter.ai/api/v1';
+    this.apiBaseUrl = "https://openrouter.ai/api/v1";
 
     if (!this.apiKey) {
       throw new AuthenticationError("OPENROUTER_API_KEY is not set in environment variables.");
@@ -78,7 +78,7 @@ export class OpenRouterService {
     params,
   }: StructuredResponseParams<T>): Record<string, any> {
     const jsonSchema = zodToJsonSchema(schema, {
-      $refStrategy: 'none' // Use this strategy to avoid $ref issues
+      $refStrategy: "none", // Use this strategy to avoid $ref issues
     });
 
     const { $schema, ...rest } = jsonSchema; // Remove top-level $schema if present
@@ -98,7 +98,7 @@ ${JSON.stringify(rest, null, 2)}`;
         { role: "user", content: userPrompt },
       ],
       response_format: {
-        type: "json_object"
+        type: "json_object",
       },
       ...params,
     };
@@ -108,18 +108,13 @@ ${JSON.stringify(rest, null, 2)}`;
    * Parse and validate AI response against schema
    * @private
    */
-  private parseAndValidateResponse<T extends z.ZodTypeAny>(
-    schema: T,
-    content: string
-  ): z.infer<T> {
+  private parseAndValidateResponse<T extends z.ZodTypeAny>(schema: T, content: string): z.infer<T> {
     try {
       const parsedJson = JSON.parse(content);
       const validationResult = schema.safeParse(parsedJson);
 
       if (!validationResult.success) {
-        throw new ResponseValidationError(
-          `AI response validation failed: ${validationResult.error.message}`
-        );
+        throw new ResponseValidationError(`AI response validation failed: ${validationResult.error.message}`);
       }
       return validationResult.data;
     } catch (error) {
@@ -135,12 +130,12 @@ ${JSON.stringify(rest, null, 2)}`;
   private async executeRequest(body: Record<string, any>): Promise<any> {
     try {
       const response = await fetch(`${this.apiBaseUrl}/chat/completions`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://classic-insights.com', // Replace with your app's URL
-          'X-Title': 'Classic Insights', // Replace with your app's name
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://classic-insights.com", // Replace with your app's URL
+          "X-Title": "Classic Insights", // Replace with your app's name
         },
         body: JSON.stringify(body),
       });
@@ -150,18 +145,23 @@ ${JSON.stringify(rest, null, 2)}`;
         const errorMessage = errorBody.error?.message || `API request failed with status ${response.status}`;
 
         switch (response.status) {
-          case 400: throw new BadRequestError(errorMessage);
-          case 401: throw new AuthenticationError(errorMessage);
-          case 429: throw new RateLimitError(errorMessage);
-          case 404: throw new NotFoundError(errorMessage);
-          default: throw new APIError(errorMessage);
+          case 400:
+            throw new BadRequestError(errorMessage);
+          case 401:
+            throw new AuthenticationError(errorMessage);
+          case 429:
+            throw new RateLimitError(errorMessage);
+          case 404:
+            throw new NotFoundError(errorMessage);
+          default:
+            throw new APIError(errorMessage);
         }
       }
 
       return await response.json();
     } catch (error) {
-        if (error instanceof AIError) throw error;
-        throw new NetworkError(`Network request to OpenRouter failed: ${(error as Error).message}`);
+      if (error instanceof AIError) throw error;
+      throw new NetworkError(`Network request to OpenRouter failed: ${(error as Error).message}`);
     }
   }
 }

@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,9 +43,9 @@ export function RegisterForm() {
     }
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
@@ -61,7 +54,7 @@ export function RegisterForm() {
 
       if (!response.ok) {
         const { error } = await response.json();
-        throw new Error(error || 'Błąd rejestracji. Spróbuj ponownie.');
+        throw new Error(error || "Błąd rejestracji. Spróbuj ponownie.");
       }
 
       const { message, session } = await response.json();
@@ -69,13 +62,13 @@ export function RegisterForm() {
 
       // If user is automatically logged in (no email confirmation required)
       if (session) {
-        window.location.href = '/';
+        window.location.href = "/";
       } else {
         // If email confirmation is required, redirect to login page
-        window.location.href = '/login';
+        window.location.href = "/login";
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Wystąpił nieznany błąd.';
+      const errorMessage = error instanceof Error ? error.message : "Wystąpił nieznany błąd.";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -90,9 +83,7 @@ export function RegisterForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Rejestracja</CardTitle>
-        <CardDescription>
-          Załóż nowe konto, aby zacząć korzystać z aplikacji.
-        </CardDescription>
+        <CardDescription>Załóż nowe konto, aby zacząć korzystać z aplikacji.</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -107,9 +98,7 @@ export function RegisterForm() {
               onChange={handleInputChange}
               disabled={isLoading}
             />
-            {getErrorForField('email') && (
-              <p className="text-sm text-red-500">{getErrorForField('email')}</p>
-            )}
+            {getErrorForField("email") && <p className="text-sm text-red-500">{getErrorForField("email")}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Hasło</Label>
@@ -121,9 +110,7 @@ export function RegisterForm() {
               onChange={handleInputChange}
               disabled={isLoading}
             />
-            {getErrorForField('password') && (
-              <p className="text-sm text-red-500">{getErrorForField('password')}</p>
-            )}
+            {getErrorForField("password") && <p className="text-sm text-red-500">{getErrorForField("password")}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Powtórz hasło</Label>
@@ -135,8 +122,8 @@ export function RegisterForm() {
               onChange={handleInputChange}
               disabled={isLoading}
             />
-            {getErrorForField('confirmPassword') && (
-              <p className="text-sm text-red-500">{getErrorForField('confirmPassword')}</p>
+            {getErrorForField("confirmPassword") && (
+              <p className="text-sm text-red-500">{getErrorForField("confirmPassword")}</p>
             )}
           </div>
           <div className="flex items-center space-x-2">
@@ -150,9 +137,7 @@ export function RegisterForm() {
               Wyrażam zgodę na analizę moich notatek przez AI.
             </Label>
           </div>
-          {getErrorForField('aiConsent') && (
-            <p className="text-sm text-red-500">{getErrorForField('aiConsent')}</p>
-          )}
+          {getErrorForField("aiConsent") && <p className="text-sm text-red-500">{getErrorForField("aiConsent")}</p>}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch">
           <Button type="submit" disabled={isLoading}>

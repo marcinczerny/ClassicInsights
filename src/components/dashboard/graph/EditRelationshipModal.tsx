@@ -13,13 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import type { Enums } from "@/db/database.types";
 
@@ -34,11 +28,11 @@ interface EditRelationshipModalProps {
   onDelete: (relationshipId: string) => void;
 }
 
-const RELATIONSHIP_TYPES: Array<{
+const RELATIONSHIP_TYPES: {
   value: Enums<"relationship_type">;
   label: string;
   description: string;
-}> = [
+}[] = [
   {
     value: "is_related_to",
     label: "Jest powiązane z",
@@ -88,7 +82,7 @@ export function EditRelationshipModal({
   };
 
   const handleDelete = () => {
-    if (confirm('Czy na pewno chcesz usunąć tę relację?')) {
+    if (confirm("Czy na pewno chcesz usunąć tę relację?")) {
       onDelete(relationshipId);
     }
   };
