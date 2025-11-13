@@ -8,6 +8,7 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
   const supabase = createSupabaseServerInstance({
     cookies,
     headers: request.headers,
+    runtime: locals.runtime,
   });
 
   const {
