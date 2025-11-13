@@ -317,3 +317,17 @@ test-results/.playwright-artifacts-14/traces/resources/page@c0925ce3d22498cb21ab
 test-results/.playwright-artifacts-14/traces/resources/page@c0925ce3d22498cb21ab58c0c26919e4-1762792426536.jpeg
 playwright-report/index.html
 playwright-report/index.html
+coverage/base.css
+coverage/block-navigation.js
+coverage/coverage-final.json
+coverage/favicon.png
+coverage/index.html
+coverage/prettify.css
+coverage/prettify.js
+coverage/sort-arrow-sprite.png
+coverage/sorter.js
+coverage/lib/index.html
+coverage/lib/utils.ts.html
+coverage/lib/services/index.html
+coverage/lib/services/notes.service.ts.html
+coverage/lib/services/suggestions.service.ts.html
