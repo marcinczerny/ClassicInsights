@@ -4,13 +4,13 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 export const GET: APIRoute = async ({ locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   try {
-    const profile = await getProfile(user.id);
+    const profile = await getProfile(supabase, user.id);
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile not found" }), { status: 404 });
     }
@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ locals }) => {
 };
 
 export const PATCH: APIRoute = async ({ request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -35,7 +35,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     const body = await request.json();
     const validatedData = updateProfileSchema.parse(body);
 
-    const updatedProfile = await updateProfile(user.id, validatedData);
+    const updatedProfile = await updateProfile(supabase, user.id, validatedData);
 
     return new Response(JSON.stringify(updatedProfile), {
       status: 200,

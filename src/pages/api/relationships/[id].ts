@@ -5,7 +5,7 @@
 
 import type { APIRoute } from "astro";
 import { ZodError } from "zod";
-import { RelationshipsService } from "../../../lib/services/relationships.service";
+import { updateRelationship, deleteRelationship } from "../../../lib/services/relationships.service";
 import { updateRelationshipSchema, relationshipIdSchema } from "../../../lib/validation/relationships.validation";
 import type { ErrorDTO } from "../../../types";
 
@@ -16,7 +16,7 @@ export const prerender = false;
  * Updates a relationship's type
  */
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -30,8 +30,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const validatedData = updateRelationshipSchema.parse(body);
 
     // Update relationship via service
-    const service = new RelationshipsService();
-    const relationship = await service.updateRelationship(user.id, validatedParams.id, validatedData);
+    const relationship = await updateRelationship(supabase, user.id, validatedParams.id, validatedData);
 
     return new Response(JSON.stringify(relationship), {
       status: 200,
@@ -97,7 +96,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
  * Deletes a relationship
  */
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -107,8 +106,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     const validatedParams = relationshipIdSchema.parse(params);
 
     // Delete relationship via service
-    const service = new RelationshipsService();
-    await service.deleteRelationship(user.id, validatedParams.id);
+    await deleteRelationship(supabase, user.id, validatedParams.id);
 
     // Return 204 No Content on success
     return new Response(null, {

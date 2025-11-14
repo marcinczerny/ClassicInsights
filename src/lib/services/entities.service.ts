@@ -1,10 +1,10 @@
-import { supabaseClient, handleSupabaseError } from "@/db/supabase.client";
+import { handleSupabaseError, type SupabaseClient } from "@/db/supabase.client";
 import type { EntityWithCountDTO } from "@/types";
 import type { CreateEntityCommand, EntityDTO } from "@/types";
 import type { EntityWithNotesDTO, UpdateEntityCommand } from "@/types";
 
-export const getEntities = async (userId: string): Promise<EntityWithCountDTO[]> => {
-  const { data, error } = await supabaseClient
+export const getEntities = async (supabase: SupabaseClient, userId: string): Promise<EntityWithCountDTO[]> => {
+  const { data, error } = await supabase
     .from("entities")
     .select("*, note_entities(count)")
     .eq("user_id", userId)
@@ -22,8 +22,12 @@ export const getEntities = async (userId: string): Promise<EntityWithCountDTO[]>
   );
 };
 
-export const findEntityByName = async (userId: string, name: string): Promise<EntityDTO | null> => {
-  const { data, error } = await supabaseClient
+export const findEntityByName = async (
+  supabase: SupabaseClient,
+  userId: string,
+  name: string
+): Promise<EntityDTO | null> => {
+  const { data, error } = await supabase
     .from("entities")
     .select("*")
     .eq("user_id", userId)
@@ -37,10 +41,14 @@ export const findEntityByName = async (userId: string, name: string): Promise<En
   return data;
 };
 
-export const createEntity = async (userId: string, data: CreateEntityCommand): Promise<EntityDTO> => {
+export const createEntity = async (
+  supabase: SupabaseClient,
+  userId: string,
+  data: CreateEntityCommand
+): Promise<EntityDTO> => {
   const { name, type, description } = data;
 
-  const { data: newEntity, error } = await supabaseClient
+  const { data: newEntity, error } = await supabase
     .from("entities")
     .insert({
       user_id: userId,
@@ -68,8 +76,12 @@ export const createEntity = async (userId: string, data: CreateEntityCommand): P
 
 const POSTGRES_ERROR_NOT_FOUND = "PGRST116";
 
-export const getEntityById = async (userId: string, entityId: string): Promise<EntityWithNotesDTO | null> => {
-  const { data, error } = await supabaseClient
+export const getEntityById = async (
+  supabase: SupabaseClient,
+  userId: string,
+  entityId: string
+): Promise<EntityWithNotesDTO | null> => {
+  const { data, error } = await supabase
     .from("entities")
     .select(
       `
@@ -107,10 +119,15 @@ export const getEntityById = async (userId: string, entityId: string): Promise<E
   return transformedData;
 };
 
-export const updateEntity = async (userId: string, entityId: string, data: UpdateEntityCommand): Promise<EntityDTO> => {
+export const updateEntity = async (
+  supabase: SupabaseClient,
+  userId: string,
+  entityId: string,
+  data: UpdateEntityCommand
+): Promise<EntityDTO> => {
   const UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
-  const { data: updatedEntity, error } = await supabaseClient
+  const { data: updatedEntity, error } = await supabase
     .from("entities")
     .update(data)
     .eq("id", entityId)
@@ -131,8 +148,12 @@ export const updateEntity = async (userId: string, entityId: string, data: Updat
   return updatedEntity;
 };
 
-export const deleteEntity = async (userId: string, entityId: string): Promise<{ success: boolean }> => {
-  const { error, count } = await supabaseClient
+export const deleteEntity = async (
+  supabase: SupabaseClient,
+  userId: string,
+  entityId: string
+): Promise<{ success: boolean }> => {
+  const { error, count } = await supabase
     .from("entities")
     .delete({ count: "exact" })
     .eq("id", entityId)

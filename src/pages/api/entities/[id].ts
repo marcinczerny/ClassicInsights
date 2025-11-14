@@ -4,7 +4,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 export const GET: APIRoute = async ({ params, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
   }
 
   try {
-    const entity = await getEntityById(user.id, entityId);
+    const entity = await getEntityById(supabase, user.id, entityId);
     if (!entity) {
       return new Response(JSON.stringify({ error: "Entity not found" }), { status: 404 });
     }
@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 };
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -45,7 +45,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const body = await request.json();
     const validatedData = updateEntitySchema.parse(body);
 
-    const updatedEntity = await updateEntity(user.id, entityId, validatedData);
+    const updatedEntity = await updateEntity(supabase, user.id, entityId, validatedData);
 
     return new Response(JSON.stringify(updatedEntity), {
       status: 200,
@@ -64,7 +64,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 };
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -75,7 +75,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
   }
 
   try {
-    const result = await deleteEntity(user.id, entityId);
+    const result = await deleteEntity(supabase, user.id, entityId);
     if (!result.success) {
       return new Response(JSON.stringify({ error: "Entity not found" }), { status: 404 });
     }

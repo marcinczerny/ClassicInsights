@@ -1,4 +1,4 @@
-import { supabaseClient } from "@/db/supabase.client";
+import type { SupabaseClient } from "@/db/supabase.client";
 import type { StatisticsDTO, SuggestionTypeStatsDTO } from "@/types";
 import type { Enums } from "@/db/database.types";
 
@@ -13,8 +13,11 @@ const ALL_RELATIONSHIP_TYPES: Enums<"relationship_type">[] = [
 ];
 const ALL_SUGGESTION_TYPES: Enums<"suggestion_type">[] = ["quote", "summary", "new_entity", "existing_entity_link"];
 
-async function getNotesStatistics(userId: string): Promise<{ total: number; created_this_period: number }> {
-  const { count: total, error } = await supabaseClient
+async function getNotesStatistics(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{ total: number; created_this_period: number }> {
+  const { count: total, error } = await supabase
     .from("notes")
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId);
@@ -29,9 +32,10 @@ async function getNotesStatistics(userId: string): Promise<{ total: number; crea
 }
 
 async function getEntitiesStatistics(
+  supabase: SupabaseClient,
   userId: string
 ): Promise<{ total: number; by_type: Record<Enums<"entity_type">, number> }> {
-  const { data, error } = await supabaseClient.from("entities").select("type").eq("user_id", userId);
+  const { data, error } = await supabase.from("entities").select("type").eq("user_id", userId);
 
   if (error) {
     console.error("Error fetching entity statistics:", error);
@@ -55,9 +59,10 @@ async function getEntitiesStatistics(
 }
 
 async function getRelationshipsStatistics(
+  supabase: SupabaseClient,
   userId: string
 ): Promise<{ total: number; by_type: Record<Enums<"relationship_type">, number> }> {
-  const { data, error } = await supabaseClient.from("relationships").select("type").eq("user_id", userId);
+  const { data, error } = await supabase.from("relationships").select("type").eq("user_id", userId);
 
   if (error) {
     console.error("Error fetching relationship statistics:", error);
@@ -80,14 +85,17 @@ async function getRelationshipsStatistics(
   return { total, by_type: byType };
 }
 
-async function getAISuggestionsStatistics(userId: string): Promise<{
+async function getAISuggestionsStatistics(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
   total_generated: number;
   total_accepted: number;
   total_rejected: number;
   acceptance_rate: number;
   by_type: Record<Enums<"suggestion_type">, SuggestionTypeStatsDTO>;
 }> {
-  const { data, error } = await supabaseClient.from("ai_suggestions").select("type, status").eq("user_id", userId);
+  const { data, error } = await supabase.from("ai_suggestions").select("type, status").eq("user_id", userId);
 
   if (error) {
     console.error("Error fetching AI suggestion statistics:", error);
@@ -131,13 +139,13 @@ async function getAISuggestionsStatistics(userId: string): Promise<{
   };
 }
 
-export async function getStatistics(userId: string): Promise<StatisticsDTO> {
+export async function getStatistics(supabase: SupabaseClient, userId: string): Promise<StatisticsDTO> {
   try {
     const [notes, entities, relationships, aiSuggestions] = await Promise.all([
-      getNotesStatistics(userId),
-      getEntitiesStatistics(userId),
-      getRelationshipsStatistics(userId),
-      getAISuggestionsStatistics(userId),
+      getNotesStatistics(supabase, userId),
+      getEntitiesStatistics(supabase, userId),
+      getRelationshipsStatistics(supabase, userId),
+      getAISuggestionsStatistics(supabase, userId),
     ]);
 
     return { notes, entities, relationships, ai_suggestions: aiSuggestions };

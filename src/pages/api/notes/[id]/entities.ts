@@ -6,7 +6,7 @@ import { handleServiceError, createErrorResponse } from "@/lib/errors";
 export const prerender = false;
 
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     const { entity_id: entityId, relationship_type } = bodyValidation.data;
 
     // 3. Call the service to create the association with relationship type
-    const newAssociation = await addEntityToNote(noteId, entityId, userId, relationship_type);
+    const newAssociation = await addEntityToNote(supabase, noteId, entityId, userId, relationship_type);
 
     return new Response(JSON.stringify(newAssociation), {
       status: 201,

@@ -6,7 +6,7 @@ import { handleServiceError, createErrorResponse } from "@/lib/errors";
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -23,7 +23,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 
   // 2. Call the service to remove the association
   try {
-    await removeEntityFromNote(noteId, entityId, userId);
+    await removeEntityFromNote(supabase, noteId, entityId, userId);
 
     return new Response(null, { status: 204 });
   } catch (error) {

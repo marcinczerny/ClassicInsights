@@ -49,7 +49,9 @@ describe("Notes Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(createNote(mockUserId, command)).rejects.toThrow("A note with this title already exists.");
+      await expect(createNote(mockSupabaseClient, mockUserId, command)).rejects.toThrow(
+        "A note with this title already exists."
+      );
     });
 
     it("should prevent updating notes to duplicate titles", async () => {
@@ -80,7 +82,7 @@ describe("Notes Service - Business Rules", () => {
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      await expect(updateNote(mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
+      await expect(updateNote(mockSupabaseClient, mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
         "A note with this title already exists."
       );
     });
@@ -127,7 +129,7 @@ describe("Notes Service - Business Rules", () => {
         .mockReturnValueOnce(fromMock2)
         .mockReturnValueOnce(fromMock3);
 
-      const result = await updateNote(mockNoteId, mockUserId, updateCommand);
+      const result = await updateNote(mockSupabaseClient, mockNoteId, mockUserId, updateCommand);
 
       expect(result.title).toBe("Same Title");
       expect(result.content).toBe("Updated content");
@@ -157,7 +159,7 @@ describe("Notes Service - Business Rules", () => {
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      await expect(createNote(mockUserId, command)).rejects.toThrow(
+      await expect(createNote(mockSupabaseClient, mockUserId, command)).rejects.toThrow(
         "One or more entities not found or do not belong to the user."
       );
     });
@@ -186,7 +188,7 @@ describe("Notes Service - Business Rules", () => {
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      await expect(updateNote(mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
+      await expect(updateNote(mockSupabaseClient, mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
         "One or more entities not found or do not belong to the user."
       );
     });
@@ -205,7 +207,7 @@ describe("Notes Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await findNoteById(mockNoteId, mockUserId);
+      const result = await findNoteById(mockSupabaseClient, mockNoteId, mockUserId);
 
       expect(result).toBeNull();
     });
@@ -226,7 +228,7 @@ describe("Notes Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(updateNote(mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
+      await expect(updateNote(mockSupabaseClient, mockNoteId, mockUserId, updateCommand)).rejects.toThrow(
         "Note not found or you do not have permission to edit it."
       );
     });
@@ -269,7 +271,7 @@ describe("Notes Service - Business Rules", () => {
         .mockReturnValueOnce(fromMock2)
         .mockReturnValueOnce(fromMock3);
 
-      await expect(addEntityToNote(mockNoteId, mockEntityId, mockUserId)).rejects.toThrow(
+      await expect(addEntityToNote(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId)).rejects.toThrow(
         "This entity is already associated with the note."
       );
     });
@@ -324,7 +326,7 @@ describe("Notes Service - Business Rules", () => {
         .mockReturnValueOnce(fromMock3)
         .mockReturnValueOnce(fromMock4);
 
-      const result = await addEntityToNote(mockNoteId, mockEntityId, mockUserId);
+      const result = await addEntityToNote(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId);
 
       expect(result).toEqual(expectedAssociation);
     });
@@ -359,7 +361,7 @@ describe("Notes Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await findNoteById(mockNoteId, mockUserId);
+      const result = await findNoteById(mockSupabaseClient, mockNoteId, mockUserId);
 
       expect(result).toEqual({
         id: mockNoteId,
@@ -399,7 +401,7 @@ describe("Notes Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await findNoteById(mockNoteId, mockUserId);
+      const result = await findNoteById(mockSupabaseClient, mockNoteId, mockUserId);
 
       expect(result?.entities).toEqual([]);
       expect((result as unknown as { note_entities?: unknown })?.note_entities).toBeUndefined();
@@ -466,7 +468,7 @@ describe("Notes Service - Business Rules", () => {
         .mockReturnValueOnce(fromMock4)
         .mockReturnValueOnce(fromMock5);
 
-      const result = await createNote(mockUserId, command);
+      const result = await createNote(mockSupabaseClient, mockUserId, command);
 
       expect(result.title).toBe("Relationship Test");
     });
@@ -515,7 +517,7 @@ describe("Notes Service - Business Rules", () => {
         .mockReturnValueOnce(fromMock3)
         .mockReturnValueOnce(fromMock4);
 
-      const result = await addEntityToNote(mockNoteId, mockEntityId, mockUserId);
+      const result = await addEntityToNote(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId);
 
       expect(result.type).toBe("is_related_to");
     });
@@ -532,7 +534,7 @@ describe("Notes Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(getNotes(mockUserId)).rejects.toThrow("Failed to count notes.");
+      await expect(getNotes(mockSupabaseClient, mockUserId)).rejects.toThrow("Failed to count notes.");
     });
 
     it("should handle note creation errors", async () => {
@@ -559,7 +561,7 @@ describe("Notes Service - Business Rules", () => {
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      await expect(createNote(mockUserId, command)).rejects.toThrow("Failed to create the note.");
+      await expect(createNote(mockSupabaseClient, mockUserId, command)).rejects.toThrow("Failed to create the note.");
     });
 
     it("should handle association creation errors", async () => {
@@ -609,7 +611,7 @@ describe("Notes Service - Business Rules", () => {
         .mockReturnValueOnce(fromMock3)
         .mockReturnValueOnce(fromMock4);
 
-      await expect(addEntityToNote(mockNoteId, mockEntityId, mockUserId)).rejects.toThrow(
+      await expect(addEntityToNote(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId)).rejects.toThrow(
         "Failed to create the association."
       );
     });
