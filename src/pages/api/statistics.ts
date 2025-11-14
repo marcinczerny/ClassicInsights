@@ -2,13 +2,13 @@ import { getStatistics } from "@/lib/services/statistics.service";
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   try {
-    const statistics = await getStatistics(user.id);
+    const statistics = await getStatistics(supabase, user.id);
     return new Response(JSON.stringify(statistics), {
       status: 200,
       headers: { "Content-Type": "application/json" },

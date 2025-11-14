@@ -4,7 +4,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -18,7 +18,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const body = await request.json();
     const validatedData = updateSuggestionSchema.parse(body);
 
-    const updatedSuggestion = await updateSuggestionStatus(user.id, suggestionId, validatedData.status);
+    const updatedSuggestion = await updateSuggestionStatus(supabase, user.id, suggestionId, validatedData.status);
 
     return new Response(JSON.stringify(updatedSuggestion), {
       status: 200,

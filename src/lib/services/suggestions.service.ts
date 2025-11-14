@@ -1,4 +1,4 @@
-import { supabaseClient, handleSupabaseError } from "@/db/supabase.client";
+import { handleSupabaseError, type SupabaseClient } from "@/db/supabase.client";
 import type { SuggestionDTO } from "@/types";
 import type { Enums } from "@/db/database.types";
 import { z } from "zod";
@@ -22,11 +22,12 @@ const AISuggestionsResponseSchema = z.object({
 });
 
 async function generateSuggestionsFromAI(
+  supabase: SupabaseClient,
   userId: string,
   noteContent: string,
   noteEntities: { id: string; name: string; type: Enums<"entity_type">; description: string | null }[]
 ): Promise<z.infer<typeof AISuggestionsResponseSchema>["suggestions"]> {
-  const userEntities = await getEntities(userId);
+  const userEntities = await getEntities(supabase, userId);
 
   const existingEntitiesContext =
     userEntities.length > 0
@@ -51,13 +52,13 @@ async function generateSuggestionsFromAI(
   return response.suggestions;
 }
 
-export async function generateSuggestionsForNote(noteId: string, userId: string): Promise<SuggestionDTO[]> {
-  const profile = await getProfile(userId);
+export async function generateSuggestionsForNote(supabase: SupabaseClient, noteId: string, userId: string): Promise<SuggestionDTO[]> {
+  const profile = await getProfile(supabase, userId);
   if (!profile?.has_agreed_to_ai_data_processing) {
     throw new Error("User has not agreed to AI data processing.");
   }
 
-  const note = await findNoteById(noteId, userId);
+  const note = await findNoteById(supabase, noteId, userId);
   if (!note || note.user_id !== userId) {
     throw new Error("Note not found or access denied.");
   }
@@ -67,7 +68,7 @@ export async function generateSuggestionsForNote(noteId: string, userId: string)
     throw new Error(`Note content must be at least ${MIN_CONTENT_LENGTH} characters long.`);
   }
 
-  const aiSuggestions = await generateSuggestionsFromAI(userId, noteContent, note.entities || []);
+  const aiSuggestions = await generateSuggestionsFromAI(supabase, userId, noteContent, note.entities || []);
 
   const suggestionsToInsert = aiSuggestions.map((suggestion) => ({
     user_id: userId,
@@ -79,7 +80,7 @@ export async function generateSuggestionsForNote(noteId: string, userId: string)
     suggested_entity_id: suggestion.suggested_entity_id,
   }));
 
-  const { data: savedSuggestions, error } = await supabaseClient
+  const { data: savedSuggestions, error } = await supabase
     .from("ai_suggestions")
     .insert(suggestionsToInsert)
     .select();
@@ -92,11 +93,12 @@ export async function generateSuggestionsForNote(noteId: string, userId: string)
 }
 
 export async function getSuggestionsForNote(
+  supabase: SupabaseClient,
   noteId: string,
   userId: string,
   status?: Enums<"suggestion_status"> | Enums<"suggestion_status">[]
 ): Promise<SuggestionDTO[]> {
-  let query = supabaseClient.from("ai_suggestions").select("*").eq("note_id", noteId).eq("user_id", userId);
+  let query = supabase.from("ai_suggestions").select("*").eq("note_id", noteId).eq("user_id", userId);
 
   if (status) {
     if (Array.isArray(status)) {
@@ -115,11 +117,11 @@ export async function getSuggestionsForNote(
   return data || [];
 }
 
-async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string): Promise<void> {
+async function executeAcceptanceLogic(supabase: SupabaseClient, suggestion: SuggestionDTO, userId: string): Promise<void> {
   const noteId = suggestion.note_id;
   if (!noteId) throw new Error("Suggestion has no associated note");
 
-  const note = await findNoteById(noteId, userId);
+  const note = await findNoteById(supabase, noteId, userId);
   if (!note) throw new Error("Note not found");
 
   switch (suggestion.type) {
@@ -128,10 +130,10 @@ async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string)
 
       const entityName = suggestion.name.includes(":") ? suggestion.name.split(":")[1].trim() : suggestion.name;
 
-      let entity = await findEntityByName(userId, entityName);
+      let entity = await findEntityByName(supabase, userId, entityName);
 
       if (!entity) {
-        entity = await createEntity(userId, {
+        entity = await createEntity(supabase, userId, {
           name: entityName,
           type: "person", // Default type
           description: suggestion.content || "",
@@ -144,7 +146,7 @@ async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string)
 
       const isAlreadyLinked = note.entities.some((e) => e.id === entity.id);
       if (!isAlreadyLinked) {
-        await addEntityToNote(noteId, entity.id, userId, "is_related_to");
+        await addEntityToNote(supabase, noteId, entity.id, userId, "is_related_to");
       }
       break;
     }
@@ -153,7 +155,7 @@ async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string)
 
       const isAlreadyLinked = note.entities.some((e) => e.id === suggestion.suggested_entity_id);
       if (!isAlreadyLinked) {
-        await addEntityToNote(noteId, suggestion.suggested_entity_id, userId, "is_related_to");
+        await addEntityToNote(supabase, noteId, suggestion.suggested_entity_id, userId, "is_related_to");
       }
       break;
     }
@@ -161,18 +163,19 @@ async function executeAcceptanceLogic(suggestion: SuggestionDTO, userId: string)
     case "summary": {
       const header = suggestion.type === "quote" ? "## Quotes" : "## Summary";
       const newContent = `${note.content || ""}\n\n${header}\n\n${suggestion.content}`;
-      await updateNote(noteId, userId, { content: newContent });
+      await updateNote(supabase, noteId, userId, { content: newContent });
       break;
     }
   }
 }
 
 export async function updateSuggestionStatus(
+  supabase: SupabaseClient,
   userId: string,
   suggestionId: string,
   newStatus: "accepted" | "rejected"
 ): Promise<SuggestionDTO> {
-  const { data: suggestion, error: fetchError } = await supabaseClient
+  const { data: suggestion, error: fetchError } = await supabase
     .from("ai_suggestions")
     .select("*")
     .eq("id", suggestionId)
@@ -186,7 +189,7 @@ export async function updateSuggestionStatus(
     throw new Error("Only pending suggestions can be updated.");
   }
 
-  const { data: updatedSuggestion, error: updateError } = await supabaseClient
+  const { data: updatedSuggestion, error: updateError } = await supabase
     .from("ai_suggestions")
     .update({ status: newStatus })
     .eq("id", suggestionId)
@@ -198,7 +201,7 @@ export async function updateSuggestionStatus(
   }
 
   if (newStatus === "accepted") {
-    await executeAcceptanceLogic(suggestion, userId);
+    await executeAcceptanceLogic(supabase, suggestion, userId);
   }
 
   return updatedSuggestion;

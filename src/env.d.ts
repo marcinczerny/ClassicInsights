@@ -19,6 +19,7 @@ declare namespace App {
       id: string;
       email?: string;
     };
+    supabase: import("./db/supabase.client").SupabaseClient;
     runtime?: {
       env: Record<string, string>;
     };

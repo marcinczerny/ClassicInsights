@@ -4,7 +4,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 export const GET: APIRoute = async ({ params, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
   }
 
   try {
-    const note = await findNoteById(noteId, user.id);
+    const note = await findNoteById(supabase, noteId, user.id);
     if (!note) {
       return new Response(JSON.stringify({ error: "Note not found" }), { status: 404 });
     }
@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 };
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -45,7 +45,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const body = await request.json();
     const validatedData = updateNoteSchema.parse(body);
 
-    const updatedNote = await updateNote(noteId, user.id, validatedData);
+    const updatedNote = await updateNote(supabase, noteId, user.id, validatedData);
 
     return new Response(JSON.stringify(updatedNote), {
       status: 200,
@@ -64,7 +64,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 };
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -75,7 +75,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
   }
 
   try {
-    await deleteNote(noteId, user.id);
+    await deleteNote(supabase, noteId, user.id);
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error(error);

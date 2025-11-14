@@ -1,13 +1,13 @@
-import { supabaseClient } from "@/db/supabase.client";
+import type { SupabaseClient } from "@/db/supabase.client";
 import type { GraphDTO, GraphNodeDTO, GraphEdgeDTO } from "@/types";
 
-export async function getGraphData(userId: string): Promise<GraphDTO> {
+export async function getGraphData(supabase: SupabaseClient, userId: string): Promise<GraphDTO> {
   const nodes: GraphNodeDTO[] = [];
   const edges: GraphEdgeDTO[] = [];
   const nodeIds = new Set<string>();
 
   // Fetch all entities for the user
-  const { data: entities, error: entitiesError } = await supabaseClient
+  const { data: entities, error: entitiesError } = await supabase
     .from("entities")
     .select("*")
     .eq("user_id", userId);
@@ -32,7 +32,7 @@ export async function getGraphData(userId: string): Promise<GraphDTO> {
   });
 
   // Fetch all notes for the user
-  const { data: notes, error: notesError } = await supabaseClient.from("notes").select("*").eq("user_id", userId);
+  const { data: notes, error: notesError } = await supabase.from("notes").select("*").eq("user_id", userId);
 
   if (notesError) {
     console.error("Error fetching notes for graph:", notesError);
@@ -58,7 +58,7 @@ export async function getGraphData(userId: string): Promise<GraphDTO> {
   // Fetch all note-entity relationships for the user's notes
   const noteIdsList = notes.map((n) => n.id);
   if (noteIdsList.length > 0) {
-    const { data: noteEntityLinks, error: noteEntityLinksError } = await supabaseClient
+    const { data: noteEntityLinks, error: noteEntityLinksError } = await supabase
       .from("note_entities")
       .select("*")
       .in("note_id", noteIdsList);
@@ -82,7 +82,7 @@ export async function getGraphData(userId: string): Promise<GraphDTO> {
   // Fetch all entity-entity relationships for the user's entities
   const entityIdsList = entities.map((e) => e.id);
   if (entityIdsList.length > 0) {
-    const { data: relationships, error: relationshipsError } = await supabaseClient
+    const { data: relationships, error: relationshipsError } = await supabase
       .from("relationships")
       .select("*")
       .in("source_entity_id", entityIdsList);

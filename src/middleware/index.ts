@@ -11,6 +11,9 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
     runtime: locals.runtime,
   });
 
+  // Store authenticated Supabase client in locals for use in API routes
+  locals.supabase = supabase;
+
   const {
     data: { user },
   } = await supabase.auth.getUser();

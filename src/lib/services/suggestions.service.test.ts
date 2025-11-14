@@ -88,17 +88,17 @@ describe("Suggestions Service - Business Rules", () => {
         has_agreed_to_ai_data_processing: false,
       });
 
-      await expect(generateSuggestionsForNote(mockNoteId, mockUserId)).rejects.toThrow(
+      await expect(generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow(
         "User has not agreed to AI data processing."
       );
 
-      expect(mockGetProfile).toHaveBeenCalledWith(mockUserId);
+      expect(mockGetProfile).toHaveBeenCalledWith(mockSupabaseClient, mockUserId);
     });
 
     it("should prevent generating suggestions when profile is null", async () => {
       mockGetProfile.mockResolvedValueOnce(null);
 
-      await expect(generateSuggestionsForNote(mockNoteId, mockUserId)).rejects.toThrow(
+      await expect(generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow(
         "User has not agreed to AI data processing."
       );
     });
@@ -112,7 +112,7 @@ describe("Suggestions Service - Business Rules", () => {
 
       mockFindNoteById.mockResolvedValueOnce(null);
 
-      await expect(generateSuggestionsForNote(mockNoteId, mockUserId)).rejects.toThrow(
+      await expect(generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow(
         "Note not found or access denied."
       );
     });
@@ -129,7 +129,7 @@ describe("Suggestions Service - Business Rules", () => {
         entities: [],
       });
 
-      await expect(generateSuggestionsForNote(mockNoteId, mockUserId)).rejects.toThrow(
+      await expect(generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow(
         "Note not found or access denied."
       );
     });
@@ -148,7 +148,7 @@ describe("Suggestions Service - Business Rules", () => {
         entities: [],
       });
 
-      await expect(generateSuggestionsForNote(mockNoteId, mockUserId)).rejects.toThrow(
+      await expect(generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow(
         "Note content must be at least 10 characters long."
       );
     });
@@ -210,7 +210,7 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await generateSuggestionsForNote(mockNoteId, mockUserId);
+      const result = await generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId);
 
       expect(result).toEqual(expectedSavedSuggestions);
       expect(mockGetStructuredResponse).toHaveBeenCalledTimes(1);
@@ -255,7 +255,7 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await getSuggestionsForNote(mockNoteId, mockUserId);
+      const result = await getSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId);
 
       expect(result).toEqual(mockSuggestions);
     });
@@ -284,7 +284,7 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await getSuggestionsForNote(mockNoteId, mockUserId, "pending");
+      const result = await getSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId, "pending");
 
       expect(result).toEqual(mockSuggestions);
       expect(fromMock.eq).toHaveBeenCalledWith("status", "pending");
@@ -328,7 +328,7 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await getSuggestionsForNote(mockNoteId, mockUserId, ["pending", "accepted"]);
+      const result = await getSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId, ["pending", "accepted"]);
 
       expect(result).toEqual(mockSuggestions);
       expect(fromMock.in).toHaveBeenCalledWith("status", ["pending", "accepted"]);
@@ -358,7 +358,7 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(updateSuggestionStatus(mockUserId, mockSuggestionId, "rejected")).rejects.toThrow(
+      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "rejected")).rejects.toThrow(
         "Only pending suggestions can be updated."
       );
     });
@@ -385,7 +385,7 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
+      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
         "Suggestion not found or access denied"
       );
     });
@@ -426,7 +426,7 @@ describe("Suggestions Service - Business Rules", () => {
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      const result = await updateSuggestionStatus(mockUserId, mockSuggestionId, "rejected");
+      const result = await updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "rejected");
 
       expect(result).toEqual(updatedSuggestion);
       expect(mockAddEntityToNote).not.toHaveBeenCalled();
@@ -492,15 +492,15 @@ describe("Suggestions Service - Business Rules", () => {
       mockCreateEntity.mockResolvedValueOnce(mockNewEntity);
       mockAddEntityToNote.mockResolvedValueOnce({});
 
-      const result = await updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted");
+      const result = await updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted");
 
       expect(result).toEqual(updatedSuggestion);
-      expect(mockCreateEntity).toHaveBeenCalledWith(mockUserId, {
+      expect(mockCreateEntity).toHaveBeenCalledWith(mockSupabaseClient, mockUserId, {
         name: "Aristotle",
         type: "person",
         description: "Ancient Greek philosopher",
       });
-      expect(mockAddEntityToNote).toHaveBeenCalledWith(mockNoteId, mockEntityId, mockUserId, "is_related_to");
+      expect(mockAddEntityToNote).toHaveBeenCalledWith(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId, "is_related_to");
     });
 
     it("should handle entity names without colon prefix", async () => {
@@ -557,9 +557,9 @@ describe("Suggestions Service - Business Rules", () => {
       });
       mockAddEntityToNote.mockResolvedValueOnce({});
 
-      await updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted");
+      await updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted");
 
-      expect(mockCreateEntity).toHaveBeenCalledWith(mockUserId, {
+      expect(mockCreateEntity).toHaveBeenCalledWith(mockSupabaseClient, mockUserId, {
         name: "Plato",
         type: "person",
         description: "Another Greek philosopher",
@@ -615,10 +615,10 @@ describe("Suggestions Service - Business Rules", () => {
       mockFindNoteById.mockResolvedValueOnce(mockNote);
       mockAddEntityToNote.mockResolvedValueOnce({});
 
-      const result = await updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted");
+      const result = await updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted");
 
       expect(result).toEqual(updatedSuggestion);
-      expect(mockAddEntityToNote).toHaveBeenCalledWith(mockNoteId, mockEntityId, mockUserId, "is_related_to");
+      expect(mockAddEntityToNote).toHaveBeenCalledWith(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId, "is_related_to");
       expect(mockCreateEntity).not.toHaveBeenCalled();
       expect(mockUpdateNote).not.toHaveBeenCalled();
     });
@@ -666,7 +666,7 @@ describe("Suggestions Service - Business Rules", () => {
 
       mockFindNoteById.mockResolvedValueOnce(mockNote);
 
-      await expect(updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
+      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
         "No entity ID provided"
       );
     });
@@ -721,10 +721,10 @@ describe("Suggestions Service - Business Rules", () => {
       mockFindNoteById.mockResolvedValueOnce(mockNote);
       mockUpdateNote.mockResolvedValueOnce({});
 
-      const result = await updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted");
+      const result = await updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted");
 
       expect(result).toEqual(updatedSuggestion);
-      expect(mockUpdateNote).toHaveBeenCalledWith(mockNoteId, mockUserId, {
+      expect(mockUpdateNote).toHaveBeenCalledWith(mockSupabaseClient, mockNoteId, mockUserId, {
         content: "Original note content.\n\n## Quotes\n\nThis is a famous quote from the text.",
       });
       expect(mockCreateEntity).not.toHaveBeenCalled();
@@ -779,10 +779,10 @@ describe("Suggestions Service - Business Rules", () => {
       mockFindNoteById.mockResolvedValueOnce(mockNote);
       mockUpdateNote.mockResolvedValueOnce({});
 
-      const result = await updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted");
+      const result = await updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted");
 
       expect(result).toEqual(updatedSuggestion);
-      expect(mockUpdateNote).toHaveBeenCalledWith(mockNoteId, mockUserId, {
+      expect(mockUpdateNote).toHaveBeenCalledWith(mockSupabaseClient, mockNoteId, mockUserId, {
         content: "Original note content.\n\n## Summary\n\nThis is a summary of the note content.",
       });
     });
@@ -800,7 +800,7 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(getSuggestionsForNote(mockNoteId, mockUserId)).rejects.toThrow("Database error: Query failed");
+      await expect(getSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow("Database error: Query failed");
     });
 
     it("should handle database errors during suggestion status update", async () => {
@@ -836,7 +836,7 @@ describe("Suggestions Service - Business Rules", () => {
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      await expect(updateSuggestionStatus(mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
+      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
         "Failed to update suggestion status"
       );
     });

@@ -5,7 +5,7 @@
 
 import type { APIRoute } from "astro";
 import { ZodError } from "zod";
-import { RelationshipsService } from "../../../lib/services/relationships.service";
+import { getRelationships, createRelationship } from "../../../lib/services/relationships.service";
 import {
   getRelationshipsQuerySchema,
   createRelationshipSchema,
@@ -19,7 +19,7 @@ export const prerender = false;
  * Retrieves a list of relationships with optional filtering and pagination
  */
 export const GET: APIRoute = async ({ url, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -31,8 +31,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     const validatedQuery = getRelationshipsQuerySchema.parse(queryParams);
 
     // Get relationships from service
-    const service = new RelationshipsService();
-    const response = await service.getRelationships(user.id, validatedQuery);
+    const response = await getRelationships(supabase, user.id, validatedQuery);
 
     return new Response(JSON.stringify(response), {
       status: 200,
@@ -80,7 +79,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
  * Creates a new relationship between two entities
  */
 export const POST: APIRoute = async ({ request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -91,8 +90,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const validatedData = createRelationshipSchema.parse(body);
 
     // Create relationship via service
-    const service = new RelationshipsService();
-    const relationship = await service.createRelationship(user.id, validatedData);
+    const relationship = await createRelationship(supabase, user.id, validatedData);
 
     return new Response(JSON.stringify(relationship), {
       status: 201,

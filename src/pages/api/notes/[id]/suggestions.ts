@@ -44,7 +44,7 @@ export const prerender = false;
  * - 500: Database error
  */
 export const GET: APIRoute = async ({ params, url, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -70,7 +70,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 
   try {
     // Call service to retrieve suggestions
-    const result = await getSuggestionsForNote(noteId, userId, queryValidation.data.status);
+    const result = await getSuggestionsForNote(supabase, noteId, userId, queryValidation.data.status);
 
     return new Response(JSON.stringify(result), {
       status: 200,

@@ -2,7 +2,7 @@ import { generateSuggestionsForNote } from "@/lib/services/suggestions.service";
 import type { APIRoute } from "astro";
 
 export const POST: APIRoute = async ({ params, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ params, locals }) => {
   }
 
   try {
-    const suggestions = await generateSuggestionsForNote(noteId, user.id);
+    const suggestions = await generateSuggestionsForNote(supabase, noteId, user.id);
     return new Response(JSON.stringify(suggestions), {
       status: 201,
       headers: { "Content-Type": "application/json" },

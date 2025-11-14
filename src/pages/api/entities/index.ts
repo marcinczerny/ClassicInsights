@@ -4,13 +4,13 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 export const GET: APIRoute = async ({ locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   try {
-    const entities = await getEntities(user.id);
+    const entities = await getEntities(supabase, user.id);
     return new Response(JSON.stringify(entities), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -23,7 +23,7 @@ export const GET: APIRoute = async ({ locals }) => {
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const body = await request.json();
     const validatedData = createEntitySchema.parse(body);
 
-    const newEntity = await createEntity(user.id, validatedData);
+    const newEntity = await createEntity(supabase, user.id, validatedData);
 
     return new Response(JSON.stringify(newEntity), {
       status: 201,

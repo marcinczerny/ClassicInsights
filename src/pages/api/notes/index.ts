@@ -4,7 +4,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     // Parse query parameters
     const params = getNotesSchema.parse(Object.fromEntries(url.searchParams));
 
-    const result = await getNotes(user.id, params);
+    const result = await getNotes(supabase, user.id, params);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const { user } = locals;
+  const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const body = await request.json();
     const validatedData = createNoteSchema.parse(body);
 
-    const newNote = await createNote(user.id, validatedData);
+    const newNote = await createNote(supabase, user.id, validatedData);
 
     return new Response(JSON.stringify(newNote), {
       status: 201,
