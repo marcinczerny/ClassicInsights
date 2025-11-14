@@ -22,7 +22,11 @@ export const getEntities = async (supabase: SupabaseClient, userId: string): Pro
   );
 };
 
-export const findEntityByName = async (supabase: SupabaseClient, userId: string, name: string): Promise<EntityDTO | null> => {
+export const findEntityByName = async (
+  supabase: SupabaseClient,
+  userId: string,
+  name: string
+): Promise<EntityDTO | null> => {
   const { data, error } = await supabase
     .from("entities")
     .select("*")
@@ -37,7 +41,11 @@ export const findEntityByName = async (supabase: SupabaseClient, userId: string,
   return data;
 };
 
-export const createEntity = async (supabase: SupabaseClient, userId: string, data: CreateEntityCommand): Promise<EntityDTO> => {
+export const createEntity = async (
+  supabase: SupabaseClient,
+  userId: string,
+  data: CreateEntityCommand
+): Promise<EntityDTO> => {
   const { name, type, description } = data;
 
   const { data: newEntity, error } = await supabase
@@ -68,7 +76,11 @@ export const createEntity = async (supabase: SupabaseClient, userId: string, dat
 
 const POSTGRES_ERROR_NOT_FOUND = "PGRST116";
 
-export const getEntityById = async (supabase: SupabaseClient, userId: string, entityId: string): Promise<EntityWithNotesDTO | null> => {
+export const getEntityById = async (
+  supabase: SupabaseClient,
+  userId: string,
+  entityId: string
+): Promise<EntityWithNotesDTO | null> => {
   const { data, error } = await supabase
     .from("entities")
     .select(
@@ -107,7 +119,12 @@ export const getEntityById = async (supabase: SupabaseClient, userId: string, en
   return transformedData;
 };
 
-export const updateEntity = async (supabase: SupabaseClient, userId: string, entityId: string, data: UpdateEntityCommand): Promise<EntityDTO> => {
+export const updateEntity = async (
+  supabase: SupabaseClient,
+  userId: string,
+  entityId: string,
+  data: UpdateEntityCommand
+): Promise<EntityDTO> => {
   const UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
   const { data: updatedEntity, error } = await supabase
@@ -131,7 +148,11 @@ export const updateEntity = async (supabase: SupabaseClient, userId: string, ent
   return updatedEntity;
 };
 
-export const deleteEntity = async (supabase: SupabaseClient, userId: string, entityId: string): Promise<{ success: boolean }> => {
+export const deleteEntity = async (
+  supabase: SupabaseClient,
+  userId: string,
+  entityId: string
+): Promise<{ success: boolean }> => {
   const { error, count } = await supabase
     .from("entities")
     .delete({ count: "exact" })

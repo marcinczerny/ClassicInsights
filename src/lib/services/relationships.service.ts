@@ -19,7 +19,11 @@ import type { GetRelationshipsQuery } from "../validation/relationships.validati
  * @param params - Query parameters including pagination and filters
  * @returns Paginated list of relationships with full entity details
  */
-export async function getRelationships(supabase: SupabaseClient, userId: string, params: GetRelationshipsQuery): Promise<RelationshipsListResponseDTO> {
+export async function getRelationships(
+  supabase: SupabaseClient,
+  userId: string,
+  params: GetRelationshipsQuery
+): Promise<RelationshipsListResponseDTO> {
   const { page, limit, source_entity_id, target_entity_id, type } = params;
   const offset = (page - 1) * limit;
 
@@ -110,7 +114,11 @@ export async function getRelationships(supabase: SupabaseClient, userId: string,
  * @returns The newly created relationship
  * @throws Error if entities don't exist, don't belong to user, or relationship is self-referential
  */
-export async function createRelationship(supabase: SupabaseClient, userId: string, data: CreateRelationshipCommand): Promise<RelationshipDTO> {
+export async function createRelationship(
+  supabase: SupabaseClient,
+  userId: string,
+  data: CreateRelationshipCommand
+): Promise<RelationshipDTO> {
   // Validate that source and target are different
   if (data.source_entity_id === data.target_entity_id) {
     throw new Error("Cannot create a relationship from an entity to itself");
@@ -195,7 +203,11 @@ export async function updateRelationship(
  * @param relationshipId - The ID of the relationship to delete
  * @throws Error if relationship doesn't exist or doesn't belong to user
  */
-export async function deleteRelationship(supabase: SupabaseClient, userId: string, relationshipId: string): Promise<void> {
+export async function deleteRelationship(
+  supabase: SupabaseClient,
+  userId: string,
+  relationshipId: string
+): Promise<void> {
   const { error, count } = await supabase
     .from("relationships")
     .delete({ count: "exact" })

@@ -49,7 +49,9 @@ describe("Notes Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(createNote(mockSupabaseClient, mockUserId, command)).rejects.toThrow("A note with this title already exists.");
+      await expect(createNote(mockSupabaseClient, mockUserId, command)).rejects.toThrow(
+        "A note with this title already exists."
+      );
     });
 
     it("should prevent updating notes to duplicate titles", async () => {

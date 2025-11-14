@@ -14,13 +14,12 @@ export async function getProfile(supabase: SupabaseClient, userId: string): Prom
   return data;
 }
 
-export async function updateProfile(supabase: SupabaseClient, userId: string, updateData: UpdateProfileCommand): Promise<ProfileDTO> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(updateData)
-    .eq("user_id", userId)
-    .select()
-    .single();
+export async function updateProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  updateData: UpdateProfileCommand
+): Promise<ProfileDTO> {
+  const { data, error } = await supabase.from("profiles").update(updateData).eq("user_id", userId).select().single();
 
   if (error) {
     handleSupabaseError(error);

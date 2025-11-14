@@ -13,7 +13,10 @@ const ALL_RELATIONSHIP_TYPES: Enums<"relationship_type">[] = [
 ];
 const ALL_SUGGESTION_TYPES: Enums<"suggestion_type">[] = ["quote", "summary", "new_entity", "existing_entity_link"];
 
-async function getNotesStatistics(supabase: SupabaseClient, userId: string): Promise<{ total: number; created_this_period: number }> {
+async function getNotesStatistics(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{ total: number; created_this_period: number }> {
   const { count: total, error } = await supabase
     .from("notes")
     .select("*", { count: "exact", head: true })
@@ -82,7 +85,10 @@ async function getRelationshipsStatistics(
   return { total, by_type: byType };
 }
 
-async function getAISuggestionsStatistics(supabase: SupabaseClient, userId: string): Promise<{
+async function getAISuggestionsStatistics(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
   total_generated: number;
   total_accepted: number;
   total_rejected: number;

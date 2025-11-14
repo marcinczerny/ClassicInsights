@@ -358,9 +358,9 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "rejected")).rejects.toThrow(
-        "Only pending suggestions can be updated."
-      );
+      await expect(
+        updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "rejected")
+      ).rejects.toThrow("Only pending suggestions can be updated.");
     });
 
     it("should prevent accessing suggestions from other users", async () => {
@@ -385,9 +385,9 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
-        "Suggestion not found or access denied"
-      );
+      await expect(
+        updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")
+      ).rejects.toThrow("Suggestion not found or access denied");
     });
 
     it("should successfully reject a pending suggestion", async () => {
@@ -500,7 +500,13 @@ describe("Suggestions Service - Business Rules", () => {
         type: "person",
         description: "Ancient Greek philosopher",
       });
-      expect(mockAddEntityToNote).toHaveBeenCalledWith(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId, "is_related_to");
+      expect(mockAddEntityToNote).toHaveBeenCalledWith(
+        mockSupabaseClient,
+        mockNoteId,
+        mockEntityId,
+        mockUserId,
+        "is_related_to"
+      );
     });
 
     it("should handle entity names without colon prefix", async () => {
@@ -618,7 +624,13 @@ describe("Suggestions Service - Business Rules", () => {
       const result = await updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted");
 
       expect(result).toEqual(updatedSuggestion);
-      expect(mockAddEntityToNote).toHaveBeenCalledWith(mockSupabaseClient, mockNoteId, mockEntityId, mockUserId, "is_related_to");
+      expect(mockAddEntityToNote).toHaveBeenCalledWith(
+        mockSupabaseClient,
+        mockNoteId,
+        mockEntityId,
+        mockUserId,
+        "is_related_to"
+      );
       expect(mockCreateEntity).not.toHaveBeenCalled();
       expect(mockUpdateNote).not.toHaveBeenCalled();
     });
@@ -666,9 +678,9 @@ describe("Suggestions Service - Business Rules", () => {
 
       mockFindNoteById.mockResolvedValueOnce(mockNote);
 
-      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
-        "No entity ID provided"
-      );
+      await expect(
+        updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")
+      ).rejects.toThrow("No entity ID provided");
     });
   });
 
@@ -800,7 +812,9 @@ describe("Suggestions Service - Business Rules", () => {
       };
       mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      await expect(getSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow("Database error: Query failed");
+      await expect(getSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)).rejects.toThrow(
+        "Database error: Query failed"
+      );
     });
 
     it("should handle database errors during suggestion status update", async () => {
@@ -836,9 +850,9 @@ describe("Suggestions Service - Business Rules", () => {
 
       mockSupabaseClient.from.mockReturnValueOnce(fromMock1).mockReturnValueOnce(fromMock2);
 
-      await expect(updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")).rejects.toThrow(
-        "Failed to update suggestion status"
-      );
+      await expect(
+        updateSuggestionStatus(mockSupabaseClient, mockUserId, mockSuggestionId, "accepted")
+      ).rejects.toThrow("Failed to update suggestion status");
     });
   });
 });

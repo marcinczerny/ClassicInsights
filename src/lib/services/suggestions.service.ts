@@ -52,7 +52,11 @@ async function generateSuggestionsFromAI(
   return response.suggestions;
 }
 
-export async function generateSuggestionsForNote(supabase: SupabaseClient, noteId: string, userId: string): Promise<SuggestionDTO[]> {
+export async function generateSuggestionsForNote(
+  supabase: SupabaseClient,
+  noteId: string,
+  userId: string
+): Promise<SuggestionDTO[]> {
   const profile = await getProfile(supabase, userId);
   if (!profile?.has_agreed_to_ai_data_processing) {
     throw new Error("User has not agreed to AI data processing.");
@@ -80,10 +84,7 @@ export async function generateSuggestionsForNote(supabase: SupabaseClient, noteI
     suggested_entity_id: suggestion.suggested_entity_id,
   }));
 
-  const { data: savedSuggestions, error } = await supabase
-    .from("ai_suggestions")
-    .insert(suggestionsToInsert)
-    .select();
+  const { data: savedSuggestions, error } = await supabase.from("ai_suggestions").insert(suggestionsToInsert).select();
 
   if (error) {
     handleSupabaseError(error);
@@ -117,7 +118,11 @@ export async function getSuggestionsForNote(
   return data || [];
 }
 
-async function executeAcceptanceLogic(supabase: SupabaseClient, suggestion: SuggestionDTO, userId: string): Promise<void> {
+async function executeAcceptanceLogic(
+  supabase: SupabaseClient,
+  suggestion: SuggestionDTO,
+  userId: string
+): Promise<void> {
   const noteId = suggestion.note_id;
   if (!noteId) throw new Error("Suggestion has no associated note");
 

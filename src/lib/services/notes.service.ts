@@ -45,7 +45,11 @@ async function _validateEntities(supabase: SupabaseClient, entityIds: string[], 
   }
 }
 
-export async function getNotes(supabase: SupabaseClient, userId: string, params: Partial<GetNotesParams> = {}): Promise<NotesListResponseDTO> {
+export async function getNotes(
+  supabase: SupabaseClient,
+  userId: string,
+  params: Partial<GetNotesParams> = {}
+): Promise<NotesListResponseDTO> {
   const { page = 1, limit = 20, sort = "created_at", order = "desc", entities: entityFilter, search } = params;
 
   // First, get total count for pagination
@@ -53,10 +57,7 @@ export async function getNotes(supabase: SupabaseClient, userId: string, params:
 
   // Apply entity filter to count if provided
   if (entityFilter && entityFilter.length > 0) {
-    const { data: noteIds } = await supabase
-      .from("note_entities")
-      .select("note_id")
-      .in("entity_id", entityFilter);
+    const { data: noteIds } = await supabase.from("note_entities").select("note_id").in("entity_id", entityFilter);
     const filteredNoteIds = noteIds?.map((ne) => ne.note_id) || [];
     countQuery = countQuery.in("id", filteredNoteIds);
   }
@@ -105,10 +106,7 @@ export async function getNotes(supabase: SupabaseClient, userId: string, params:
 
   // Apply entity filter
   if (entityFilter && entityFilter.length > 0) {
-    const { data: noteIds } = await supabase
-      .from("note_entities")
-      .select("note_id")
-      .in("entity_id", entityFilter);
+    const { data: noteIds } = await supabase.from("note_entities").select("note_id").in("entity_id", entityFilter);
     const filteredNoteIds = noteIds?.map((ne) => ne.note_id) || [];
     query = query.in("id", filteredNoteIds);
   }
@@ -148,7 +146,11 @@ export async function getNotes(supabase: SupabaseClient, userId: string, params:
   };
 }
 
-export async function createNote(supabase: SupabaseClient, userId: string, command: CreateNoteCommand): Promise<NoteDTO> {
+export async function createNote(
+  supabase: SupabaseClient,
+  userId: string,
+  command: CreateNoteCommand
+): Promise<NoteDTO> {
   const { title, content, entities, entity_ids } = command;
 
   const { data: existingNote, error: existingNoteError } = await supabase
@@ -251,7 +253,12 @@ export async function createNote(supabase: SupabaseClient, userId: string, comma
   return transformedNote;
 }
 
-export async function updateNote(supabase: SupabaseClient, noteId: string, userId: string, command: UpdateNoteCommand): Promise<NoteDTO> {
+export async function updateNote(
+  supabase: SupabaseClient,
+  noteId: string,
+  userId: string,
+  command: UpdateNoteCommand
+): Promise<NoteDTO> {
   const { title, content, entities, entity_ids } = command;
 
   const { data: existingNote, error: fetchError } = await supabase
@@ -432,7 +439,12 @@ export async function deleteNote(supabase: SupabaseClient, noteId: string, userI
   await _handleOrphanEntities(supabase, entityIdsToCheck);
 }
 
-export async function removeEntityFromNote(supabase: SupabaseClient, noteId: string, entityId: string, userId: string): Promise<void> {
+export async function removeEntityFromNote(
+  supabase: SupabaseClient,
+  noteId: string,
+  entityId: string,
+  userId: string
+): Promise<void> {
   const { error: noteCheckError } = await supabase
     .from("notes")
     .select("id")
