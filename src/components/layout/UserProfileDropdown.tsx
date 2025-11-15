@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, UserIcon } from "lucide-react";
+import { LogOut, UserIcon, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,20 +23,6 @@ interface UserProfileDropdownProps {
 
 export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  // Get user initials from email
-  const getInitials = (email?: string): string => {
-    if (!email) {
-      return "U";
-    }
-
-    const parts = email.split("@")[0].split(".");
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-
-    return email.substring(0, 2).toUpperCase();
-  };
 
   const handleSignOut = async () => {
     try {
@@ -73,33 +59,20 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
     // window.location.href = "/profile";
   };
 
-  const initials = getInitials(user.email);
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-full"
+          className="flex items-center gap-2 px-3 py-2 h-auto font-normal"
           aria-label="Menu użytkownika"
         >
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <span className="text-sm font-medium">{initials}</span>
-          </div>
+          <span className="text-sm">{user.email}</span>
+          <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-56">
-        <div className="flex items-center justify-start gap-2 p-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <span className="text-xs font-medium">{initials}</span>
-          </div>
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.email}</p>
-          </div>
-        </div>
-
-        <DropdownMenuSeparator />
 
         <DropdownMenuItem onClick={handleProfileClick} className="cursor-pointer">
           <UserIcon className="mr-2 h-4 w-4" />
