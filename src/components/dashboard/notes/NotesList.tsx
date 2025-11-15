@@ -82,7 +82,7 @@ export function NotesList({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 space-y-3 overflow-auto">
+      <div className="flex-1 space-y-3 overflow-auto notes-list-scroll">
         {notes.map((note) => (
           <NoteItem
             key={note.id}

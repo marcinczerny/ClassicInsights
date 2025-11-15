@@ -165,7 +165,7 @@ export function SearchBar({
                 className="h-8"
               />
             </div>
-            <div className="max-h-60 overflow-auto">
+            <div className="max-h-60 overflow-auto notes-list-scroll">
               {isLoadingEntities ? (
                 <div className="p-3 text-sm text-muted-foreground">Ładowanie...</div>
               ) : filteredEntities.length === 0 ? (
