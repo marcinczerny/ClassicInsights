@@ -331,3 +331,17 @@ coverage/lib/utils.ts.html
 coverage/lib/services/index.html
 coverage/lib/services/notes.service.ts.html
 coverage/lib/services/suggestions.service.ts.html
+playwright-report/index.html
+playwright-report/data/27c61aee0526afc8fef1fb8d63afc9255a5c746c.webm
+playwright-report/data/9065caa8e971112140040f2f47d429474ce71d55.md
+playwright-report/data/767527fa9ac48b2df77c7ce9074d049084024e48.png
+playwright-report/data/a801a9ea041126a8b7237620e7f1aae6a44c7a0d.webm
+playwright-report/index.html
+test-results/.last-run.json
+test-results/create-note-Note-Creation--9becd-date-note-form-requirements-chromium/error-context.md
+test-results/create-note-Note-Creation--9becd-date-note-form-requirements-chromium/test-failed-1.png
+test-results/create-note-Note-Creation--9becd-date-note-form-requirements-chromium/video.webm
+test-results/create-note-Note-Creation--cd903-ate-a-new-note-successfully-chromium/error-context.md
+test-results/create-note-Note-Creation--cd903-ate-a-new-note-successfully-chromium/test-failed-1.png
+test-results/create-note-Note-Creation--cd903-ate-a-new-note-successfully-chromium/video.webm
+

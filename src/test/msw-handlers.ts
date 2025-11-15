@@ -84,8 +84,20 @@ export const handlers = [
   }),
 
   // Entities endpoints
-  http.get("/api/entities", () => {
-    return HttpResponse.json(mockEntities);
+  http.get("/api/entities", ({ request }) => {
+    const url = new URL(request.url);
+    const search = url.searchParams.get("search");
+
+    if (search) {
+      // Return search results wrapped in data
+      const filteredEntities = mockEntities.filter(entity =>
+        entity.name.toLowerCase().includes(search.toLowerCase())
+      );
+      return HttpResponse.json({ data: filteredEntities });
+    } else {
+      // Return all entities wrapped in data
+      return HttpResponse.json({ data: mockEntities });
+    }
   }),
 
   http.post("/api/entities", async ({ request }) => {

@@ -52,7 +52,8 @@ export async function fetchEntities(
     signal,
   });
 
-  return handleResponse<EntityWithCountDTO[]>(response);
+  const result = await handleResponse<{ data: EntityWithCountDTO[] }>(response);
+  return result.data;
 }
 
 export async function createEntityRequest(payload: CreateEntityCommand): Promise<EntityDTO> {
