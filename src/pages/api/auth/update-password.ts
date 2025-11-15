@@ -19,7 +19,11 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
       });
     }
 
-    const supabase = createSupabaseServerInstance({ cookies, headers: request.headers, runtime: locals.runtime });
+    const supabase = createSupabaseServerInstance({
+      cookies,
+      headers: request.headers,
+      runtime: locals.runtime,
+    });
 
     // The user's session should be active from the recovery link
     const { error } = await supabase.auth.updateUser({
@@ -28,10 +32,13 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
 
     if (error) {
       console.error("Supabase update user error:", error.message);
-      return new Response(JSON.stringify({ error: "Failed to update password. The link may have expired." }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Failed to update password. The link may have expired." }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     // It's a good practice to sign the user out after a password change
