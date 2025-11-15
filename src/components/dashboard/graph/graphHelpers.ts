@@ -169,29 +169,9 @@ export function transformGraphData(
 }
 
 /**
- * Calculate node position in a circular layout
- */
-function calculatePosition(index: number, total: number): { x: number; y: number } {
-  const centerX = 400;
-  const centerY = 300;
-  const baseRadius = 150;
-  const radius = baseRadius + total * 15; // Increase radius based on number of nodes
-
-  if (total === 1) {
-    return { x: centerX, y: centerY };
-  }
-
-  const angle = (2 * Math.PI * index) / total;
-  const x = centerX + radius * Math.cos(angle);
-  const y = centerY + radius * Math.sin(angle);
-
-  return { x, y };
-}
-
-/**
  * Format relationship type for display
  */
-function formatRelationshipType(type: string): string {
+export function formatRelationshipType(type: string): string {
   const typeMap: Record<string, string> = {
     is_related_to: "powiązane",
     is_part_of: "część",

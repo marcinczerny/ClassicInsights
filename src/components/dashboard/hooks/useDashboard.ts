@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { DashboardState, DashboardViewController } from "../types";
 import type { NoteDTO, CreateRelationshipCommand } from "@/types";
+import type { Enums } from "@/db/database.types";
 
 const INITIAL_STATE: Omit<DashboardState, "notes"> = {
   pagination: { page: 1, limit: 20, total: 0, total_pages: 0 },
@@ -23,7 +24,9 @@ export function useDashboard(): DashboardViewController {
     id: string;
     type: "note" | "entity";
   } | null>(null);
-  const [graphPanelState, setGraphPanelState] = useState<"collapsed" | "open" | "fullscreen">("open");
+  const [graphPanelState, setGraphPanelState] = useState<"collapsed" | "open" | "fullscreen">(
+    "open"
+  );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const fetchAllData = useCallback(async () => {
@@ -208,7 +211,11 @@ export function useDashboard(): DashboardViewController {
         throw error;
       }
     },
-    handleCreateNoteEntity: async (noteId: string, entityId: string, relationshipType: any) => {
+    handleCreateNoteEntity: async (
+      noteId: string,
+      entityId: string,
+      relationshipType: Enums<"relationship_type">
+    ) => {
       try {
         const response = await fetch(`/api/notes/${noteId}/entities`, {
           method: "POST",

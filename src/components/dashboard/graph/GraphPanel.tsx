@@ -6,7 +6,8 @@
  * tools for interacting with the graph.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useNodesState, useEdgesState } from "@xyflow/react";
 import { GraphView } from "./GraphView";
 import { GraphToolbar } from "./GraphToolbar";
 import { RelationshipModal } from "./RelationshipModal";
@@ -15,6 +16,7 @@ import { EditNoteEntityModal } from "./EditNoteEntityModal";
 import { Button } from "@/components/ui/button";
 import type { GraphDTO, CreateRelationshipCommand, GraphNodeDTO } from "@/types";
 import type { Enums } from "@/db/database.types";
+import { transformGraphData, formatRelationshipType } from "./graphHelpers";
 
 interface GraphPanelProps {
   graphData: GraphDTO | null;
@@ -76,6 +78,31 @@ export function GraphPanel({
     noteNode?: GraphNodeDTO;
     entityNode?: GraphNodeDTO;
   } | null>(null);
+
+  const { nodes: initialNodes, edges: initialEdges } = useMemo(
+    () => transformGraphData(graphData, selectedSourceNode, graphCenterNode),
+    [graphData, selectedSourceNode, graphCenterNode]
+  );
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  useEffect(() => {
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
+
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isSelectedForCentering: node.id === selectedNodeId,
+        },
+      }))
+    );
+  }, [selectedNodeId, setNodes]);
 
   /**
    * Handle node click in connection mode
@@ -243,10 +270,17 @@ export function GraphPanel({
           throw new Error("Failed to update relationship");
         }
 
-        // Refresh graph
-        if (graphCenterNode) {
-          onNodeSelect(graphCenterNode);
-        }
+        setEdges((eds) =>
+          eds.map((edge) => {
+            if (edge.id === relationshipId) {
+              return {
+                ...edge,
+                label: formatRelationshipType(type),
+              };
+            }
+            return edge;
+          })
+        );
 
         setEditingEdge(null);
       } catch (error) {
@@ -254,7 +288,7 @@ export function GraphPanel({
         // TODO: Show error toast
       }
     },
-    [graphCenterNode, onNodeSelect]
+    [setEdges]
   );
 
   /**
@@ -307,10 +341,14 @@ export function GraphPanel({
           throw new Error("Failed to create note-entity association");
         }
 
-        // Refresh graph
-        if (graphCenterNode) {
-          onNodeSelect(graphCenterNode);
-        }
+        setEdges((eds) =>
+          eds.map((edge) => {
+            if (edge.source === noteId && edge.target === entityId) {
+              return { ...edge, label: formatRelationshipType(newType) };
+            }
+            return edge;
+          })
+        );
 
         setEditingNoteEntity(null);
       } catch (error) {
@@ -318,7 +356,7 @@ export function GraphPanel({
         // TODO: Show error toast
       }
     },
-    [graphCenterNode, onNodeSelect]
+    [setEdges]
   );
 
   /**
@@ -411,11 +449,13 @@ export function GraphPanel({
 
         {!isLoading && !error && (
           <GraphView
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
             graphData={graphData}
             hasNotes={hasNotes}
-            selectedSourceNode={selectedSourceNode}
             graphCenterNode={graphCenterNode}
-            selectedNodeId={selectedNodeId}
             onNodeSelect={onNodeSelect}
             onNodeClick={
               isConnectionMode

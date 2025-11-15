@@ -11,6 +11,7 @@ import { NotesPanel } from "./notes/NotesPanel";
 import { GraphPanel } from "./graph/GraphPanel";
 import { OnboardingModal } from "../onboarding/OnboardingModal";
 import { useSessionStorage } from "../onboarding/useSessionStorage";
+import { ReactFlowProvider } from "@xyflow/react";
 
 export function DashboardPage() {
   const {
@@ -93,22 +94,24 @@ export function DashboardPage() {
 
       {/* Graph Panel - Right side */}
       <div className="flex-1">
-        <GraphPanel
-          graphData={graphData}
-          isLoading={isLoadingGraph}
-          error={graphError}
-          panelState={graphPanelState}
-          hasNotes={notes.length > 0}
-          graphCenterNode={graphCenterNode}
-          selectedNodeId={selectedNodeId}
-          onNodeSelect={handleNodeSelect}
-          onNodeSelection={handleNodeSelection}
-          onCreateRelationship={handleCreateRelationship}
-          onCreateNoteEntity={handleCreateNoteEntity}
-          onRelationshipDelete={handleRelationshipDelete}
-          onNoteEntityDelete={handleNoteEntityDelete}
-          onPanelStateChange={setGraphPanelState}
-        />
+        <ReactFlowProvider>
+          <GraphPanel
+            graphData={graphData}
+            isLoading={isLoadingGraph}
+            error={graphError}
+            panelState={graphPanelState}
+            hasNotes={notes.length > 0}
+            graphCenterNode={graphCenterNode}
+            selectedNodeId={selectedNodeId}
+            onNodeSelect={handleNodeSelect}
+            onNodeSelection={handleNodeSelection}
+            onCreateRelationship={handleCreateRelationship}
+            onCreateNoteEntity={handleCreateNoteEntity}
+            onRelationshipDelete={handleRelationshipDelete}
+            onNoteEntityDelete={handleNoteEntityDelete}
+            onPanelStateChange={setGraphPanelState}
+          />
+        </ReactFlowProvider>
       </div>
 
       {/* Onboarding Modal */}

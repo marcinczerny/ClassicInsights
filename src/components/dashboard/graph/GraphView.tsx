@@ -5,62 +5,41 @@
  * Handles panning, zooming, node selection, and creating connections.
  */
 
-import { useCallback, useMemo, useEffect, useRef } from "react";
-import {
-  ReactFlow,
-  ReactFlowProvider,
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-} from "@xyflow/react";
-import type { Node, Edge } from "@xyflow/react";
+import { useCallback, useEffect, useRef } from "react";
+import { ReactFlow, Background, Controls, MiniMap, useReactFlow } from "@xyflow/react";
+import type { Node, Edge, OnNodesChange, OnEdgesChange } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { nodeTypes } from "./CustomNodes";
-import { transformGraphData } from "./graphHelpers";
 import type { GraphDTO } from "@/types";
 
 interface GraphViewProps {
-  graphData: GraphDTO | null;
-  hasNotes: boolean;
-  selectedSourceNode?: string | null;
-  graphCenterNode?: { id: string; type: "note" | "entity" } | null;
-  selectedNodeId?: string | null;
+  nodes: Node[];
+  edges: Edge[];
+  onNodesChange: OnNodesChange;
+  onEdgesChange: OnEdgesChange;
   onNodeSelect?: (node: { id: string; type: "note" | "entity" }) => void;
   onNodeClick?: (node: { id: string; type: "note" | "entity" }) => void;
   onEdgeClick?: (edge: { id: string; source: string; target: string }) => void;
+  graphCenterNode?: { id: string; type: "note" | "entity" } | null;
+  hasNotes: boolean;
+  graphData: GraphDTO | null;
 }
 
-function GraphViewInner({
-  graphData,
-  hasNotes,
-  selectedSourceNode = null,
-  graphCenterNode,
-  selectedNodeId,
+export function GraphView({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
   onNodeSelect,
   onNodeClick,
   onEdgeClick,
+  graphCenterNode,
+  hasNotes,
+  graphData,
 }: GraphViewProps) {
-  const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => transformGraphData(graphData, selectedSourceNode, graphCenterNode),
-    [graphData, selectedSourceNode, graphCenterNode]
-  );
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { fitView } = useReactFlow();
   const prevCenterNodeIdRef = useRef<string | null | undefined>(null);
-
-  /**
-   * Update nodes and edges when graphData changes
-   */
-  useEffect(() => {
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   /**
    * Center view on selected node when graphCenterNode changes
@@ -79,18 +58,6 @@ function GraphViewInner({
     }
     prevCenterNodeIdRef.current = graphCenterNode?.id;
   }, [graphCenterNode, nodes, fitView]);
-
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => ({
-        ...node,
-        data: {
-          ...node.data,
-          isSelectedForCentering: node.id === selectedNodeId,
-        },
-      }))
-    );
-  }, [selectedNodeId, setNodes]);
 
   /**
    * Handle node click - reload graph centered on clicked node
@@ -176,6 +143,7 @@ function GraphViewInner({
         nodeTypes={nodeTypes}
         fitView={false}
         attributionPosition="bottom-left"
+        minZoom={0.1}
       >
         <Background />
         <Controls />
@@ -189,13 +157,5 @@ function GraphViewInner({
         />
       </ReactFlow>
     </div>
-  );
-}
-
-export function GraphView(props: GraphViewProps) {
-  return (
-    <ReactFlowProvider>
-      <GraphViewInner {...props} />
-    </ReactFlowProvider>
   );
 }
