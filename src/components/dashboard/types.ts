@@ -13,6 +13,7 @@ import type {
   CreateRelationshipCommand,
 } from "@/types";
 
+import type { Enums } from "@/db/database.types";
 /**
  * Main state type for the entire Dashboard view
  */
@@ -68,7 +69,7 @@ export interface DashboardViewController extends DashboardState {
   handleCreateNoteEntity: (
     noteId: string,
     entityId: string,
-    relationshipType: any
+    relationshipType: Enums<"relationship_type">
   ) => Promise<void>;
   handleRelationshipDelete: (relationshipId: string) => Promise<void>;
   handleNoteEntityDelete: (noteId: string, entityId: string) => Promise<void>;
