@@ -7,13 +7,22 @@
 import { Handle, Position, type Node } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import type { GraphNodeDTO } from "@/types";
+import { Button } from "@/components/ui/button";
 
-type EntityNodeData = Node<Omit<GraphNodeDTO, "id" | "type"> & { label: string }>;
+type NodeData = Node<
+  Omit<GraphNodeDTO, "id" | "type"> & {
+    label: string;
+    isSelected: boolean;
+    isCenterNode: boolean;
+    isSelectedForCentering: boolean;
+  }
+>;
+
 /**
  * Custom node for Entity type
  */
-export function EntityNode({ data }: NodeProps<EntityNodeData>) {
-  const { entity_type, description, label } = data;
+export function EntityNode({ data }: NodeProps<NodeData>) {
+  const { entity_type, description, label, isCenterNode, isSelectedForCentering } = data;
 
   const typeColors: Record<string, string> = {
     person: "bg-blue-500",
@@ -38,19 +47,31 @@ export function EntityNode({ data }: NodeProps<EntityNodeData>) {
           <div className="mt-1 line-clamp-2 text-xs text-white/80">{description}</div>
         )}
       </div>
+      {isSelectedForCentering && !isCenterNode && (
+        <div className="center-graph-button mt-2 flex justify-center">
+          <Button size="sm">Ustaw jako centrum</Button>
+        </div>
+      )}
 
       <Handle type="source" position={Position.Bottom} className="!bg-white" />
     </div>
   );
 }
 
-type NoteNodeData = Node<Omit<GraphNodeDTO, "id" | "type"> & { label: string }>;
+type NoteNodeData = Node<
+  Omit<GraphNodeDTO, "id" | "type"> & {
+    label: string;
+    isSelected: boolean;
+    isCenterNode: boolean;
+    isSelectedForCentering: boolean;
+  }
+>;
 
 /**
  * Custom node for Note type
  */
-export function NoteNode({ data }: NodeProps<NoteNodeData>) {
-  const { note_preview, label } = data;
+export function NoteNode({ id, data }: NodeProps<NoteNodeData>) {
+  const { note_preview, label, isCenterNode, isSelectedForCentering } = data;
 
   return (
     <div className="min-w-[150px] rounded-lg border-2 border-amber-500 bg-amber-50 px-4 py-3 shadow-lg">
@@ -61,6 +82,23 @@ export function NoteNode({ data }: NodeProps<NoteNodeData>) {
         <div className="font-semibold text-amber-900">{label}</div>
         {note_preview && (
           <div className="mt-1 text-xs text-amber-700 line-clamp-2">{note_preview}</div>
+        )}
+        {isCenterNode && (
+          <div className="mt-2">
+            <Button
+              size="sm"
+              onClick={() => {
+                window.location.href = `/notes/${id}`;
+              }}
+            >
+              Zobacz notatkę
+            </Button>
+          </div>
+        )}
+        {isSelectedForCentering && !isCenterNode && (
+          <div className="center-graph-button mt-2 flex justify-center">
+            <Button size="sm">Ustaw jako centrum</Button>
+          </div>
         )}
       </div>
 

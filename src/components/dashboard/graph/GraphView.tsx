@@ -5,7 +5,7 @@
  * Handles panning, zooming, node selection, and creating connections.
  */
 
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useRef } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -28,6 +28,8 @@ interface GraphViewProps {
   hasNotes: boolean;
   selectedSourceNode?: string | null;
   graphCenterNode?: { id: string; type: "note" | "entity" } | null;
+  selectedNodeId?: string | null;
+  onNodeSelect?: (node: { id: string; type: "note" | "entity" }) => void;
   onNodeClick?: (node: { id: string; type: "note" | "entity" }) => void;
   onEdgeClick?: (edge: { id: string; source: string; target: string }) => void;
 }
@@ -37,17 +39,20 @@ function GraphViewInner({
   hasNotes,
   selectedSourceNode = null,
   graphCenterNode,
+  selectedNodeId,
+  onNodeSelect,
   onNodeClick,
   onEdgeClick,
 }: GraphViewProps) {
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => transformGraphData(graphData, selectedSourceNode),
-    [graphData, selectedSourceNode]
+    () => transformGraphData(graphData, selectedSourceNode, graphCenterNode),
+    [graphData, selectedSourceNode, graphCenterNode]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { fitView } = useReactFlow();
+  const prevCenterNodeIdRef = useRef<string | null | undefined>(null);
 
   /**
    * Update nodes and edges when graphData changes
@@ -61,28 +66,52 @@ function GraphViewInner({
    * Center view on selected node when graphCenterNode changes
    */
   useEffect(() => {
-    if (graphCenterNode && nodes.length > 0) {
-      const centerNode = nodes.find((node) => node.id === graphCenterNode.id);
-      if (centerNode) {
-        // Use setTimeout to ensure the DOM is updated
-        setTimeout(() => {
-          fitView({
-            nodes: [centerNode],
-            padding: 0.2,
-            includeHiddenNodes: false,
-            minZoom: 0.1,
-            maxZoom: 2,
-          });
-        }, 100);
-      }
+    if (graphCenterNode && nodes.length > 0 && prevCenterNodeIdRef.current !== graphCenterNode.id) {
+      // Use setTimeout to ensure the DOM is updated
+      setTimeout(() => {
+        fitView({
+          padding: 0.2,
+          includeHiddenNodes: false,
+          minZoom: 0.1,
+          maxZoom: 2,
+        });
+      }, 100);
     }
+    prevCenterNodeIdRef.current = graphCenterNode?.id;
   }, [graphCenterNode, nodes, fitView]);
+
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isSelectedForCentering: node.id === selectedNodeId,
+        },
+      }))
+    );
+  }, [selectedNodeId, setNodes]);
 
   /**
    * Handle node click - reload graph centered on clicked node
    */
   const handleNodeClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
+    (event: React.MouseEvent, node: Node) => {
+      const target = event.target as HTMLElement;
+
+      // Check if the click was on the center button
+      if (target.closest(".center-graph-button")) {
+        event.stopPropagation(); // Stop event from bubbling to the node handler
+        if (onNodeSelect) {
+          onNodeSelect({
+            id: node.id,
+            type: node.type as "note" | "entity",
+          });
+        }
+        return; // Stop execution
+      }
+
+      // Handle regular node click
       if (onNodeClick) {
         onNodeClick({
           id: node.id,
@@ -90,7 +119,7 @@ function GraphViewInner({
         });
       }
     },
-    [onNodeClick]
+    [onNodeClick, onNodeSelect]
   );
 
   /**

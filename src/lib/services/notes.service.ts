@@ -511,8 +511,6 @@ export async function removeEntityFromNote(
     console.error("Error removing entity association:", deleteError);
     throw new Error("Failed to remove entity from note.");
   }
-
-  await _handleOrphanEntities(supabase, [entityId]);
 }
 
 export async function addEntityToNote(

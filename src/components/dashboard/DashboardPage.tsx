@@ -28,6 +28,7 @@ export function DashboardPage() {
     graphError,
     graphPanelState,
     graphCenterNode,
+    selectedNodeId,
 
     // Actions
     handleSearchChange,
@@ -35,8 +36,11 @@ export function DashboardPage() {
     handlePageChange,
     handleNoteSelect,
     handleNodeSelect,
+    handleNodeSelection,
     handleCreateRelationship,
     handleCreateNoteEntity,
+    handleRelationshipDelete,
+    handleNoteEntityDelete,
     handleNoteDelete,
     setGraphPanelState,
   } = useDashboard();
@@ -96,9 +100,13 @@ export function DashboardPage() {
           panelState={graphPanelState}
           hasNotes={notes.length > 0}
           graphCenterNode={graphCenterNode}
+          selectedNodeId={selectedNodeId}
           onNodeSelect={handleNodeSelect}
+          onNodeSelection={handleNodeSelection}
           onCreateRelationship={handleCreateRelationship}
           onCreateNoteEntity={handleCreateNoteEntity}
+          onRelationshipDelete={handleRelationshipDelete}
+          onNoteEntityDelete={handleNoteEntityDelete}
           onPanelStateChange={setGraphPanelState}
         />
       </div>

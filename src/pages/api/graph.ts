@@ -1,14 +1,15 @@
 import { getGraphData } from "@/lib/services/graph.service";
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ locals, url }) => {
   const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   try {
-    const graphData = await getGraphData(supabase, user.id);
+    const centerNodeId = url.searchParams.get("centerNodeId");
+    const graphData = await getGraphData(supabase, user.id, centerNodeId);
     return new Response(JSON.stringify(graphData), {
       status: 200,
       headers: { "Content-Type": "application/json" },
