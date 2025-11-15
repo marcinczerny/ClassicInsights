@@ -12,7 +12,11 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     });
   }
 
-  const supabase = createSupabaseServerInstance({ cookies, headers: request.headers, runtime: locals.runtime });
+  const supabase = createSupabaseServerInstance({
+    cookies,
+    headers: request.headers,
+    runtime: locals.runtime,
+  });
 
   const { data, error } = await supabase.auth.signUp({
     email,

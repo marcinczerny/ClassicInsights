@@ -90,7 +90,7 @@ export const handlers = [
 
     if (search) {
       // Return search results wrapped in data
-      const filteredEntities = mockEntities.filter(entity =>
+      const filteredEntities = mockEntities.filter((entity) =>
         entity.name.toLowerCase().includes(search.toLowerCase())
       );
       return HttpResponse.json({ data: filteredEntities });

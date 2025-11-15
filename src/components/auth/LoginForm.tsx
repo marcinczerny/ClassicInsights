@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema } from "@/lib/validation";
@@ -81,7 +88,9 @@ export function LoginForm() {
               disabled={isLoading}
               data-testid="login-email-input"
             />
-            {getErrorForField("email") && <p className="text-sm text-red-500">{getErrorForField("email")}</p>}
+            {getErrorForField("email") && (
+              <p className="text-sm text-red-500">{getErrorForField("email")}</p>
+            )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -99,7 +108,9 @@ export function LoginForm() {
               disabled={isLoading}
               data-testid="login-password-input"
             />
-            {getErrorForField("password") && <p className="text-sm text-red-500">{getErrorForField("password")}</p>}
+            {getErrorForField("password") && (
+              <p className="text-sm text-red-500">{getErrorForField("password")}</p>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch">

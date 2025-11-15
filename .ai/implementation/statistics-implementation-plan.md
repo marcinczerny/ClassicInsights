@@ -5,6 +5,7 @@
 The GET /api/statistics endpoint provides comprehensive usage statistics for the authenticated user. It returns aggregated data about notes, entities, relationships between entities, and AI suggestions, with the ability to filter by time period.
 
 **Main functionalities:**
+
 - Note statistics (total count and created within the period)
 - Entity statistics (total count broken down by types)
 - Relationship statistics (total count broken down by types)
@@ -13,9 +14,11 @@ The GET /api/statistics endpoint provides comprehensive usage statistics for the
 ## 2. Request Details
 
 ### HTTP Method
+
 `GET`
 
 ### URL Structure
+
 ```
 /api/statistics
 ```
@@ -23,6 +26,7 @@ The GET /api/statistics endpoint provides comprehensive usage statistics for the
 ### Parameters
 
 #### Query Parameters (optional)
+
 - **period** (string, default: "all")
   - Description: Time period for `created_this_period` statistics
   - Allowed values: `"all"`, `"week"`, `"month"`, `"year"`
@@ -30,9 +34,11 @@ The GET /api/statistics endpoint provides comprehensive usage statistics for the
   - Example: `/api/statistics?period=month`
 
 ### Request Body
+
 None - GET endpoint does not accept body.
 
 ### Headers
+
 - **Authentication**: Required (Supabase session managed by middleware)
 
 ## 3. Types Used
@@ -152,6 +158,7 @@ export type GetStatisticsQuery = z.infer<typeof GetStatisticsQuerySchema>;
 ### Error Responses
 
 #### 400 Bad Request
+
 ```json
 {
   "error": {
@@ -167,6 +174,7 @@ export type GetStatisticsQuery = z.infer<typeof GetStatisticsQuerySchema>;
 ```
 
 #### 401 Unauthorized
+
 ```json
 {
   "error": {
@@ -177,6 +185,7 @@ export type GetStatisticsQuery = z.infer<typeof GetStatisticsQuerySchema>;
 ```
 
 #### 500 Internal Server Error
+
 ```json
 {
   "error": {
@@ -189,12 +198,15 @@ export type GetStatisticsQuery = z.infer<typeof GetStatisticsQuerySchema>;
 ## 5. Data Flow
 
 ### Step 1: Request Validation
+
 1. Middleware verifies user authentication
 2. Parse the `period` query parameter
 3. Validate `period` using Zod schema
 
 ### Step 2: Date Range Calculation
+
 For the `period` parameter, the service calculates the boundary date:
+
 - `"all"` → no date filtering (all records)
 - `"week"` → `NOW() - INTERVAL '7 days'`
 - `"month"` → `NOW() - INTERVAL '30 days'`
@@ -205,6 +217,7 @@ For the `period` parameter, the service calculates the boundary date:
 The service executes the following queries (can be run in parallel):
 
 #### Query 1: Note Statistics
+
 ```sql
 -- Total notes
 SELECT COUNT(*) as total
@@ -218,6 +231,7 @@ WHERE user_id = $1 AND created_at >= $2;
 ```
 
 #### Query 2: Entity Statistics
+
 ```sql
 SELECT type, COUNT(*) as count
 FROM entities
@@ -226,6 +240,7 @@ GROUP BY type;
 ```
 
 #### Query 3: Relationship Statistics
+
 ```sql
 SELECT type, COUNT(*) as count
 FROM relationships
@@ -234,6 +249,7 @@ GROUP BY type;
 ```
 
 #### Query 4: AI Suggestions Statistics
+
 ```sql
 -- Suggestions by types and statuses
 SELECT
@@ -246,7 +262,9 @@ GROUP BY type, status;
 ```
 
 ### Step 4: Data Aggregation
+
 The service processes query results:
+
 1. Combines note statistics results
 2. Creates `by_type` object for entities (fills missing types with zero)
 3. Creates `by_type` object for relationships (fills missing types with zero)
@@ -256,29 +274,35 @@ The service processes query results:
    - For each suggestion type calculates generated, accepted, acceptance_rate
 
 ### Step 5: Response Construction
+
 The service returns an object of type `StatisticsDTO`.
 
 ### Step 6: Response Return
+
 The endpoint returns JSON with status code 200.
 
 ## 6. Security Considerations
 
 ### Authentication
+
 - **Middleware**: User session verification through Astro middleware
 - **Required**: User must be logged in (`context.locals.supabase.auth.getUser()`)
 - **No session**: Return 401 Unauthorized
 
 ### Authorization
+
 - **Row Level Security (RLS)**: All queries filtered by `user_id = auth.uid()`
 - **Data isolation**: User sees only their own statistics
 - **RLS policies**: Already configured in the database for tables: notes, entities, relationships, ai_suggestions
 
 ### Input Data Validation
+
 - **Zod schema**: Validation of the `period` parameter
 - **Sanitization**: Zod automatically rejects invalid values
 - **Default values**: Period default set to "all"
 
 ### Attack Prevention
+
 - **SQL Injection**: Use of parameterized Supabase queries
 - **NoSQL Injection**: Not applicable (PostgreSQL)
 - **Rate Limiting**: Recommended (implementation at middleware or infrastructure level)
@@ -287,38 +311,48 @@ The endpoint returns JSON with status code 200.
 
 ### Error Scenarios
 
-| Scenario | Code | Error Code | Handling |
-|----------|------|------------|----------|
-| Invalid period parameter | 400 | VALIDATION_ERROR | Zod validation error, return validation details |
-| Missing authentication | 401 | UNAUTHORIZED | Check in endpoint, early return |
-| Database query error | 500 | INTERNAL_ERROR | Try-catch in service, log error, general message |
-| Statistics calculation error | 500 | INTERNAL_ERROR | Try-catch in service, default values or error |
+| Scenario                     | Code | Error Code       | Handling                                         |
+| ---------------------------- | ---- | ---------------- | ------------------------------------------------ |
+| Invalid period parameter     | 400  | VALIDATION_ERROR | Zod validation error, return validation details  |
+| Missing authentication       | 401  | UNAUTHORIZED     | Check in endpoint, early return                  |
+| Database query error         | 500  | INTERNAL_ERROR   | Try-catch in service, log error, general message |
+| Statistics calculation error | 500  | INTERNAL_ERROR   | Try-catch in service, default values or error    |
 
 ### Error Handling Strategy
 
 #### In the endpoint (src/pages/api/statistics.ts)
+
 ```typescript
 // 1. Authentication check
-const { data: { user }, error: authError } = await supabase.auth.getUser();
+const {
+  data: { user },
+  error: authError,
+} = await supabase.auth.getUser();
 if (authError || !user) {
-  return new Response(JSON.stringify({
-    error: {
-      code: "UNAUTHORIZED",
-      message: "User not authenticated"
-    }
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
+      },
+    }),
+    { status: 401 }
+  );
 }
 
 // 2. Parameter validation
 const validationResult = GetStatisticsQuerySchema.safeParse(queryParams);
 if (!validationResult.success) {
-  return new Response(JSON.stringify({
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Invalid query parameters",
-      details: validationResult.error.issues
-    }
-  }), { status: 400 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Invalid query parameters",
+        details: validationResult.error.issues,
+      },
+    }),
+    { status: 400 }
+  );
 }
 
 // 3. Service call in try-catch
@@ -327,16 +361,20 @@ try {
   return new Response(JSON.stringify(statistics), { status: 200 });
 } catch (error) {
   console.error("Failed to retrieve statistics:", error);
-  return new Response(JSON.stringify({
-    error: {
-      code: "INTERNAL_ERROR",
-      message: "Failed to retrieve statistics"
-    }
-  }), { status: 500 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Failed to retrieve statistics",
+      },
+    }),
+    { status: 500 }
+  );
 }
 ```
 
 #### In the service (src/lib/services/statistics.service.ts)
+
 ```typescript
 // Database query error handling
 // Error propagation to endpoint
@@ -354,21 +392,25 @@ try {
 ### Optimization Strategies
 
 #### Phase 1: Basic Implementation
+
 - Execute queries in parallel (Promise.all)
 - Use indexes on user_id columns (already created)
 - Indexes on created_at for period filtering
 
 #### Phase 2: Query Optimization (if needed)
+
 - **Single Query Approach**: Combine queries into one with UNION ALL and JSONb aggregation
 - **Materialized Views**: For frequently queried statistics
 - **Partial Indexes**: For commonly used period values
 
 #### Phase 3: Caching (if needed)
+
 - **In-memory cache**: Redis or similar for "all" statistics
 - **TTL**: 5-15 minutes for cache
 - **Invalidation**: After creating/deleting notes, entities, relationships, accepting suggestions
 
 #### Phase 4: Monitoring
+
 - **Query Performance**: Monitoring query execution times
 - **Database Load**: Checking database load during peak usage
 - **Response Times**: Target <500ms for 95th percentile
@@ -398,6 +440,7 @@ ON ai_suggestions(user_id, type, status);
 ## 9. Implementation Steps
 
 ### Step 1: Create validation schema
+
 **File**: `src/lib/validation/statistics.validation.ts`
 
 ```typescript
@@ -411,9 +454,11 @@ export type GetStatisticsQuery = z.infer<typeof GetStatisticsQuerySchema>;
 ```
 
 ### Step 2: Create statistics service
+
 **File**: `src/lib/services/statistics.service.ts`
 
 **Implementation:**
+
 1. Function `calculateDateBoundary(period)` - calculates boundary date
 2. Function `getNotesStatistics(userId, dateBoundary)` - note statistics
 3. Function `getEntitiesStatistics(userId)` - entity statistics
@@ -422,6 +467,7 @@ export type GetStatisticsQuery = z.infer<typeof GetStatisticsQuerySchema>;
 6. Main function `getUserStatistics(userId, period)` - orchestrates above
 
 **Structure:**
+
 ```typescript
 export class StatisticsService {
   constructor(private supabase: SupabaseClient) {}
@@ -469,9 +515,11 @@ export class StatisticsService {
 ```
 
 ### Step 3: Create API endpoint
+
 **File**: `src/pages/api/statistics.ts`
 
 **Implementation:**
+
 1. Export `prerender = false`
 2. Implement GET handler
 3. Verify user authentication
@@ -481,6 +529,7 @@ export class StatisticsService {
 7. Return response
 
 **Structure:**
+
 ```typescript
 export const prerender = false;
 
@@ -488,7 +537,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
   const supabase = locals.supabase;
 
   // 1. Authentication verification
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     return new Response(
       JSON.stringify({
@@ -550,9 +602,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
 ```
 
 ### Step 4: Unit tests (optional but recommended)
+
 **File**: `src/lib/services/statistics.service.test.ts`
 
 **Tests:**
+
 1. Test date range calculation for different period values
 2. Test note statistics aggregation
 3. Test entity statistics aggregation (check all types filled)
@@ -561,9 +615,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
 6. Test handling of empty data
 
 ### Step 5: Integration tests in endpoints.http
+
 **Location**: Add to existing `endpoints.http` file
 
 **Test scenarios:**
+
 1. GET statistics with period=all
 2. GET statistics with period=week
 3. GET statistics with period=month
@@ -573,12 +629,14 @@ export const GET: APIRoute = async ({ request, locals }) => {
 7. GET statistics without authentication (401 error)
 
 ### Step 6: Performance verification
+
 1. Run endpoint with test data
 2. Check response time
 3. Analyze explain plan for SQL queries
 4. Verify index usage
 
 ### Step 7: Documentation
+
 1. Update API documentation (if exists)
 2. Add usage examples
 3. Code documentation (JSDoc comments)
@@ -588,6 +646,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
 ## Summary
 
 The implementation plan includes:
+
 - ✅ Validation schema with Zod
 - ✅ Service layer for business logic
 - ✅ API endpoint compliant with Astro conventions

@@ -18,7 +18,10 @@ const INITIAL_STATE: Omit<DashboardState, "notes"> = {
 export function useDashboard(): DashboardViewController {
   const [allNotes, setAllNotes] = useState<NoteDTO[]>([]);
   const [state, setState] = useState(INITIAL_STATE);
-  const [graphCenterNode, setGraphCenterNode] = useState<{ id: string; type: "note" | "entity" } | null>(null);
+  const [graphCenterNode, setGraphCenterNode] = useState<{
+    id: string;
+    type: "note" | "entity";
+  } | null>(null);
 
   const fetchAllData = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoadingNotes: true, isLoadingGraph: true }));
@@ -32,7 +35,10 @@ export function useDashboard(): DashboardViewController {
         ...(state.selectedEntityIds.length > 0 && { entities: state.selectedEntityIds.join(",") }),
       });
 
-      const [notesRes, graphRes] = await Promise.all([fetch(`/api/notes?${params}`), fetch("/api/graph")]);
+      const [notesRes, graphRes] = await Promise.all([
+        fetch(`/api/notes?${params}`),
+        fetch("/api/graph"),
+      ]);
 
       if (!notesRes.ok) throw new Error("Failed to fetch notes");
       if (!graphRes.ok) throw new Error("Failed to fetch graph data");
@@ -50,7 +56,13 @@ export function useDashboard(): DashboardViewController {
       }));
     } catch (error) {
       const err = error instanceof Error ? error : new Error("An unknown error occurred");
-      setState((prev) => ({ ...prev, notesError: err, graphError: err, isLoadingNotes: false, isLoadingGraph: false }));
+      setState((prev) => ({
+        ...prev,
+        notesError: err,
+        graphError: err,
+        isLoadingNotes: false,
+        isLoadingGraph: false,
+      }));
     }
   }, [state.pagination.page, state.pagination.limit, state.searchTerm, state.selectedEntityIds]);
 

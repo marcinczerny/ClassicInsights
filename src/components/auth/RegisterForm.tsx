@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,7 +105,9 @@ export function RegisterForm() {
               onChange={handleInputChange}
               disabled={isLoading}
             />
-            {getErrorForField("email") && <p className="text-sm text-red-500">{getErrorForField("email")}</p>}
+            {getErrorForField("email") && (
+              <p className="text-sm text-red-500">{getErrorForField("email")}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Hasło</Label>
@@ -110,7 +119,9 @@ export function RegisterForm() {
               onChange={handleInputChange}
               disabled={isLoading}
             />
-            {getErrorForField("password") && <p className="text-sm text-red-500">{getErrorForField("password")}</p>}
+            {getErrorForField("password") && (
+              <p className="text-sm text-red-500">{getErrorForField("password")}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Powtórz hasło</Label>
@@ -137,7 +148,9 @@ export function RegisterForm() {
               Wyrażam zgodę na analizę moich notatek przez AI.
             </Label>
           </div>
-          {getErrorForField("aiConsent") && <p className="text-sm text-red-500">{getErrorForField("aiConsent")}</p>}
+          {getErrorForField("aiConsent") && (
+            <p className="text-sm text-red-500">{getErrorForField("aiConsent")}</p>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch">
           <Button type="submit" disabled={isLoading}>

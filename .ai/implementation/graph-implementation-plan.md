@@ -5,6 +5,7 @@
 The `GET /api/graph` endpoint returns a visualization graph of nodes (entities and notes) and edges (relationships and note-entity associations), focused around a specified central node. The graph can be expanded to 1-3 levels from the center, enabling visualization of connections between entities and notes.
 
 **Main functionalities:**
+
 - Return graph focused around entity or note
 - Configurable graph depth (1-3 levels)
 - Return both nodes (entities and notes) and edges (relationships and note-entity associations)
@@ -19,13 +20,16 @@ The `GET /api/graph` endpoint returns a visualization graph of nodes (entities a
 ### Query Parameters:
 
 **Required:**
+
 - `center_id` (string, format: UUID): ID of the central node (can be entity or note)
 - `center_type` (string, enum: "entity" | "note"): Type of the central node
 
 **Optional:**
+
 - `levels` (number, integer, min: 1, max: 3, default: 2): Number of graph levels from center
 
 **URL Examples:**
+
 ```
 GET /api/graph?center_id=ea230e96-2789-4f25-b0ed-c815bb3b4326&center_type=entity
 GET /api/graph?center_id=f6541be6-ef08-43bc-9d96-4ba20f6be97a&center_type=note&levels=3
@@ -36,11 +40,13 @@ GET /api/graph?center_id=f6541be6-ef08-43bc-9d96-4ba20f6be97a&center_type=note&l
 ### Existing Types (src/types.ts):
 
 **Response DTO:**
+
 - `GraphDTO` - main response structure containing nodes and edges
 - `GraphNodeDTO` - graph node (entity or note) with discriminated union
 - `GraphEdgeDTO` - graph edge (relationship or note-entity association)
 
 **Database types:**
+
 - `Tables<"entities">` - entities table
 - `Tables<"notes">` - notes table
 - `Tables<"relationships">` - relationships table
@@ -51,18 +57,20 @@ GET /api/graph?center_id=f6541be6-ef08-43bc-9d96-4ba20f6be97a&center_type=note&l
 ### New Types to Create:
 
 **Validation Schema (zod):**
+
 ```typescript
 // In API endpoint file
 const graphQuerySchema = z.object({
   center_id: z.string().uuid({ message: "center_id must be a valid UUID" }),
   center_type: z.enum(["entity", "note"], {
-    errorMap: () => ({ message: "center_type must be either 'entity' or 'note'" })
+    errorMap: () => ({ message: "center_type must be either 'entity' or 'note'" }),
   }),
-  levels: z.coerce.number()
+  levels: z.coerce
+    .number()
     .int({ message: "levels must be an integer" })
     .min(1, { message: "levels must be at least 1" })
     .max(3, { message: "levels cannot exceed 3" })
-    .default(2)
+    .default(2),
 });
 
 type GraphQueryParams = z.infer<typeof graphQuerySchema>;
@@ -106,6 +114,7 @@ type GraphQueryParams = z.infer<typeof graphQuerySchema>;
 ### Error Responses:
 
 **400 Bad Request:**
+
 ```json
 {
   "error": {
@@ -119,6 +128,7 @@ type GraphQueryParams = z.infer<typeof graphQuerySchema>;
 ```
 
 **401 Unauthorized:**
+
 ```json
 {
   "error": {
@@ -129,6 +139,7 @@ type GraphQueryParams = z.infer<typeof graphQuerySchema>;
 ```
 
 **403 Forbidden:**
+
 ```json
 {
   "error": {
@@ -139,6 +150,7 @@ type GraphQueryParams = z.infer<typeof graphQuerySchema>;
 ```
 
 **404 Not Found:**
+
 ```json
 {
   "error": {
@@ -149,6 +161,7 @@ type GraphQueryParams = z.infer<typeof graphQuerySchema>;
 ```
 
 **500 Internal Server Error:**
+
 ```json
 {
   "error": {
@@ -266,18 +279,18 @@ Return GraphDTO → 200 OK
 
 ### Error Mapping to HTTP Codes:
 
-| Scenario | Code | Error Code | Example Message |
-|------------|-----|------------|---------------------|
-| Missing center_id | 400 | VALIDATION_ERROR | center_id is required |
-| Missing center_type | 400 | VALIDATION_ERROR | center_type is required |
-| Invalid UUID | 400 | VALIDATION_ERROR | center_id must be a valid UUID |
-| Invalid center_type | 400 | VALIDATION_ERROR | center_type must be either 'entity' or 'note' |
-| levels < 1 | 400 | VALIDATION_ERROR | levels must be at least 1 |
-| levels > 3 | 400 | VALIDATION_ERROR | levels cannot exceed 3 |
-| No authentication | 401 | UNAUTHORIZED | Authentication required |
-| Center node belongs to another user | 403 | FORBIDDEN | Center node does not belong to the authenticated user |
-| Center node doesn't exist | 404 | NOT_FOUND | Center node not found |
-| Database error | 500 | INTERNAL_ERROR | An unexpected error occurred |
+| Scenario                            | Code | Error Code       | Example Message                                       |
+| ----------------------------------- | ---- | ---------------- | ----------------------------------------------------- |
+| Missing center_id                   | 400  | VALIDATION_ERROR | center_id is required                                 |
+| Missing center_type                 | 400  | VALIDATION_ERROR | center_type is required                               |
+| Invalid UUID                        | 400  | VALIDATION_ERROR | center_id must be a valid UUID                        |
+| Invalid center_type                 | 400  | VALIDATION_ERROR | center_type must be either 'entity' or 'note'         |
+| levels < 1                          | 400  | VALIDATION_ERROR | levels must be at least 1                             |
+| levels > 3                          | 400  | VALIDATION_ERROR | levels cannot exceed 3                                |
+| No authentication                   | 401  | UNAUTHORIZED     | Authentication required                               |
+| Center node belongs to another user | 403  | FORBIDDEN        | Center node does not belong to the authenticated user |
+| Center node doesn't exist           | 404  | NOT_FOUND        | Center node not found                                 |
+| Database error                      | 500  | INTERNAL_ERROR   | An unexpected error occurred                          |
 
 ### Error Handling in Code:
 
@@ -288,7 +301,7 @@ try {
   const params = graphQuerySchema.parse({
     center_id: url.searchParams.get("center_id"),
     center_type: url.searchParams.get("center_type"),
-    levels: url.searchParams.get("levels")
+    levels: url.searchParams.get("levels"),
   });
 
   // Service call
@@ -296,9 +309,8 @@ try {
 
   return new Response(JSON.stringify(graph), {
     status: 200,
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
   });
-
 } catch (error) {
   if (error instanceof z.ZodError) {
     return createValidationErrorResponse(error);
@@ -360,15 +372,12 @@ try {
 ```typescript
 // Instead of:
 for (const nodeId of nodeIds) {
-  const node = await supabase.from('entities').select().eq('id', nodeId).single();
+  const node = await supabase.from("entities").select().eq("id", nodeId).single();
   nodes.push(node);
 }
 
 // Use:
-const { data: nodes } = await supabase
-  .from('entities')
-  .select()
-  .in('id', nodeIds);
+const { data: nodes } = await supabase.from("entities").select().in("id", nodeIds);
 ```
 
 ## 9. Implementation Steps
@@ -378,6 +387,7 @@ const { data: nodes } = await supabase
 **Location:** `src/lib/services/graph.service.ts`
 
 Create new service file with basic structure:
+
 ```typescript
 import type { SupabaseClient } from "../db/supabase.client";
 import type { GraphDTO, GraphNodeDTO, GraphEdgeDTO } from "../types";
@@ -396,7 +406,7 @@ export const graphService = {
     params: GraphQueryParams
   ): Promise<GraphDTO> {
     // Implementation
-  }
+  },
 };
 ```
 
@@ -419,6 +429,7 @@ if (!centerNodeExists) {
 ```
 
 Implementation of `verifyCenterNode`:
+
 ```typescript
 async function verifyCenterNode(
   supabase: SupabaseClient,
@@ -468,7 +479,7 @@ const visitedNodes = new Set<string>();
 
 // Track nodes to visit at each level
 let currentLevel: Array<{ id: string; type: "entity" | "note" }> = [
-  { id: params.center_id, type: params.center_type }
+  { id: params.center_id, type: params.center_type },
 ];
 ```
 
@@ -493,12 +504,7 @@ for (let level = 0; level <= params.levels; level++) {
 
     // Find neighbors and edges
     if (level < params.levels) {
-      const neighbors = await findNeighbors(
-        supabase,
-        node.id,
-        node.type,
-        edgesMap
-      );
+      const neighbors = await findNeighbors(supabase, node.id, node.type, edgesMap);
       nextLevel.push(...neighbors);
     }
   }
@@ -530,7 +536,7 @@ async function fetchNodeDetails(
       name: data.name,
       entity_type: data.type,
       description: data.description,
-      created_at: data.created_at
+      created_at: data.created_at,
     };
   } else {
     const { data, error } = await supabase
@@ -551,7 +557,7 @@ async function fetchNodeDetails(
       type: "note",
       name: data.title,
       note_preview: notePreview,
-      created_at: data.created_at
+      created_at: data.created_at,
     };
   }
 }
@@ -583,7 +589,7 @@ async function findNeighbors(
           source_id: rel.source_entity_id,
           target_id: rel.target_entity_id,
           type: rel.type,
-          created_at: rel.created_at
+          created_at: rel.created_at,
         });
         neighbors.push({ id: rel.target_entity_id, type: "entity" });
       }
@@ -603,7 +609,7 @@ async function findNeighbors(
           source_id: rel.source_entity_id,
           target_id: rel.target_entity_id,
           type: rel.type,
-          created_at: rel.created_at
+          created_at: rel.created_at,
         });
         neighbors.push({ id: rel.source_entity_id, type: "entity" });
       }
@@ -623,7 +629,7 @@ async function findNeighbors(
           source_id: assoc.note_id,
           target_id: assoc.entity_id,
           type: assoc.type,
-          created_at: assoc.created_at
+          created_at: assoc.created_at,
         });
         neighbors.push({ id: assoc.note_id, type: "note" });
       }
@@ -643,7 +649,7 @@ async function findNeighbors(
           source_id: assoc.note_id,
           target_id: assoc.entity_id,
           type: assoc.type,
-          created_at: assoc.created_at
+          created_at: assoc.created_at,
         });
         neighbors.push({ id: assoc.entity_id, type: "entity" });
       }
@@ -660,7 +666,7 @@ async function findNeighbors(
 // Convert maps to arrays
 return {
   nodes: Array.from(nodesMap.values()),
-  edges: Array.from(edgesMap.values())
+  edges: Array.from(edgesMap.values()),
 };
 ```
 
@@ -677,7 +683,7 @@ import {
   createUnauthorizedResponse,
   createNotFoundResponse,
   createForbiddenResponse,
-  createInternalErrorResponse
+  createInternalErrorResponse,
 } from "../../lib/errors/error-responses";
 import { NotFoundError, ForbiddenError } from "../../lib/errors/api-errors";
 
@@ -686,14 +692,14 @@ export const prerender = false;
 const graphQuerySchema = z.object({
   center_id: z.string().uuid({ message: "center_id must be a valid UUID" }),
   center_type: z.enum(["entity", "note"], {
-    errorMap: () => ({ message: "center_type must be either 'entity' or 'note'" })
+    errorMap: () => ({ message: "center_type must be either 'entity' or 'note'" }),
   }),
   levels: z.coerce
     .number()
     .int({ message: "levels must be an integer" })
     .min(1, { message: "levels must be at least 1" })
     .max(3, { message: "levels cannot exceed 3" })
-    .default(2)
+    .default(2),
 });
 
 export const GET: APIRoute = async (context) => {
@@ -711,7 +717,7 @@ export const GET: APIRoute = async (context) => {
     const params = graphQuerySchema.parse({
       center_id: url.searchParams.get("center_id"),
       center_type: url.searchParams.get("center_type"),
-      levels: url.searchParams.get("levels")
+      levels: url.searchParams.get("levels"),
     });
 
     // Get graph from service
@@ -719,7 +725,7 @@ export const GET: APIRoute = async (context) => {
 
     return new Response(JSON.stringify(graph), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -773,6 +779,7 @@ After basic implementation, consider optimizations:
 ### Edge ID Structure for note_entities:
 
 Since the `note_entities` table doesn't have an `id` column (it's a junction table with composite primary key), we use a composite key as the edge ID:
+
 ```typescript
 const edgeKey = `note-entity:${note_id}:${entity_id}`;
 ```
@@ -780,6 +787,7 @@ const edgeKey = `note-entity:${note_id}:${entity_id}`;
 ### Note-entity Edge Direction:
 
 Note-entity edges are represented as:
+
 - `source_id`: note_id
 - `target_id`: entity_id
 
@@ -788,6 +796,7 @@ This convention is consistent with the semantics of "note relates to entity".
 ### Performance Considerations for Large Graphs:
 
 If a user has a very extensive graph (e.g. hundreds of entities and notes), the endpoint may be slow. Consider:
+
 1. Maximum number of nodes limit (e.g. 200)
 2. Pagination for very large graphs
 3. Result caching

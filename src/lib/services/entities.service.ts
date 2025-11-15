@@ -3,7 +3,10 @@ import type { EntityWithCountDTO } from "@/types";
 import type { CreateEntityCommand, EntityDTO } from "@/types";
 import type { EntityWithNotesDTO, UpdateEntityCommand } from "@/types";
 
-export const getEntities = async (supabase: SupabaseClient, userId: string): Promise<EntityWithCountDTO[]> => {
+export const getEntities = async (
+  supabase: SupabaseClient,
+  userId: string
+): Promise<EntityWithCountDTO[]> => {
   const { data, error } = await supabase
     .from("entities")
     .select("*, note_entities(count)")
@@ -45,7 +48,7 @@ export const searchEntities = async (
   supabase: SupabaseClient,
   userId: string,
   searchTerm: string,
-  limit: number = 10
+  limit = 10
 ): Promise<EntityDTO[]> => {
   const { data, error } = await supabase
     .from("entities")

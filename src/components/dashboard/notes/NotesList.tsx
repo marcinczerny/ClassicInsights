@@ -49,7 +49,9 @@ function EmptyState({ hasSearchTerm }: { hasSearchTerm: boolean }) {
       <div className="mb-2 text-4xl">📝</div>
       <h3 className="mb-1 font-semibold">{hasSearchTerm ? "Brak wyników" : "Brak notatek"}</h3>
       <p className="mb-4 text-sm text-muted-foreground">
-        {hasSearchTerm ? "Spróbuj zmienić kryteria wyszukiwania" : "Zacznij od utworzenia pierwszej notatki"}
+        {hasSearchTerm
+          ? "Spróbuj zmienić kryteria wyszukiwania"
+          : "Zacznij od utworzenia pierwszej notatki"}
       </p>
       {!hasSearchTerm && (
         <a

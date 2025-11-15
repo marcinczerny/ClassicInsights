@@ -20,9 +20,12 @@ export const GET: APIRoute = async ({ locals, url }) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify({ error: "Invalid query parameters", details: error.errors }), {
-        status: 400,
-      });
+      return new Response(
+        JSON.stringify({ error: "Invalid query parameters", details: error.errors }),
+        {
+          status: 400,
+        }
+      );
     }
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

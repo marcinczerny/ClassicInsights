@@ -7,7 +7,10 @@ export async function getGraphData(supabase: SupabaseClient, userId: string): Pr
   const nodeIds = new Set<string>();
 
   // Fetch all entities for the user
-  const { data: entities, error: entitiesError } = await supabase.from("entities").select("*").eq("user_id", userId);
+  const { data: entities, error: entitiesError } = await supabase
+    .from("entities")
+    .select("*")
+    .eq("user_id", userId);
 
   if (entitiesError) {
     console.error("Error fetching entities for graph:", entitiesError);
@@ -29,7 +32,10 @@ export async function getGraphData(supabase: SupabaseClient, userId: string): Pr
   });
 
   // Fetch all notes for the user
-  const { data: notes, error: notesError } = await supabase.from("notes").select("*").eq("user_id", userId);
+  const { data: notes, error: notesError } = await supabase
+    .from("notes")
+    .select("*")
+    .eq("user_id", userId);
 
   if (notesError) {
     console.error("Error fetching notes for graph:", notesError);

@@ -7,6 +7,7 @@ This document describes the implementation changes needed to support typed relat
 ## Database Changes
 
 ### `note_entities` Table Structure
+
 ```sql
 CREATE TABLE note_entities (
   note_id UUID NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
@@ -20,6 +21,7 @@ CREATE INDEX idx_note_entities_type ON note_entities(type);
 ```
 
 ### Available Relationship Types
+
 - `criticizes`
 - `is_student_of`
 - `expands_on`
@@ -38,19 +40,23 @@ CREATE INDEX idx_note_entities_type ON note_entities(type);
 1. **`getNotes(supabase, userId, params)`**
    - Update the query to join `note_entities` with `type` column
    - Query structure:
+
    ```typescript
    const { data, error } = await supabase
-     .from('notes')
-     .select(`
+     .from("notes")
+     .select(
+       `
        *,
        note_entities(
          type,
          entities(id, name, type, description)
        )
-     `)
-     .eq('user_id', userId)
-     // ... additional filters, sorting, pagination
+     `
+     )
+     .eq("user_id", userId);
+   // ... additional filters, sorting, pagination
    ```
+
    - Transform the response to include `relationship_type` in each entity within `NoteDTO`
 
 2. **`createNote(supabase, userId, command: CreateNoteCommand)`**
@@ -61,23 +67,24 @@ CREATE INDEX idx_note_entities_type ON note_entities(type);
    - If `command.entity_ids` is provided (deprecated):
      - Insert into `note_entities` with default `type` = 'is_related_to'
    - Implementation logic:
+
    ```typescript
    // After creating note
    if (command.entities?.length) {
-     const associations = command.entities.map(e => ({
+     const associations = command.entities.map((e) => ({
        note_id: noteId,
        entity_id: e.entity_id,
-       type: e.relationship_type || 'is_related_to'
+       type: e.relationship_type || "is_related_to",
      }));
-     await supabase.from('note_entities').insert(associations);
+     await supabase.from("note_entities").insert(associations);
    } else if (command.entity_ids?.length) {
      // Legacy support
-     const associations = command.entity_ids.map(id => ({
+     const associations = command.entity_ids.map((id) => ({
        note_id: noteId,
        entity_id: id,
-       type: 'is_related_to'
+       type: "is_related_to",
      }));
-     await supabase.from('note_entities').insert(associations);
+     await supabase.from("note_entities").insert(associations);
    }
    ```
 
@@ -97,13 +104,14 @@ CREATE INDEX idx_note_entities_type ON note_entities(type);
    - Insert with specified type or default to 'is_related_to'
    - Check for duplicate (note_id, entity_id) pair and return 409 if exists
    - Implementation:
+
    ```typescript
    const { data, error } = await supabase
-     .from('note_entities')
+     .from("note_entities")
      .insert({
        note_id: noteId,
        entity_id: entityId,
-       type: relationshipType || 'is_related_to'
+       type: relationshipType || "is_related_to",
      })
      .select()
      .single();
@@ -122,21 +130,25 @@ CREATE INDEX idx_note_entities_type ON note_entities(type);
 1. **`getEntityById(supabase, userId, entityId)`**
    - Update query to include relationship types from `note_entities`
    - Query structure:
+
    ```typescript
    const { data, error } = await supabase
-     .from('entities')
-     .select(`
+     .from("entities")
+     .select(
+       `
        *,
        note_entities(
          type,
          created_at,
          notes(id, title, created_at)
        )
-     `)
-     .eq('id', entityId)
-     .eq('user_id', userId)
+     `
+     )
+     .eq("id", entityId)
+     .eq("user_id", userId)
      .single();
    ```
+
    - Transform response to include relationship type for each note
 
 ---
@@ -146,43 +158,56 @@ CREATE INDEX idx_note_entities_type ON note_entities(type);
 ### Notes Endpoints
 
 #### **POST /api/notes**
+
 **File:** `src/pages/api/notes/index.ts`
 
 **Request Body Schema (Zod):**
+
 ```typescript
-const createNoteSchema = z.object({
-  title: z.string().min(1).max(255),
-  content: z.string().max(10000).optional(),
-  // New format with relationship types
-  entities: z.array(z.object({
-    entity_id: z.string().uuid(),
-    relationship_type: z.enum([
-      'criticizes',
-      'is_student_of',
-      'expands_on',
-      'influenced_by',
-      'is_example_of',
-      'is_related_to'
-    ]).optional()
-  })).optional(),
-  // Legacy format (deprecated)
-  entity_ids: z.array(z.string().uuid()).optional()
-}).refine(
-  data => !data.entities || !data.entity_ids,
-  { message: "Cannot provide both 'entities' and 'entity_ids'" }
-);
+const createNoteSchema = z
+  .object({
+    title: z.string().min(1).max(255),
+    content: z.string().max(10000).optional(),
+    // New format with relationship types
+    entities: z
+      .array(
+        z.object({
+          entity_id: z.string().uuid(),
+          relationship_type: z
+            .enum([
+              "criticizes",
+              "is_student_of",
+              "expands_on",
+              "influenced_by",
+              "is_example_of",
+              "is_related_to",
+            ])
+            .optional(),
+        })
+      )
+      .optional(),
+    // Legacy format (deprecated)
+    entity_ids: z.array(z.string().uuid()).optional(),
+  })
+  .refine((data) => !data.entities || !data.entity_ids, {
+    message: "Cannot provide both 'entities' and 'entity_ids'",
+  });
 ```
 
 **Handler Implementation:**
+
 ```typescript
 export const POST: APIRoute = async ({ request, locals }) => {
   const supabase = locals.supabase;
   const session = await supabase.auth.getSession();
 
   if (!session.data.session) {
-    return new Response(JSON.stringify({
-      error: { code: 'UNAUTHORIZED', message: 'Not authenticated' }
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
+      }),
+      { status: 401 }
+    );
   }
 
   const userId = session.data.session.user.id;
@@ -195,17 +220,20 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     return new Response(JSON.stringify(note), {
       status: 201,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request body',
-          details: error.errors
-        }
-      }), { status: 400 });
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid request body",
+            details: error.errors,
+          },
+        }),
+        { status: 400 }
+      );
     }
     // Handle other errors...
   }
@@ -213,9 +241,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
 ```
 
 #### **GET /api/notes**
+
 **File:** `src/pages/api/notes/index.ts`
 
 **Response Format:**
+
 ```typescript
 {
   data: [
@@ -241,22 +271,28 @@ export const POST: APIRoute = async ({ request, locals }) => {
 ```
 
 **Handler Implementation:**
+
 - No changes to query parameters
 - Update response transformation to include `relationship_type` from `note_entities`
 
 #### **GET /api/notes/[id]**
+
 **File:** `src/pages/api/notes/[id].ts`
 
 **Handler Implementation:**
+
 ```typescript
 export const GET: APIRoute = async ({ params, locals }) => {
   const supabase = locals.supabase;
   const session = await supabase.auth.getSession();
 
   if (!session.data.session) {
-    return new Response(JSON.stringify({
-      error: { code: 'UNAUTHORIZED', message: 'Not authenticated' }
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
+      }),
+      { status: 401 }
+    );
   }
 
   const userId = session.data.session.user.id;
@@ -264,23 +300,29 @@ export const GET: APIRoute = async ({ params, locals }) => {
 
   // Validate UUID
   if (!z.string().uuid().safeParse(noteId).success) {
-    return new Response(JSON.stringify({
-      error: { code: 'VALIDATION_ERROR', message: 'Invalid note ID' }
-    }), { status: 400 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "VALIDATION_ERROR", message: "Invalid note ID" },
+      }),
+      { status: 400 }
+    );
   }
 
   try {
     const note = await getNoteById(supabase, userId, noteId);
 
     if (!note) {
-      return new Response(JSON.stringify({
-        error: { code: 'NOT_FOUND', message: 'Note not found' }
-      }), { status: 404 });
+      return new Response(
+        JSON.stringify({
+          error: { code: "NOT_FOUND", message: "Note not found" },
+        }),
+        { status: 404 }
+      );
     }
 
     return new Response(JSON.stringify(note), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     // Handle errors...
@@ -289,50 +331,66 @@ export const GET: APIRoute = async ({ params, locals }) => {
 ```
 
 #### **PATCH /api/notes/[id]**
+
 **File:** `src/pages/api/notes/[id].ts`
 
 **Request Body Schema:**
+
 ```typescript
-const updateNoteSchema = z.object({
-  title: z.string().min(1).max(255).optional(),
-  content: z.string().max(10000).optional(),
-  entities: z.array(z.object({
-    entity_id: z.string().uuid(),
-    relationship_type: z.enum([
-      'criticizes',
-      'is_student_of',
-      'expands_on',
-      'influenced_by',
-      'is_example_of',
-      'is_related_to'
-    ]).optional()
-  })).optional(),
-  entity_ids: z.array(z.string().uuid()).optional()
-}).refine(
-  data => !data.entities || !data.entity_ids,
-  { message: "Cannot provide both 'entities' and 'entity_ids'" }
-);
+const updateNoteSchema = z
+  .object({
+    title: z.string().min(1).max(255).optional(),
+    content: z.string().max(10000).optional(),
+    entities: z
+      .array(
+        z.object({
+          entity_id: z.string().uuid(),
+          relationship_type: z
+            .enum([
+              "criticizes",
+              "is_student_of",
+              "expands_on",
+              "influenced_by",
+              "is_example_of",
+              "is_related_to",
+            ])
+            .optional(),
+        })
+      )
+      .optional(),
+    entity_ids: z.array(z.string().uuid()).optional(),
+  })
+  .refine((data) => !data.entities || !data.entity_ids, {
+    message: "Cannot provide both 'entities' and 'entity_ids'",
+  });
 ```
 
 **Handler Implementation:**
+
 ```typescript
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
   const supabase = locals.supabase;
   const session = await supabase.auth.getSession();
 
   if (!session.data.session) {
-    return new Response(JSON.stringify({
-      error: { code: 'UNAUTHORIZED', message: 'Not authenticated' }
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
+      }),
+      { status: 401 }
+    );
   }
 
   const userId = session.data.session.user.id;
   const noteId = params.id!;
 
   if (!z.string().uuid().safeParse(noteId).success) {
-    return new Response(JSON.stringify({
-      error: { code: 'VALIDATION_ERROR', message: 'Invalid note ID' }
-    }), { status: 400 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "VALIDATION_ERROR", message: "Invalid note ID" },
+      }),
+      { status: 400 }
+    );
   }
 
   try {
@@ -342,14 +400,17 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const updatedNote = await updateNote(supabase, userId, noteId, validatedData);
 
     if (!updatedNote) {
-      return new Response(JSON.stringify({
-        error: { code: 'NOT_FOUND', message: 'Note not found' }
-      }), { status: 404 });
+      return new Response(
+        JSON.stringify({
+          error: { code: "NOT_FOUND", message: "Note not found" },
+        }),
+        { status: 404 }
+      );
     }
 
     return new Response(JSON.stringify(updatedNote), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     // Handle errors...
@@ -358,24 +419,29 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 ```
 
 #### **POST /api/notes/[id]/entities**
+
 **File:** `src/pages/api/notes/[id]/entities.ts`
 
 **Request Body Schema:**
+
 ```typescript
 const addEntitySchema = z.object({
   entity_id: z.string().uuid(),
-  relationship_type: z.enum([
-    'criticizes',
-    'is_student_of',
-    'expands_on',
-    'influenced_by',
-    'is_example_of',
-    'is_related_to'
-  ]).optional()
+  relationship_type: z
+    .enum([
+      "criticizes",
+      "is_student_of",
+      "expands_on",
+      "influenced_by",
+      "is_example_of",
+      "is_related_to",
+    ])
+    .optional(),
 });
 ```
 
 **Response Format:**
+
 ```typescript
 {
   note_id: "uuid",
@@ -386,24 +452,31 @@ const addEntitySchema = z.object({
 ```
 
 **Handler Implementation:**
+
 ```typescript
 export const POST: APIRoute = async ({ params, request, locals }) => {
   const supabase = locals.supabase;
   const session = await supabase.auth.getSession();
 
   if (!session.data.session) {
-    return new Response(JSON.stringify({
-      error: { code: 'UNAUTHORIZED', message: 'Not authenticated' }
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
+      }),
+      { status: 401 }
+    );
   }
 
   const userId = session.data.session.user.id;
   const noteId = params.id!;
 
   if (!z.string().uuid().safeParse(noteId).success) {
-    return new Response(JSON.stringify({
-      error: { code: 'VALIDATION_ERROR', message: 'Invalid note ID' }
-    }), { status: 400 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "VALIDATION_ERROR", message: "Invalid note ID" },
+      }),
+      { status: 400 }
+    );
   }
 
   try {
@@ -420,17 +493,20 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 
     return new Response(JSON.stringify(association), {
       status: 201,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request body',
-          details: error.errors
-        }
-      }), { status: 400 });
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid request body",
+            details: error.errors,
+          },
+        }),
+        { status: 400 }
+      );
     }
     // Handle duplicate key error (409)
     // Handle not found errors (404)
@@ -439,29 +515,39 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 ```
 
 #### **DELETE /api/notes/[id]/entities/[entityId]**
+
 **File:** `src/pages/api/notes/[id]/entities/[entityId].ts`
 
 **Handler Implementation:**
+
 ```typescript
 export const DELETE: APIRoute = async ({ params, locals }) => {
   const supabase = locals.supabase;
   const session = await supabase.auth.getSession();
 
   if (!session.data.session) {
-    return new Response(JSON.stringify({
-      error: { code: 'UNAUTHORIZED', message: 'Not authenticated' }
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
+      }),
+      { status: 401 }
+    );
   }
 
   const userId = session.data.session.user.id;
   const noteId = params.id!;
   const entityId = params.entityId!;
 
-  if (!z.string().uuid().safeParse(noteId).success ||
-      !z.string().uuid().safeParse(entityId).success) {
-    return new Response(JSON.stringify({
-      error: { code: 'VALIDATION_ERROR', message: 'Invalid UUID' }
-    }), { status: 400 });
+  if (
+    !z.string().uuid().safeParse(noteId).success ||
+    !z.string().uuid().safeParse(entityId).success
+  ) {
+    return new Response(
+      JSON.stringify({
+        error: { code: "VALIDATION_ERROR", message: "Invalid UUID" },
+      }),
+      { status: 400 }
+    );
   }
 
   try {
@@ -479,9 +565,11 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 ### Entities Endpoints
 
 #### **GET /api/entities/[id]**
+
 **File:** `src/pages/api/entities/[id].ts`
 
 **Response Format:**
+
 ```typescript
 {
   id: "uuid",
@@ -502,38 +590,48 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 ```
 
 **Handler Implementation:**
+
 ```typescript
 export const GET: APIRoute = async ({ params, locals }) => {
   const supabase = locals.supabase;
   const session = await supabase.auth.getSession();
 
   if (!session.data.session) {
-    return new Response(JSON.stringify({
-      error: { code: 'UNAUTHORIZED', message: 'Not authenticated' }
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "UNAUTHORIZED", message: "Not authenticated" },
+      }),
+      { status: 401 }
+    );
   }
 
   const userId = session.data.session.user.id;
   const entityId = params.id!;
 
   if (!z.string().uuid().safeParse(entityId).success) {
-    return new Response(JSON.stringify({
-      error: { code: 'VALIDATION_ERROR', message: 'Invalid entity ID' }
-    }), { status: 400 });
+    return new Response(
+      JSON.stringify({
+        error: { code: "VALIDATION_ERROR", message: "Invalid entity ID" },
+      }),
+      { status: 400 }
+    );
   }
 
   try {
     const entity = await getEntityById(supabase, userId, entityId);
 
     if (!entity) {
-      return new Response(JSON.stringify({
-        error: { code: 'NOT_FOUND', message: 'Entity not found' }
-      }), { status: 404 });
+      return new Response(
+        JSON.stringify({
+          error: { code: "NOT_FOUND", message: "Entity not found" },
+        }),
+        { status: 404 }
+      );
     }
 
     return new Response(JSON.stringify(entity), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     // Handle errors...
@@ -550,50 +648,52 @@ export const GET: APIRoute = async ({ params, locals }) => {
 Create centralized Zod schemas:
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 // Relationship type enum
 export const relationshipTypeSchema = z.enum([
-  'criticizes',
-  'is_student_of',
-  'expands_on',
-  'influenced_by',
-  'is_example_of',
-  'is_related_to'
+  "criticizes",
+  "is_student_of",
+  "expands_on",
+  "influenced_by",
+  "is_example_of",
+  "is_related_to",
 ]);
 
 // Entity reference with optional relationship type
 export const entityReferenceSchema = z.object({
   entity_id: z.string().uuid(),
-  relationship_type: relationshipTypeSchema.optional()
+  relationship_type: relationshipTypeSchema.optional(),
 });
 
 // Create note command
-export const createNoteSchema = z.object({
-  title: z.string().min(1).max(255),
-  content: z.string().max(10000).optional(),
-  entities: z.array(entityReferenceSchema).optional(),
-  entity_ids: z.array(z.string().uuid()).optional()
-}).refine(
-  data => !data.entities || !data.entity_ids,
-  { message: "Cannot provide both 'entities' and 'entity_ids'" }
-);
+export const createNoteSchema = z
+  .object({
+    title: z.string().min(1).max(255),
+    content: z.string().max(10000).optional(),
+    entities: z.array(entityReferenceSchema).optional(),
+    entity_ids: z.array(z.string().uuid()).optional(),
+  })
+  .refine((data) => !data.entities || !data.entity_ids, {
+    message: "Cannot provide both 'entities' and 'entity_ids'",
+  });
 
 // Update note command
-export const updateNoteSchema = z.object({
-  title: z.string().min(1).max(255).optional(),
-  content: z.string().max(10000).optional(),
-  entities: z.array(entityReferenceSchema).optional(),
-  entity_ids: z.array(z.string().uuid()).optional()
-}).refine(
-  data => !data.entities || !data.entity_ids,
-  { message: "Cannot provide both 'entities' and 'entity_ids'" }
-);
+export const updateNoteSchema = z
+  .object({
+    title: z.string().min(1).max(255).optional(),
+    content: z.string().max(10000).optional(),
+    entities: z.array(entityReferenceSchema).optional(),
+    entity_ids: z.array(z.string().uuid()).optional(),
+  })
+  .refine((data) => !data.entities || !data.entity_ids, {
+    message: "Cannot provide both 'entities' and 'entity_ids'",
+  });
 
 // Add entity to note command
 export const addEntityToNoteSchema = z.object({
   entity_id: z.string().uuid(),
-  relationship_type: relationshipTypeSchema.optional()
+  relationship_type: relationshipTypeSchema.optional(),
 });
 
 // UUID validation
@@ -609,7 +709,7 @@ export const uuidSchema = z.string().uuid();
 **File:** `src/lib/errors.ts`
 
 ```typescript
-import type { ErrorDTO } from '@/types';
+import type { ErrorDTO } from "@/types";
 
 export function createErrorResponse(
   code: string,
@@ -621,43 +721,30 @@ export function createErrorResponse(
     error: {
       code,
       message,
-      ...(details && { details })
-    }
+      ...(details && { details }),
+    },
   };
 
   return new Response(JSON.stringify(errorBody), {
     status,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
 }
 
 export function handleServiceError(error: unknown): Response {
   if (error instanceof z.ZodError) {
-    return createErrorResponse(
-      'VALIDATION_ERROR',
-      'Invalid input data',
-      400,
-      error.errors
-    );
+    return createErrorResponse("VALIDATION_ERROR", "Invalid input data", 400, error.errors);
   }
 
   // Check for Supabase duplicate key error
-  if (error && typeof error === 'object' && 'code' in error) {
-    if (error.code === '23505') {
-      return createErrorResponse(
-        'CONFLICT',
-        'Resource already exists',
-        409
-      );
+  if (error && typeof error === "object" && "code" in error) {
+    if (error.code === "23505") {
+      return createErrorResponse("CONFLICT", "Resource already exists", 409);
     }
   }
 
-  console.error('Unexpected error:', error);
-  return createErrorResponse(
-    'INTERNAL_ERROR',
-    'An unexpected error occurred',
-    500
-  );
+  console.error("Unexpected error:", error);
+  return createErrorResponse("INTERNAL_ERROR", "An unexpected error occurred", 500);
 }
 ```
 

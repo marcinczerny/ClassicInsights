@@ -13,20 +13,26 @@ Page Object Model is a design pattern that creates an abstraction layer between 
 ## Classes
 
 ### LoginPage
+
 Handles authentication functionality:
+
 - `login(email, password)` - Fill and submit login form
 - `loginWithTestCredentials()` - Login using environment variables
 - `waitForLoginSuccess()` - Wait for successful login redirect
 
 ### DashboardPage
+
 Handles main dashboard with notes list:
+
 - `clickCreateNote()` - Navigate to note creation
 - `getNoteItem(noteId)` - Get specific note item
 - `hasNoteWithTitle(title)` - Check if note exists by title
 - `getNotesCount()` - Get total number of notes
 
 ### NoteEditorPage
+
 Handles note creation and editing:
+
 - `createNote(title, content)` - Complete note creation workflow
 - `fillNoteForm(title, content)` - Fill note form fields
 - `saveNote()` - Click save and wait for completion
@@ -35,10 +41,10 @@ Handles note creation and editing:
 ## Usage Example
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { LoginPage, DashboardPage, NoteEditorPage } from './page-objects';
+import { test, expect } from "@playwright/test";
+import { LoginPage, DashboardPage, NoteEditorPage } from "./page-objects";
 
-test('create note workflow', async ({ page }) => {
+test("create note workflow", async ({ page }) => {
   const loginPage = new LoginPage(page);
   const dashboardPage = new DashboardPage(page);
   const noteEditorPage = new NoteEditorPage(page);
@@ -54,7 +60,7 @@ test('create note workflow', async ({ page }) => {
 
   // Create note
   await dashboardPage.clickCreateNote();
-  await noteEditorPage.createNote(noteTitle, 'Test Content');
+  await noteEditorPage.createNote(noteTitle, "Test Content");
   await noteEditorPage.waitForSaveSuccess();
 
   // Verify
@@ -66,6 +72,7 @@ test('create note workflow', async ({ page }) => {
 ## Locator Strategy
 
 All locators use `data-testid` attributes for resilient test selectors:
+
 - `page.getByTestId('element-name')` - Preferred approach
 - Avoid CSS selectors, XPath, or text-based locators when possible
 - `data-testid` attributes are added to components specifically for testing
@@ -73,6 +80,7 @@ All locators use `data-testid` attributes for resilient test selectors:
 ## Environment Variables
 
 Tests expect the following environment variables (loaded from `.env.test`):
+
 - `E2E_USERNAME` - Test user email
 - `E2E_PASSWORD` - Test user password
 - `BASE_URL` - Application base URL (defaults to http://localhost:4321)

@@ -10,7 +10,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { EntitiesSortState, EntitiesSortColumn, PaginationState } from "@/components/entities/types.ts";
+import type {
+  EntitiesSortState,
+  EntitiesSortColumn,
+  PaginationState,
+} from "@/components/entities/types.ts";
 import type { EntityWithCountDTO } from "@/types";
 
 interface EntitiesDataTableProps {
@@ -65,7 +69,11 @@ export function EntitiesDataTable({
     if (sorting.column !== column) {
       return <ArrowUpDown className="size-4 text-muted-foreground" />;
     }
-    return sorting.order === "asc" ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />;
+    return sorting.order === "asc" ? (
+      <ArrowUp className="size-4" />
+    ) : (
+      <ArrowDown className="size-4" />
+    );
   };
 
   const handlePreviousPage = () => {
@@ -88,7 +96,11 @@ export function EntitiesDataTable({
             <tr>
               {TABLE_COLUMNS.map((column) => {
                 const isActive = sorting.column === column.key;
-                const ariaSort = isActive ? (sorting.order === "asc" ? "ascending" : "descending") : "none";
+                const ariaSort = isActive
+                  ? sorting.order === "asc"
+                    ? "ascending"
+                    : "descending"
+                  : "none";
 
                 return (
                   <th
@@ -126,11 +138,16 @@ export function EntitiesDataTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {isLoading && <LoadingRows columns={TABLE_COLUMNS.length + 2} rows={loadingRowsCount} />}
+            {isLoading && (
+              <LoadingRows columns={TABLE_COLUMNS.length + 2} rows={loadingRowsCount} />
+            )}
 
             {!isLoading && entities.length === 0 && (
               <tr>
-                <td colSpan={TABLE_COLUMNS.length + 2} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                <td
+                  colSpan={TABLE_COLUMNS.length + 2}
+                  className="px-6 py-12 text-center text-sm text-muted-foreground"
+                >
                   Brak wyników spełniających kryteria wyszukiwania.
                 </td>
               </tr>
@@ -143,14 +160,18 @@ export function EntitiesDataTable({
                     <div className="space-y-1">
                       <div>{entity.name}</div>
                       {entity.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">{entity.description}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {entity.description}
+                        </p>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 align-top text-sm text-muted-foreground">
                     <Badge variant="outline">{mapEntityTypeToLabel(entity.type)}</Badge>
                   </td>
-                  <td className="px-6 py-4 align-top text-sm text-muted-foreground">{formatDate(entity.created_at)}</td>
+                  <td className="px-6 py-4 align-top text-sm text-muted-foreground">
+                    {formatDate(entity.created_at)}
+                  </td>
                   <td className="px-6 py-4 align-top text-right text-sm text-muted-foreground">
                     <Badge variant="secondary">{entity.note_count}</Badge>
                   </td>
@@ -207,7 +228,12 @@ export function EntitiesDataTable({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handlePreviousPage} disabled={currentPage <= 1 || isLoading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={currentPage <= 1 || isLoading}
+          >
             Poprzednia
           </Button>
           <span className="text-xs font-medium text-muted-foreground">

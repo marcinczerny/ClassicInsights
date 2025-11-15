@@ -2,7 +2,15 @@ import type { SupabaseClient } from "@/db/supabase.client";
 import type { StatisticsDTO, SuggestionTypeStatsDTO } from "@/types";
 import type { Enums } from "@/db/database.types";
 
-const ALL_ENTITY_TYPES: Enums<"entity_type">[] = ["person", "work", "idea", "epoch", "school", "system", "other"];
+const ALL_ENTITY_TYPES: Enums<"entity_type">[] = [
+  "person",
+  "work",
+  "idea",
+  "epoch",
+  "school",
+  "system",
+  "other",
+];
 const ALL_RELATIONSHIP_TYPES: Enums<"relationship_type">[] = [
   "criticizes",
   "is_student_of",
@@ -11,7 +19,12 @@ const ALL_RELATIONSHIP_TYPES: Enums<"relationship_type">[] = [
   "is_example_of",
   "is_related_to",
 ];
-const ALL_SUGGESTION_TYPES: Enums<"suggestion_type">[] = ["quote", "summary", "new_entity", "existing_entity_link"];
+const ALL_SUGGESTION_TYPES: Enums<"suggestion_type">[] = [
+  "quote",
+  "summary",
+  "new_entity",
+  "existing_entity_link",
+];
 
 async function getNotesStatistics(
   supabase: SupabaseClient,
@@ -95,7 +108,10 @@ async function getAISuggestionsStatistics(
   acceptance_rate: number;
   by_type: Record<Enums<"suggestion_type">, SuggestionTypeStatsDTO>;
 }> {
-  const { data, error } = await supabase.from("ai_suggestions").select("type, status").eq("user_id", userId);
+  const { data, error } = await supabase
+    .from("ai_suggestions")
+    .select("type, status")
+    .eq("user_id", userId);
 
   if (error) {
     console.error("Error fetching AI suggestion statistics:", error);
@@ -139,7 +155,10 @@ async function getAISuggestionsStatistics(
   };
 }
 
-export async function getStatistics(supabase: SupabaseClient, userId: string): Promise<StatisticsDTO> {
+export async function getStatistics(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<StatisticsDTO> {
   try {
     const [notes, entities, relationships, aiSuggestions] = await Promise.all([
       getNotesStatistics(supabase, userId),

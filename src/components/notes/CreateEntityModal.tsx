@@ -17,7 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { CreateEntityCommand, EntityDTO } from "@/types";
 import type { Enums } from "@/db/database.types";
 
@@ -144,7 +150,9 @@ export function CreateEntityModal({ isOpen, onClose, onSave }: CreateEntityModal
               maxLength={100}
               disabled={isSaving}
             />
-            {validationErrors.name && <p className="text-xs text-destructive">{validationErrors.name}</p>}
+            {validationErrors.name && (
+              <p className="text-xs text-destructive">{validationErrors.name}</p>
+            )}
           </div>
 
           {/* Type field */}
@@ -171,7 +179,9 @@ export function CreateEntityModal({ isOpen, onClose, onSave }: CreateEntityModal
                 ))}
               </SelectContent>
             </Select>
-            {validationErrors.type && <p className="text-xs text-destructive">{validationErrors.type}</p>}
+            {validationErrors.type && (
+              <p className="text-xs text-destructive">{validationErrors.type}</p>
+            )}
           </div>
 
           {/* Description field */}
@@ -191,7 +201,9 @@ export function CreateEntityModal({ isOpen, onClose, onSave }: CreateEntityModal
               rows={4}
               disabled={isSaving}
             />
-            {validationErrors.description && <p className="text-xs text-destructive">{validationErrors.description}</p>}
+            {validationErrors.description && (
+              <p className="text-xs text-destructive">{validationErrors.description}</p>
+            )}
           </div>
 
           {/* Error message */}

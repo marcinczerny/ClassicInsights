@@ -45,6 +45,7 @@ CREATE TYPE suggestion_type AS ENUM (
 ## 2. Schemat Tabel
 
 ### Tabela: `profiles`
+
 Rozszerza wbudowaną tabelę `auth.users` o dodatkowe informacje specyficzne dla aplikacji.
 
 ```sql
@@ -58,6 +59,7 @@ CREATE TABLE profiles (
 ```
 
 ### Tabela: `notes`
+
 Przechowuje notatki tworzone przez użytkowników.
 
 ```sql
@@ -72,6 +74,7 @@ CREATE TABLE notes (
 ```
 
 ### Tabela: `entities`
+
 Przechowuje byty (tagi), które są unikalne w obrębie konta danego użytkownika.
 
 ```sql
@@ -86,7 +89,8 @@ CREATE TABLE entities (
   UNIQUE(user_id, name)
 );
 ```
-```
+
+````
 
 ### Tabela: `note_entities`
 Tabela łącząca, realizująca relację wiele-do-wielu między notatkami (`notes`) a bytami (`entities`). Umożliwia definiowanie typu relacji między notatką a bytem.
@@ -99,9 +103,10 @@ CREATE TABLE note_entities (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (note_id, entity_id)
 );
-```
+````
 
 ### Tabela: `relationships`
+
 Przechowuje skierowane i typowane relacje między dwoma bytami.
 
 ```sql
@@ -117,6 +122,7 @@ CREATE TABLE relationships (
 ```
 
 ### Tabela: `ai_suggestions`
+
 Przechowuje sugestie generowane przez AI dla poszczególnych notatek.
 
 ```sql
@@ -136,6 +142,7 @@ CREATE TABLE ai_suggestions (
 ```
 
 ### Tabela: `ai_error_logs`
+
 Loguje błędy, które wystąpiły podczas generowania sugestii przez AI.
 
 ```sql
@@ -152,14 +159,14 @@ CREATE TABLE ai_error_logs (
 
 ## 3. Relacje Między Tabelami
 
--   **`auth.users` 1-do-1 `profiles`**: Każdy użytkownik ma jeden profil.
--   **`auth.users` 1-do-wielu `notes`**: Użytkownik może mieć wiele notatek.
--   **`auth.users` 1-do-wielu `entities`**: Użytkownik może zdefiniować wiele bytów.
--   **`auth.users` 1-do-wielu `relationships`**: Użytkownik może tworzyć wiele relacji.
--   **`notes` wiele-do-wielu `entities`**: Notatka może mieć wiele bytów (tagów), a byt może być przypisany do wielu notatek. Relacja realizowana przez tabelę `note_entities`.
--   **`entities` wiele-do-wielu `entities`**: Byt może mieć wiele relacji z innymi bytami. Relacja realizowana przez tabelę `relationships`, gdzie `source_entity_id` i `target_entity_id` wskazują na tabelę `entities`.
--   **`notes` 1-do-wielu `ai_suggestions`**: Do jednej notatki może być przypisanych wiele sugestii AI.
--   **`entities` 1-do-wielu `ai_suggestions`**: Sugestia AI może wskazywać na istniejący byt.
+- **`auth.users` 1-do-1 `profiles`**: Każdy użytkownik ma jeden profil.
+- **`auth.users` 1-do-wielu `notes`**: Użytkownik może mieć wiele notatek.
+- **`auth.users` 1-do-wielu `entities`**: Użytkownik może zdefiniować wiele bytów.
+- **`auth.users` 1-do-wielu `relationships`**: Użytkownik może tworzyć wiele relacji.
+- **`notes` wiele-do-wielu `entities`**: Notatka może mieć wiele bytów (tagów), a byt może być przypisany do wielu notatek. Relacja realizowana przez tabelę `note_entities`.
+- **`entities` wiele-do-wielu `entities`**: Byt może mieć wiele relacji z innymi bytami. Relacja realizowana przez tabelę `relationships`, gdzie `source_entity_id` i `target_entity_id` wskazują na tabelę `entities`.
+- **`notes` 1-do-wielu `ai_suggestions`**: Do jednej notatki może być przypisanych wiele sugestii AI.
+- **`entities` 1-do-wielu `ai_suggestions`**: Sugestia AI może wskazywać na istniejący byt.
 
 ## 4. Indeksy
 
@@ -243,7 +250,7 @@ USING (auth.uid() = user_id);
 
 ## 6. Dodatkowe Uwagi
 
--   **Automatyczne aktualizowanie `updated_at`**: Zaleca się utworzenie funkcji i triggera w PostgreSQL do automatycznej aktualizacji kolumny `updated_at` przy każdej zmianie rekordu. Supabase oferuje gotowe mechanizmy do tego celu.
--   **Anonimizacja danych AI**: Zgodnie z decyzjami projektowymi, usunięcie konta użytkownika (`auth.users`) lub notatki (`notes`) nie powoduje usunięcia powiązanych rekordów w tabelach `ai_suggestions` i `ai_error_logs`. Zamiast tego, klucze obce `user_id` i `note_id` są ustawiane na `NULL` (`ON DELETE SET NULL`). Pozwala to na zachowanie anonimowych danych do celów analitycznych i monitorowania wydajności modeli AI bez przechowywania danych osobowych.
--   **Klucze podstawowe**: Użycie `UUID` jako kluczy podstawowych jest zgodne z najlepszymi praktykami dla systemów rozproszonych i ułatwia integrację z Supabase.
--   **Ograniczenia unikalności**: Złożone klucze unikalne w tabelach `entities` i `relationships` zapobiegają tworzeniu duplikatów (np. dwóch bytów o tej samej nazwie przez tego samego użytkownika) na poziomie bazy danych, co zapewnia integralność danych.
+- **Automatyczne aktualizowanie `updated_at`**: Zaleca się utworzenie funkcji i triggera w PostgreSQL do automatycznej aktualizacji kolumny `updated_at` przy każdej zmianie rekordu. Supabase oferuje gotowe mechanizmy do tego celu.
+- **Anonimizacja danych AI**: Zgodnie z decyzjami projektowymi, usunięcie konta użytkownika (`auth.users`) lub notatki (`notes`) nie powoduje usunięcia powiązanych rekordów w tabelach `ai_suggestions` i `ai_error_logs`. Zamiast tego, klucze obce `user_id` i `note_id` są ustawiane na `NULL` (`ON DELETE SET NULL`). Pozwala to na zachowanie anonimowych danych do celów analitycznych i monitorowania wydajności modeli AI bez przechowywania danych osobowych.
+- **Klucze podstawowe**: Użycie `UUID` jako kluczy podstawowych jest zgodne z najlepszymi praktykami dla systemów rozproszonych i ułatwia integrację z Supabase.
+- **Ograniczenia unikalności**: Złożone klucze unikalne w tabelach `entities` i `relationships` zapobiegają tworzeniu duplikatów (np. dwóch bytów o tej samej nazwie przez tego samego użytkownika) na poziomie bazy danych, co zapewnia integralność danych.

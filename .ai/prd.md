@@ -1,56 +1,69 @@
 # Dokument wymagań produktu (PRD) - ClassicInsight
 
 ## 1. Przegląd produktu
+
 ClassicInsight to aplikacja internetowa w wersji MVP (Minimum Viable Product) zaprojektowana dla pasjonatów literatury i filozofii. Jej głównym celem jest ułatwienie eksploracji, analizy i porównywania dzieł filozoficznych oraz klasyki literatury. Aplikacja umożliwia użytkownikom tworzenie i zarządzanie notatkami, które mogą być następnie wzbogacane przez sztuczną inteligencję o powiązane cytaty, streszczenia i kluczowe idee. Kluczowym elementem jest wizualizacja połączeń między notatkami i pojęciami w formie interaktywnego grafu myśli. Aplikacja oferuje prosty system kont użytkowników do zarządzania prywatną bazą wiedzy.
 
 ## 2. Problem użytkownika
+
 Głównym problemem, na który odpowiada ClassicInsight, jest brak skutecznych narzędzi do głębokiej eksploracji i syntezy wiedzy z dziedziny literatury i filozofii. Czytelnicy często tworzą rozproszone notatki, które trudno jest ze sobą powiązać, aby zrozumieć szerszy kontekst, np. ducha danej epoki, ewolucję idei czy wpływy między myślicielami. Brakuje platformy, która agreguje i porządkuje te informacje, a jednocześnie proaktywnie sugeruje nowe, nieoczywiste połączenia, motywy i stanowiska filozoficzne, tworząc spójną i łatwą w nawigacji bazę wiedzy.
 
 ## 3. Wymagania funkcjonalne
 
 ### 3.1. Zarządzanie kontem użytkownika
+
 - F-001: Użytkownicy mogą rejestrować się w systemie za pomocą adresu e-mail i hasła.
 - F-002: Użytkownicy mogą logować się i wylogowywać ze swojego konta.
 - F-003: Użytkownicy mają możliwość zresetowania zapomnianego hasła.
 - F-004: Podczas rejestracji użytkownik musi wyrazić jednorazową zgodę na wykorzystanie anonimowych danych do ulepszania modeli AI.
 
 ### 3.2. Zarządzanie notatkami
+
 - F-005: Użytkownicy mogą tworzyć, przeglądać, edytować i usuwać notatki tekstowe.
 - F-006: Aplikacja zapewnia prosty edytor tekstu z obsługą markdown.
 - F-007: Główny widok po zalogowaniu to lista notatek stworzonych przez użytkownika.
 
 ### 3.3. Zarządzanie bytami (tagami)
+
 - F-008: Użytkownicy mogą dodawać do notatek byty (np. Autor, Dzieło, Idea, Epoka) w formie tagów.
 - F-009: System sugeruje istniejące już byty podczas ich wprowadzania, aby promować ich ponowne użycie i unikać duplikacji w obrębie konta użytkownika.
 - F-023: Użytkownik może zdefiniować typ relacji między notatką a przypisanym do niej bytem, wybierając z tej samej listy typów relacji co przy połączeniach między bytami (np. "krytykuje", "rozwija myśl", "jest przykładem").
 
 ### 3.4. Wzbogacanie notatek przez AI
+
 - F-010: Użytkownik może manualnie uruchomić analizę AI dla wybranej notatki za pomocą dedykowanego przycisku.
 - F-011: AI analizuje treść notatki i jej metadane, a następnie sugeruje powiązane cytaty, streszczenia oraz nowe byty (węzły) i połączenia (krawędzie) do dodania w grafie myśli.
 - F-012: Użytkownik ma możliwość zaakceptowania lub odrzucenia każdej sugestii AI.
 - F-013: Podczas przetwarzania przez AI wyświetlany jest wskaźnik ładowania.
 
 ### 3.5. Wizualizacja grafu myśli
+
 - F-014: Aplikacja oferuje interaktywny widok grafu, który wizualizuje notatki, byty i relacje między nimi.
 - F-016: Węzły w grafie są rozróżnione kolorami w zależności od typu bytu (osoba, dzieło, epoka, idea, inne).
 - F-017: Użytkownik może zdefiniować typ relacji między dwoma węzłami, wybierając z predefiniowanej listy (np. "krytykuje", "jest uczniem", "rozwija myśl").
 - F-018: Domyślnie widok grafu jest ograniczony do połączeń pierwszego i drugiego stopnia od wybranego (aktywnego) węzła, aby zachować czytelność.
 
 ### 3.6. Wyszukiwanie
+
 - F-018: Użytkownicy mogą wyszukiwać notatki na podstawie przypisanych do nich metadanych (bytów/tagów).
 
 ### 3.7. Doświadczenie użytkownika (UX)
+
 - F-019: Nowi użytkownicy po pierwszym zalogowaniu widzą komunikat powitalny z wezwaniem do działania (stworzenia pierwszej notatki).
 
 ### 3.8. Wymagania prawne i ograniczenia:
+
 - F-020: Dane osobowe użytkowników i fiszek przechowywane zgodnie z RODO.
 - F-021: Prawo do wglądu i usunięcia danych (konto wraz z fiszkami) na wniosek użytkownika.
 
 ### 3.9. Statystyki generowania notatek
+
 - F-022: Zbieranie informacji o tym, ile podpowiedzi zostało wygenerowanych podczas analizy AI i ile z nich ostatecznie zaakceptowano.
 
 ## 4. Granice produktu
+
 Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać rozważone w przyszłości:
+
 - Funkcje społecznościowe, takie jak współdzielenie notatek czy grafów myśli między użytkownikami.
 - Zaawansowana obsługa i analiza multimediów (np. obrazy, pliki audio, wideo).
 - W pełni automatyczna synteza tekstów lub generowanie rozbudowanych esejów przez AI.
@@ -63,6 +76,7 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
 ## 5. Historyjki użytkowników
 
 ### Zarządzanie Kontem
+
 - ID: US-001
 - Tytuł: Rejestracja nowego użytkownika
 - Opis: Jako nowy użytkownik, chcę móc założyć konto w aplikacji przy użyciu mojego adresu e-mail i hasła, abym mógł zacząć tworzyć swoje notatki.
@@ -99,6 +113,7 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
   4. Po przejściu pod link mogę ustawić nowe hasło dla mojego konta.
 
 ### Zarządzanie Notatkami
+
 - ID: US-005
 - Tytuł: Tworzenie nowej notatki
 - Opis: Jako użytkownik, chcę móc stworzyć nową notatkę z tytułem i treścią oraz dodać do niej tagi (byty), aby zapisać swoje myśli na temat danego dzieła lub idei.
@@ -134,6 +149,7 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
   3. Po potwierdzeniu notatka jest trwale usuwana z mojego konta.
 
 ### Interakcja z AI
+
 - ID: US-009
 - Tytuł: Uruchamianie analizy AI
 - Opis: Jako użytkownik, chcę móc uruchomić analizę AI dla mojej notatki, aby otrzymać sugestie powiązanych treści i idei.
@@ -153,6 +169,7 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
   5. Interakcja z każdą sugestią jest logowana na potrzeby mierzenia metryk sukcesu.
 
 ### Graf Myśli
+
 - ID: US-011
 - Tytuł: Wizualizacja grafu myśli
 - Opis: Jako użytkownik, chcę móc zobaczyć moją notatkę i powiązane z nią byty w formie grafu, aby lepiej zrozumieć relacje między nimi.
@@ -180,6 +197,7 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
   3. Etykieta z typem relacji jest widoczna na krawędzi w grafie.
 
 ### Wyszukiwanie i Onboarding
+
 - ID: US-014
 - Tytuł: Wyszukiwanie notatek po tagach
 - Opis: Jako użytkownik, chcę mieć możliwość wyszukania notatek po przypisanych do nich tagach (bytach), abym mógł szybko znaleźć wszystkie zapiski dotyczące np. konkretnego autora.
@@ -197,6 +215,7 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
   3. Komunikat zawiera wyraźny przycisk/wezwanie do działania (CTA), np. "Stwórz swoją pierwszą notatkę", który przenosi do formularza tworzenia notatki.
 
 ## 6. Metryki sukcesu
+
 - Metryka jakości AI: 75% notatek wzbogaconych przez AI (np. o sugerowane cytaty, streszczenia, byty) jest akceptowanych przez użytkownika.
   - Sposób pomiaru: System będzie logował każdą interakcję użytkownika z sugestiami AI (akceptacja/odrzucenie). Metryka będzie obliczana jako stosunek zaakceptowanych sugestii do wszystkich wygenerowanych.
 

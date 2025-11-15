@@ -68,6 +68,7 @@ npm run test:e2e:headed    # Run with visible browser
 ### Coverage Goals
 
 The project aims to maintain high test coverage:
+
 - Branches: 70%
 - Functions: 70%
 - Lines: 70%
@@ -85,12 +86,14 @@ To set up and run the project on your local machine, follow these steps.
 ### Installation & Setup
 
 1.  **Clone the repository:**
+
     ```sh
     git clone https://github.com/marcinczerny/classic-insights.git
     cd classic-insights
     ```
 
 2.  **Install dependencies:**
+
     ```sh
     npm install
     ```
@@ -118,23 +121,23 @@ To set up and run the project on your local machine, follow these steps.
 
 The following scripts are available in the `package.json`:
 
-| Script       | Description                                        |
-| ------------ | -------------------------------------------------- |
-| `npm run dev`    | Starts the development server with hot-reloading.  |
-| `npm run build`  | Builds the application for production.             |
-| `npm run preview`| Serves the production build locally for preview.   |
-| `npm run lint`   | Lints the codebase for errors.                     |
-| `npm run lint:fix`| Lints the codebase and automatically fixes issues. |
-| `npm run format` | Formats the code using Prettier.                   |
-| `npm test`       | Runs unit tests with Vitest.                       |
-| `npm run test:watch`| Runs unit tests in watch mode.                     |
-| `npm run test:ui`| Opens Vitest UI for interactive testing.            |
-| `npm run test:coverage`| Runs tests with coverage report.                   |
-| `npm run test:integration`| Runs integration tests.                            |
-| `npm run test:e2e`| Runs end-to-end tests with Playwright.             |
-| `npm run test:e2e:ui`| Opens Playwright UI for E2E testing.               |
-| `npm run test:e2e:debug`| Runs E2E tests in debug mode.                      |
-| `npm run test:e2e:headed`| Runs E2E tests with visible browser.               |
+| Script                     | Description                                        |
+| -------------------------- | -------------------------------------------------- |
+| `npm run dev`              | Starts the development server with hot-reloading.  |
+| `npm run build`            | Builds the application for production.             |
+| `npm run preview`          | Serves the production build locally for preview.   |
+| `npm run lint`             | Lints the codebase for errors.                     |
+| `npm run lint:fix`         | Lints the codebase and automatically fixes issues. |
+| `npm run format`           | Formats the code using Prettier.                   |
+| `npm test`                 | Runs unit tests with Vitest.                       |
+| `npm run test:watch`       | Runs unit tests in watch mode.                     |
+| `npm run test:ui`          | Opens Vitest UI for interactive testing.           |
+| `npm run test:coverage`    | Runs tests with coverage report.                   |
+| `npm run test:integration` | Runs integration tests.                            |
+| `npm run test:e2e`         | Runs end-to-end tests with Playwright.             |
+| `npm run test:e2e:ui`      | Opens Playwright UI for E2E testing.               |
+| `npm run test:e2e:debug`   | Runs E2E tests in debug mode.                      |
+| `npm run test:e2e:headed`  | Runs E2E tests with visible browser.               |
 
 ## Deployment
 
@@ -148,23 +151,23 @@ This project is currently being developed as an MVP. The scope is defined as fol
 
 ### Key Features (MVP)
 
--   **User Management**: Secure user registration, login, logout, and password reset.
--   **Note Management**: Create, read, update, and delete text-based notes with Markdown support.
--   **Entity Tagging**: Add entities (e.g., Author, Work, Idea) as tags to notes.
--   **AI Enrichment**: Manually trigger AI analysis on a note to get suggestions for related quotes, summaries, and new graph nodes.
--   **Mind Map Visualization**: View notes, entities, and their relationships as an interactive graph.
--   **Search**: Filter notes based on their assigned tags.
+- **User Management**: Secure user registration, login, logout, and password reset.
+- **Note Management**: Create, read, update, and delete text-based notes with Markdown support.
+- **Entity Tagging**: Add entities (e.g., Author, Work, Idea) as tags to notes.
+- **AI Enrichment**: Manually trigger AI analysis on a note to get suggestions for related quotes, summaries, and new graph nodes.
+- **Mind Map Visualization**: View notes, entities, and their relationships as an interactive graph.
+- **Search**: Filter notes based on their assigned tags.
 
 ### Out of Scope for MVP
 
 The following features are not planned for the initial release but may be considered in the future:
 
--   Social features like sharing notes or graphs.
--   Advanced multimedia support (images, audio).
--   Fully automated AI text synthesis.
--   Importing notes from external applications.
--   Real-time collaboration.
--   A public API.
+- Social features like sharing notes or graphs.
+- Advanced multimedia support (images, audio).
+- Fully automated AI text synthesis.
+- Importing notes from external applications.
+- Real-time collaboration.
+- A public API.
 
 ## Project Status
 

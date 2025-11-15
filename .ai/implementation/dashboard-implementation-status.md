@@ -3,6 +3,7 @@
 ## Zrealizowane kroki
 
 ### ✅ Krok 1: Struktura plików
+
 - Utworzono strukturę katalogów:
   - `src/components/dashboard/` - główny folder
   - `src/components/dashboard/hooks/` - custom hooks
@@ -11,7 +12,9 @@
   - `src/components/dashboard/types.ts` - typy ViewModel
 
 ### ✅ Krok 2: Hook useDashboard
+
 Lokalizacja: `src/components/dashboard/hooks/useDashboard.ts`
+
 - Zarządzanie stanem `DashboardState`
 - `fetchNotes()` - pobieranie notatek z paginacją
 - `fetchGraph()` - pobieranie danych grafu (wymaga centrum)
@@ -25,7 +28,9 @@ Lokalizacja: `src/components/dashboard/hooks/useDashboard.ts`
 - Brak requestu do API gdy nie ma notatek
 
 ### ✅ Krok 3: Layout DashboardPage
+
 Lokalizacja: `src/components/dashboard/DashboardPage.tsx`
+
 - Główny kontener z layoutem CSS Flexbox (`h-screen`)
 - Panel notatek po lewej (stała szerokość 384px)
 - Panel grafu po prawej (elastyczna szerokość `flex-1`)
@@ -33,9 +38,11 @@ Lokalizacja: `src/components/dashboard/DashboardPage.tsx`
 - Przekazywanie stanu i handlerów do komponentów podrzędnych
 
 ### ✅ Krok 4: Implementacja NotesPanel
+
 Zainstalowane komponenty shadcn/ui: Input, Card, Skeleton, Popover
 
 #### NotesPanel (`src/components/dashboard/notes/NotesPanel.tsx`)
+
 - Header z tytułem
 - SearchBar z autouzupełnianiem
 - Przycisk "Nowa notatka"
@@ -43,6 +50,7 @@ Zainstalowane komponenty shadcn/ui: Input, Card, Skeleton, Popover
 - Obsługa błędów z przyciskiem "Spróbuj ponownie"
 
 #### SearchBar (`src/components/dashboard/notes/SearchBar.tsx`) - ✅ PRZEPISANY
+
 - **Pole wyszukiwania po tytule**: Input z debouncingiem (300ms)
 - **Multi-select encji (tagów)**:
   - Popover z listą wszystkich encji użytkownika
@@ -52,6 +60,7 @@ Zainstalowane komponenty shadcn/ui: Input, Card, Skeleton, Popover
 - Oba filtry działają jednocześnie (AND) - tytuł + wybrane tagi
 
 #### NoteItem (`src/components/dashboard/notes/NoteItem.tsx`)
+
 - Klikalny przycisk (zamiast linku)
 - Wyświetla tytuł i datę aktualizacji
 - Pokazuje do 3 tagów (bytów) + licznik pozostałych
@@ -59,19 +68,23 @@ Zainstalowane komponenty shadcn/ui: Input, Card, Skeleton, Popover
 - Wybór notatki centruje graf na niej
 
 #### NotesList (`src/components/dashboard/notes/NotesList.tsx`)
+
 - Lista notatek z skeleton loaderem
 - Stan pusty z CTA "Utwórz notatkę"
 - Paginacja (gdy więcej niż 1 strona)
 
 #### PaginationControls (`src/components/dashboard/notes/PaginationControls.tsx`)
+
 - Przyciski "Poprzednia" / "Następna"
 - Wyłączanie przycisków na pierwszej/ostatniej stronie
 - Informacja o aktualnej stronie
 
 ### ✅ Krok 5: Implementacja GraphPanel - wizualizacja
+
 Zainstalowane: `@xyflow/react`, Dialog, Select
 
 #### GraphPanel (`src/components/dashboard/graph/GraphPanel.tsx`)
+
 - Stany widoczności: collapsed / open / fullscreen
 - Header z kontrolkami widoczności
 - GraphToolbar z trybem łączenia
@@ -81,6 +94,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - EditRelationshipModal do edycji relacji
 
 #### GraphView (`src/components/dashboard/graph/GraphView.tsx`)
+
 - Integracja z @xyflow/react
 - Background, Controls, MiniMap
 - Obsługa kliknięć węzłów
@@ -91,24 +105,28 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - Synchronizacja nodes/edges przy zmianie graphData (useEffect)
 
 #### CustomNodes (`src/components/dashboard/graph/CustomNodes.tsx`)
+
 - EntityNode - kolorowe węzły dla bytów (osoba, miejsce, pojęcie, etc.)
 - NoteNode - żółte węzły dla notatek
 - Handles (Target/Source) dla połączeń
 - Wyświetlanie typu, nazwy i opisu
 
 #### graphHelpers (`src/components/dashboard/graph/graphHelpers.ts`)
+
 - `transformGraphData()` - konwersja GraphDTO → format @xyflow/react
 - `calculatePosition()` - rozmieszczenie węzłów w okręgu
 - `formatRelationshipType()` - polskie nazwy typów relacji
 - Wizualne oznaczenie wybranego węzła źródłowego (`ring-4 ring-primary`)
 
 #### GraphToolbar (`src/components/dashboard/graph/GraphToolbar.tsx`)
+
 - Przycisk "Tryb łączenia" / "Anuluj łączenie"
 - Instrukcja dla użytkownika
 
 ### ✅ Krok 6: Implementacja interaktywności grafu
 
 #### Tryb łączenia węzłów
+
 - Aktywacja przycisku "Tryb łączenia"
 - Pierwszy klik: wybór węzła źródłowego (wizualne podświetlenie)
 - Drugi klik: otwarcie modala wyboru typu relacji
@@ -121,18 +139,21 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - Po utworzeniu połączenia: automatyczny refresh grafu
 
 #### RelationshipModal (`src/components/dashboard/graph/RelationshipModal.tsx`)
+
 - Wybór typu relacji z dropdown (6 typów)
 - Wyświetlanie nazw połączonych węzłów
 - Przyciski: Anuluj / Utwórz relację
 - Integracja z API: `POST /api/relationships` lub `POST /api/notes/:id/entities`
 
 #### Edycja relacji entity-entity
+
 - Kliknięcie krawędzi entity-entity otwiera EditRelationshipModal
 - Możliwość zmiany typu: `PATCH /api/relationships/:id`
 - Możliwość usunięcia: `DELETE /api/relationships/:id` (z potwierdzeniem)
 - Automatyczny refresh grafu po zmianach
 
 #### Edycja połączeń note-entity (nowa funkcjonalność)
+
 - Kliknięcie krawędzi note-entity otwiera EditNoteEntityModal
 - Modal pokazuje nazwę notatki, encji i aktualny typ relacji
 - Możliwość zmiany typu: `DELETE` + `POST /api/notes/:id/entities`
@@ -140,10 +161,12 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - Automatyczny refresh grafu po zmianach
 
 #### Kliknięcie węzła w grafie
+
 - Poza trybem łączenia: zmiana centrum grafu (`onNodeSelect`)
 - W trybie łączenia: wybór węzła do połączenia (note lub entity)
 
 ### ✅ Krok 7: Dopracowanie UX
+
 - ✅ Skeleton loaders dla notatek
 - ✅ Obsługa błędów z przyciskiem "Spróbuj ponownie"
 - ✅ Logika zwijania/rozwijania GraphPanel
@@ -156,6 +179,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - ❌ Brak toast notifications dla błędów (TODO komentarze w kodzie)
 
 ### 🔧 Naprawione problemy
+
 1. **Graf nie renderował się** - dodano `h-full` do GraphPanel kontenera
 2. **Request bez centrum** - fetchGraph nie wysyła requestu gdy brak centrum
 3. **Pierwsza notatka jako centrum** - automatyczny wybór przy ładowaniu
@@ -170,6 +194,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 ## Integracja API
 
 ### Wykorzystywane endpointy
+
 - ✅ `GET /api/notes` - lista notatek z paginacją, wyszukiwaniem i filtrowaniem
 - ✅ `GET /api/entities` - lista wszystkich encji użytkownika (limit: 100)
 - ✅ `GET /api/graph` - dane grafu (wymaga center_id i center_type)
@@ -180,6 +205,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - ✅ `DELETE /api/notes/:id/entities/:entityId` - usuwanie encji z notatki
 
 ### Parametry requestów
+
 - Notes: `page`, `limit`, `search` (tytuł notatki), `entities` (CSV lista UUID)
 - Entities: `limit` (dla pobrania wszystkich encji użytkownika)
 - Graph: `center_id`, `center_type`, `levels` (domyślnie 2)
@@ -188,6 +214,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 ## ✅ Krok 8: Ulepszenia po implementacji
 
 ### Zmiany w wyszukiwaniu i filtrowaniu
+
 - ✅ **Backend**: `notes.service.ts:49-52` - wyszukiwanie tylko po tytule (`.ilike('title', ...)`)
 - ✅ **Backend**: `notes.service.ts:54-68` - filtrowanie po encjach przez RPC `get_notes_with_all_entities`
 - ✅ **API**: `useDashboard.ts:35-44` - parametry `search` i `entities` (CSV)
@@ -201,12 +228,14 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - ✅ **Dokumentacja**: Zaktualizowano `api-plan.md` i `notes-get-implementation-plan.md`
 
 ### Edycja połączeń note-entity
+
 - ✅ **Modal**: `EditNoteEntityModal.tsx` (167 linii) - edycja i usuwanie note-entity
 - ✅ **Logika**: `GraphPanel.tsx:169-203` - rozpoznawanie typu krawędzi (entity-entity vs note-entity)
 - ✅ **Handlers**: `GraphPanel.tsx:269-343` - `handleNoteEntityUpdate()`, `handleNoteEntityDelete()`
 - ✅ **API**: DELETE + POST dla zmiany typu relacji note-entity
 
 ### Graf - stabilność i kierunki
+
 - ✅ **Kierunki**: `graphHelpers.ts:47-51` - dodano `markerEnd` z strzałkami
 - ✅ **Stabilność**: `useDashboard.ts:29,222-226` - `useRef` zapobiega resetowaniu grafu
 - ✅ **Tryb łączenia**: note → entity oraz entity → entity
@@ -214,6 +243,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 ## Kolejne kroki
 
 ### Testowanie (do wykonania ręcznie)
+
 - [ ] Przetestować wyszukiwanie po tytule
 - [ ] Przetestować filtrowanie po tagach (pojedynczy i wielokrotny wybór)
 - [ ] Przetestować łączenie filtrów (tytuł + tagi)
@@ -223,6 +253,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - [ ] Przetestować paginację z aktywnymi filtrami
 
 ### Usprawnienia UX (opcjonalne)
+
 - [ ] Implementacja toast notifications (biblioteka Sonner z shadcn/ui)
   - Lokalizacje TODO w kodzie:
     - `GraphPanel.tsx:97,103` - błędy walidacji w trybie łączenia
@@ -235,6 +266,7 @@ Zainstalowane: `@xyflow/react`, Dialog, Select
 - [ ] Sortowanie encji w multi-select (alfabetycznie lub po częstości użycia)
 
 ### Dodatkowe funkcjonalności (poza planem)
+
 - [ ] Eksport grafu do obrazu (PNG/SVG)
 - [ ] Różne algorytmy layoutu grafu (force-directed, hierarchical)
 - [ ] Filtrowanie grafu po typie relacji
@@ -279,23 +311,27 @@ src/components/dashboard/
 ## Uwagi techniczne
 
 ### Wydajność
+
 - Debouncing wyszukiwania (300ms) redukuje liczbę requestów API
 - Memoizacja transformacji danych grafu
 - Skeleton loaders dla lepszego UX podczas ładowania
 - fitView w React Flow automatycznie dopasowuje widok
 
 ### Bezpieczeństwo
+
 - Walidacja typów węzłów przed tworzeniem relacji (tylko entity-entity)
 - Potwierdzenie przed usunięciem relacji
 - Obsługa błędów API z user-friendly komunikatami
 
 ### Dostępność
+
 - Semantyczne elementy HTML
 - ARIA labels gdzie potrzebne
 - Keyboard navigation w modalach
 - Focus management
 
 ### Responsywność
+
 - Stała szerokość panelu notatek (384px)
 - Elastyczna szerokość panelu grafu
 - Fullscreen mode dla grafu

@@ -53,7 +53,12 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
   // Validate URL parameter (note ID)
   const paramsValidation = getNoteSchema.safeParse(params);
   if (!paramsValidation.success) {
-    return createErrorResponse("VALIDATION_ERROR", "Invalid note ID", 400, paramsValidation.error.errors);
+    return createErrorResponse(
+      "VALIDATION_ERROR",
+      "Invalid note ID",
+      400,
+      paramsValidation.error.errors
+    );
   }
 
   const { id: noteId } = paramsValidation.data;
@@ -65,12 +70,22 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 
   const queryValidation = getSuggestionsSchema.safeParse(queryParams);
   if (!queryValidation.success) {
-    return createErrorResponse("INVALID_QUERY_PARAM", "Invalid query parameter", 400, queryValidation.error.errors);
+    return createErrorResponse(
+      "INVALID_QUERY_PARAM",
+      "Invalid query parameter",
+      400,
+      queryValidation.error.errors
+    );
   }
 
   try {
     // Call service to retrieve suggestions
-    const result = await getSuggestionsForNote(supabase, noteId, userId, queryValidation.data.status);
+    const result = await getSuggestionsForNote(
+      supabase,
+      noteId,
+      userId,
+      queryValidation.data.status
+    );
 
     return new Response(JSON.stringify(result), {
       status: 200,

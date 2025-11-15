@@ -16,7 +16,12 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
   const validationResult = removeEntityFromNoteSchema.safeParse(params);
 
   if (!validationResult.success) {
-    return createErrorResponse("VALIDATION_ERROR", "Invalid note or entity ID", 400, validationResult.error.errors);
+    return createErrorResponse(
+      "VALIDATION_ERROR",
+      "Invalid note or entity ID",
+      400,
+      validationResult.error.errors
+    );
   }
 
   const { id: noteId, entityId } = validationResult.data;

@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { CreateNoteCommand, NoteDTO, UpdateNoteCommand, NoteEntityAssociationDTO } from "@/types";
+import type {
+  CreateNoteCommand,
+  NoteDTO,
+  UpdateNoteCommand,
+  NoteEntityAssociationDTO,
+} from "@/types";
 import type { GetNotesParams } from "@/lib/validation";
 import type { NotesListResponseDTO } from "@/types";
 
@@ -24,7 +29,11 @@ interface NoteWithEntitiesQueryResult {
     | null;
 }
 
-async function _validateEntities(supabase: SupabaseClient, entityIds: string[], userId: string): Promise<void> {
+async function _validateEntities(
+  supabase: SupabaseClient,
+  entityIds: string[],
+  userId: string
+): Promise<void> {
   if (!entityIds || entityIds.length === 0) {
     return;
   }
@@ -50,14 +59,27 @@ export async function getNotes(
   userId: string,
   params: Partial<GetNotesParams> = {}
 ): Promise<NotesListResponseDTO> {
-  const { page = 1, limit = 20, sort = "created_at", order = "desc", entities: entityFilter, search } = params;
+  const {
+    page = 1,
+    limit = 20,
+    sort = "created_at",
+    order = "desc",
+    entities: entityFilter,
+    search,
+  } = params;
 
   // First, get total count for pagination
-  let countQuery = supabase.from("notes").select("id", { count: "exact", head: true }).eq("user_id", userId);
+  let countQuery = supabase
+    .from("notes")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
 
   // Apply entity filter to count if provided
   if (entityFilter && entityFilter.length > 0) {
-    const { data: noteIds } = await supabase.from("note_entities").select("note_id").in("entity_id", entityFilter);
+    const { data: noteIds } = await supabase
+      .from("note_entities")
+      .select("note_id")
+      .in("entity_id", entityFilter);
     const filteredNoteIds = noteIds?.map((ne) => ne.note_id) || [];
     countQuery = countQuery.in("id", filteredNoteIds);
   }
@@ -106,7 +128,10 @@ export async function getNotes(
 
   // Apply entity filter
   if (entityFilter && entityFilter.length > 0) {
-    const { data: noteIds } = await supabase.from("note_entities").select("note_id").in("entity_id", entityFilter);
+    const { data: noteIds } = await supabase
+      .from("note_entities")
+      .select("note_id")
+      .in("entity_id", entityFilter);
     const filteredNoteIds = noteIds?.map((ne) => ne.note_id) || [];
     query = query.in("id", filteredNoteIds);
   }
@@ -311,7 +336,10 @@ export async function updateNote(
   }
 
   if (entities !== undefined) {
-    const { error: deleteError } = await supabase.from("note_entities").delete().eq("note_id", noteId);
+    const { error: deleteError } = await supabase
+      .from("note_entities")
+      .delete()
+      .eq("note_id", noteId);
 
     if (deleteError) {
       console.error("Error removing old entity links:", deleteError);
@@ -332,7 +360,10 @@ export async function updateNote(
       }
     }
   } else if (entity_ids !== undefined) {
-    const { error: deleteError } = await supabase.from("note_entities").delete().eq("note_id", noteId);
+    const { error: deleteError } = await supabase
+      .from("note_entities")
+      .delete()
+      .eq("note_id", noteId);
 
     if (deleteError) {
       console.error("Error removing old entity links:", deleteError);
@@ -388,7 +419,10 @@ export async function updateNote(
   return transformedNote;
 }
 
-async function _handleOrphanEntities(supabase: SupabaseClient, entityIdsToCheck: string[]): Promise<void> {
+async function _handleOrphanEntities(
+  supabase: SupabaseClient,
+  entityIdsToCheck: string[]
+): Promise<void> {
   if (entityIdsToCheck.length === 0) {
     return;
   }
@@ -407,7 +441,10 @@ async function _handleOrphanEntities(supabase: SupabaseClient, entityIdsToCheck:
   const orphanEntityIds = entityIdsToCheck.filter((id) => !stillLinkedEntityIds.has(id));
 
   if (orphanEntityIds.length > 0) {
-    const { error: orphanDeleteError } = await supabase.from("entities").delete().in("id", orphanEntityIds);
+    const { error: orphanDeleteError } = await supabase
+      .from("entities")
+      .delete()
+      .in("id", orphanEntityIds);
 
     if (orphanDeleteError) {
       console.error("Error deleting orphan entities:", orphanDeleteError);
@@ -416,7 +453,11 @@ async function _handleOrphanEntities(supabase: SupabaseClient, entityIdsToCheck:
   }
 }
 
-export async function deleteNote(supabase: SupabaseClient, noteId: string, userId: string): Promise<void> {
+export async function deleteNote(
+  supabase: SupabaseClient,
+  noteId: string,
+  userId: string
+): Promise<void> {
   const { data: noteEntities, error: entitiesFetchError } = await supabase
     .from("note_entities")
     .select("entity_id")
@@ -429,7 +470,11 @@ export async function deleteNote(supabase: SupabaseClient, noteId: string, userI
 
   const entityIdsToCheck = noteEntities.map((ne) => ne.entity_id);
 
-  const { error: deleteError } = await supabase.from("notes").delete().eq("id", noteId).eq("user_id", userId);
+  const { error: deleteError } = await supabase
+    .from("notes")
+    .delete()
+    .eq("id", noteId)
+    .eq("user_id", userId);
 
   if (deleteError) {
     console.error("Error deleting note:", deleteError);
@@ -475,7 +520,13 @@ export async function addEntityToNote(
   noteId: string,
   entityId: string,
   userId: string,
-  relationshipType?: "criticizes" | "is_student_of" | "expands_on" | "influenced_by" | "is_example_of" | "is_related_to"
+  relationshipType?:
+    | "criticizes"
+    | "is_student_of"
+    | "expands_on"
+    | "influenced_by"
+    | "is_example_of"
+    | "is_related_to"
 ): Promise<NoteEntityAssociationDTO> {
   const { error: noteError } = await supabase
     .from("notes")
@@ -533,7 +584,11 @@ export async function addEntityToNote(
   return newAssociation;
 }
 
-export async function findNoteById(supabase: SupabaseClient, noteId: string, userId: string): Promise<NoteDTO | null> {
+export async function findNoteById(
+  supabase: SupabaseClient,
+  noteId: string,
+  userId: string
+): Promise<NoteDTO | null> {
   const { data, error } = await supabase
     .from("notes")
     .select(

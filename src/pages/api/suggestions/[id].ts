@@ -18,7 +18,12 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const body = await request.json();
     const validatedData = updateSuggestionSchema.parse(body);
 
-    const updatedSuggestion = await updateSuggestionStatus(supabase, user.id, suggestionId, validatedData.status);
+    const updatedSuggestion = await updateSuggestionStatus(
+      supabase,
+      user.id,
+      suggestionId,
+      validatedData.status
+    );
 
     return new Response(JSON.stringify(updatedSuggestion), {
       status: 200,

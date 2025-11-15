@@ -5,6 +5,7 @@
 ### 1. Struktura komponentów i typy (✅ Zakończone)
 
 #### Typy ViewModel
+
 - **Utworzono**: `src/components/notes/types.ts`
 - **Zawiera**:
   - `NoteViewModel` - stan formularza notatki (id, title, content, entities)
@@ -15,6 +16,7 @@
 ### 2. Zarządzanie stanem (✅ Zakończone)
 
 #### Hook useNoteEditor
+
 - **Utworzono**: `src/components/notes/hooks/useNoteEditor.ts`
 - **Funkcjonalności**:
   - Pobieranie notatki (GET /api/notes/:id)
@@ -30,12 +32,14 @@
 ### 3. Komponenty UI - Bottom-up implementation (✅ Zakończone)
 
 #### AISuggestionCard
+
 - **Ścieżka**: `src/components/notes/AISuggestionCard.tsx`
 - **Funkcje**: Wyświetlanie pojedynczej sugestii AI z przyciskami Akceptuj/Odrzuć
 - **Komponenty**: Card, Button z Shadcn/ui
 - **Stan**: Obsługa `isSubmitting` podczas przetwarzania
 
 #### CreateEntityModal
+
 - **Ścieżka**: `src/components/notes/CreateEntityModal.tsx`
 - **Funkcje**: Tworzenie nowego bytu bez opuszczania edytora
 - **Pola**:
@@ -46,6 +50,7 @@
 - **Komponenty**: Dialog, Input, Select, Textarea, Button
 
 #### EntityTagInput
+
 - **Ścieżka**: `src/components/notes/EntityTagInput.tsx`
 - **Funkcje**: Najbardziej złożony komponent - zarządzanie bytami notatki
 - **Features**:
@@ -57,6 +62,7 @@
 - **Komponenty**: Input, Badge, Popover, Select, Button, Label
 
 #### AISuggestionsPanel
+
 - **Ścieżka**: `src/components/notes/AISuggestionsPanel.tsx`
 - **Funkcje**: Panel z listą sugestii AI i przyciskiem analizy
 - **Features**:
@@ -67,6 +73,7 @@
   - Komunikaty o przyczynach wyłączenia przycisku
 
 #### NoteForm
+
 - **Ścieżka**: `src/components/notes/NoteForm.tsx`
 - **Funkcje**: Formularz edycji podstawowych pól notatki
 - **Pola**:
@@ -78,6 +85,7 @@
 ### 4. Główne komponenty widoku (✅ Zakończone)
 
 #### NoteEditorView (Tryb edycji)
+
 - **Ścieżka**: `src/components/notes/NoteEditorView.tsx`
 - **Funkcje**: Główny kontener edytora notatek
 - **Layout**: Dwukolumnowy (2/3 formularz + 1/3 sugestie AI sticky)
@@ -90,6 +98,7 @@
 - **Komponenty**: NoteForm, AISuggestionsPanel, AlertDialog
 
 #### NoteViewPage (Tryb read-only) ⭐ NOWY
+
 - **Ścieżka**: `src/components/notes/NoteViewPage.tsx`
 - **Funkcje**: Widok podglądu z wyrenderowanym Markdown
 - **Features**:
@@ -104,6 +113,7 @@
 ### 5. Routing i integracja (✅ Zakończone)
 
 #### Struktura routingu
+
 ```
 /notes/new                  → NoteEditorView (tworzenie)
 /notes/:id                  → NoteViewPage (podgląd) ⭐ ZMIANA
@@ -111,6 +121,7 @@
 ```
 
 #### Pliki Astro
+
 - **`src/pages/notes/new.astro`** - tworzenie notatki
 - **`src/pages/notes/[id].astro`** - podgląd notatki (zmienione z edycji)
 - **`src/pages/notes/[id]/edit.astro`** - edycja notatki (nowy)
@@ -118,6 +129,7 @@
 ### 6. Funkcjonalność Dashboard (✅ Zakończone)
 
 #### Zmodyfikowane komponenty
+
 - **NoteItem.tsx**:
   - Zmiana przycisku z "Edytuj" (Edit) na "Podgląd" (Eye) ⭐
   - Dodane przyciski akcji dla zaznaczonej notatki
@@ -139,11 +151,13 @@
 ### 7. UI/UX Enhancements (✅ Zakończone)
 
 #### Toast notifications
+
 - **Utworzono**: `src/components/ToastProvider.tsx`
 - **Integracja**: W `src/layouts/Layout.astro` (globalny provider)
 - **Użycie**: Wszystkie akcje (save, delete, analyze, accept/reject suggestions)
 
 #### Komponenty Shadcn/ui
+
 - **Zainstalowane**:
   - `textarea` - pole treści notatki
   - `alert-dialog` - potwierdzenia usunięcia
@@ -151,6 +165,7 @@
   - `label` - etykiety formularzy
 
 #### Markdown rendering
+
 - **Biblioteki**:
   - `react-markdown` - renderowanie Markdown do HTML
   - `@tailwindcss/typography` - style prose
@@ -159,6 +174,7 @@
 ### 8. Integracja API (✅ Zakończone)
 
 #### Endpointy wykorzystane
+
 - `GET /api/notes/:id` - pobieranie notatki
 - `POST /api/notes` - tworzenie notatki
 - `PATCH /api/notes/:id` - aktualizacja notatki
@@ -170,6 +186,7 @@
 - `POST /api/entities` - tworzenie nowego bytu
 
 #### Obsługa błędów
+
 - 404 Not Found - komunikat "Notatka nie została znaleziona"
 - 409 Conflict - "Byt o tej nazwie już istnieje"
 - 400 Bad Request - walidacja z mapowaniem błędów do pól
@@ -179,6 +196,7 @@
 ### 9. Flow nawigacji (✅ Zakończone)
 
 #### Nowy flow użytkownika
+
 ```
 Dashboard (/)
     ↓ kliknięcie na notatkę
@@ -202,10 +220,12 @@ Tworzenie (/notes/new)
 ### 10. Testy i debugging (✅ Zakończone)
 
 #### Build
+
 - ✅ Build zakończony sukcesem (bez błędów TypeScript)
 - ✅ Wszystkie moduły wygenerowane poprawnie
 
 #### Dev server
+
 - ✅ Serwer uruchomiony: http://localhost:3001/
 - ✅ Vite cache wyczyszczony (rozwiązany błąd 504 "outdated optimize dep")
 - ✅ Hot Module Replacement działa
@@ -213,6 +233,7 @@ Tworzenie (/notes/new)
 ## Statystyki implementacji
 
 ### Utworzone pliki
+
 - **Komponenty**: 7 plików (.tsx)
 - **Hooki**: 1 plik (.ts)
 - **Typy**: 1 plik (.ts)
@@ -222,6 +243,7 @@ Tworzenie (/notes/new)
 **Razem**: 13 nowych plików
 
 ### Zmodyfikowane pliki
+
 - **Dashboard komponenty**: 5 plików
 - **Layout**: 1 plik
 - **Styles**: 1 plik
@@ -229,6 +251,7 @@ Tworzenie (/notes/new)
 **Razem**: 7 zmodyfikowanych plików
 
 ### Zainstalowane biblioteki
+
 - `react-markdown` - renderowanie Markdown
 - `@tailwindcss/typography` - style prose
 - `shadcn/ui`: textarea, alert-dialog, sonner, label
@@ -286,6 +309,7 @@ Tworzenie (/notes/new)
 ## Podsumowanie
 
 ### ✅ Ukończono zgodnie z planem
+
 - [x] Wszystkie 11 kroków z planu implementacji (.ai/note-editor-view-implementation-plan.md)
 - [x] Dodatkowa funkcjonalność: widok podglądu z Markdown rendering
 - [x] Dodatkowa funkcjonalność: edycja/usuwanie z Dashboard
@@ -297,6 +321,7 @@ Tworzenie (/notes/new)
 - [x] Walidacja formularzy
 
 ### 🎯 Zgodność z architekturą
+
 - ✅ Bottom-up component implementation
 - ✅ Custom hook dla logiki biznesowej
 - ✅ ViewModels oddzielone od DTO
@@ -306,6 +331,7 @@ Tworzenie (/notes/new)
 - ✅ Astro SSR routing
 
 ### 📊 Jakość kodu
+
 - ✅ Zero błędów TypeScript
 - ✅ Build succeeds
 - ✅ Responsive design
@@ -315,6 +341,7 @@ Tworzenie (/notes/new)
 - ✅ User feedback (toasts)
 
 ### 🚀 Gotowość produkcyjna
+
 **Status**: ✅ **GOTOWE DO UŻYCIA**
 
 Widok Edytora i Podglądu Notatek jest w pełni funkcjonalny, przetestowany i gotowy do użycia produkcyjnego. Wszystkie kluczowe funkcjonalności zostały zaimplementowane zgodnie z planem i wymaganiami użytkownika.

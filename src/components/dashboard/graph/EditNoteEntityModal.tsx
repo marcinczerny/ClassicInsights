@@ -13,7 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import type { Enums } from "@/db/database.types";
 
@@ -105,7 +111,9 @@ export function EditNoteEntityModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{showDeleteConfirm ? "Potwierdź usunięcie" : "Edytuj połączenie"}</DialogTitle>
+          <DialogTitle>
+            {showDeleteConfirm ? "Potwierdź usunięcie" : "Edytuj połączenie"}
+          </DialogTitle>
           <DialogDescription>
             {showDeleteConfirm
               ? `Czy na pewno chcesz usunąć połączenie między "${noteName}" a "${entityName}"?`

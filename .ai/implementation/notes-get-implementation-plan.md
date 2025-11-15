@@ -1,9 +1,11 @@
 # API Endpoint Implementation Plan: GET /api/notes
 
 ## 1. Przegląd punktu końcowego
+
 Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących do uwierzytelnionego użytkownika. Obsługuje paginację, sortowanie oraz filtrowanie na podstawie powiązanych bytów i frazy wyszukiwania. Zapewnia podstawową funkcjonalność do przeglądania i wyszukiwania notatek w aplikacji.
 
 ## 2. Szczegóły żądania
+
 - **Metoda HTTP**: `GET`
 - **Struktura URL**: `/api/notes`
 - **Parametry zapytania (Query Parameters)**:
@@ -17,12 +19,14 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
 - **Request Body**: Brak.
 
 ## 3. Wykorzystywane typy
+
 - **`NotesListResponseDTO`**: Główny typ odpowiedzi.
 - **`NoteDTO`**: Reprezentacja pojedynczej notatki w odpowiedzi.
 - **`PaginationDTO`**: Struktura metadanych paginacji.
 - **`EntityBasicDTO`**: Uproszczona reprezentacja bytu zagnieżdżonego w `NoteDTO` (z polem `relationship_type`).
 
 ## 4. Szczegóły odpowiedzi
+
 - **Odpowiedź sukcesu (200 OK)**:
   ```json
   {
@@ -56,6 +60,7 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
 - **Odpowiedzi błędów**: Zobacz sekcję "Obsługa błędów".
 
 ## 5. Przepływ danych
+
 1.  Żądanie `GET` trafia do punktu końcowego Astro `src/pages/api/notes/index.ts`.
 2.  Middleware Astro weryfikuje sesję użytkownika za pomocą `context.locals.supabase`. Jeśli sesja jest nieprawidłowa, przepływ jest przerywany (zwracany jest status 401).
 3.  Handler `GET` w pliku `index.ts` pobiera parametry zapytania z `Astro.url.searchParams`.
@@ -72,24 +77,28 @@ Ten punkt końcowy jest odpowiedzialny za pobieranie listy notatek należących 
 9.  Handler API serializuje DTO do formatu JSON i wysyła odpowiedź z kodem statusu `200 OK`.
 
 ## 6. Względy bezpieczeństwa
+
 - **Autoryzacja**: Wszystkie zapytania do bazy danych będą wykonywane za pośrednictwem instancji `context.locals.supabase`, co gwarantuje, że polityki RLS (Row-Level Security) w PostgreSQL będą egzekwowane. Uniemożliwi to użytkownikom dostęp do notatek, które nie są ich własnością.
 - **Walidacja wejścia**: Wszystkie parametry zapytania będą rygorystycznie walidowane za pomocą Zod, aby zapobiec nieoczekiwanym błędom i potencjalnym atakom.
 - **Ograniczenie dostępu**: Maksymalna wartość parametru `limit` zostanie ustalona na `100`, aby zapobiec nadmiernemu obciążeniu bazy danych.
 
 ## 7. Obsługa błędów
-| Warunek błędu | Kod statusu HTTP | Ciało odpowiedzi (ErrorDTO) |
-|---|---|---|
-| Użytkownik nie jest uwierzytelniony | `401 Unauthorized` | `{ "error": { "code": "UNAUTHORIZED", "message": "User is not authenticated." } }` |
-| Błąd walidacji parametrów zapytania (np. nieprawidłowy `sort`) | `400 Bad Request` | `{ "error": { "code": "VALIDATION_ERROR", "message": "Invalid query parameters.", "details": [...] } }` |
-| Wewnętrzny błąd serwera (np. błąd zapytania do bazy danych) | `500 Internal Server Error` | `{ "error": { "code": "INTERNAL_ERROR", "message": "An unexpected error occurred." } }` |
+
+| Warunek błędu                                                  | Kod statusu HTTP            | Ciało odpowiedzi (ErrorDTO)                                                                             |
+| -------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Użytkownik nie jest uwierzytelniony                            | `401 Unauthorized`          | `{ "error": { "code": "UNAUTHORIZED", "message": "User is not authenticated." } }`                      |
+| Błąd walidacji parametrów zapytania (np. nieprawidłowy `sort`) | `400 Bad Request`           | `{ "error": { "code": "VALIDATION_ERROR", "message": "Invalid query parameters.", "details": [...] } }` |
+| Wewnętrzny błąd serwera (np. błąd zapytania do bazy danych)    | `500 Internal Server Error` | `{ "error": { "code": "INTERNAL_ERROR", "message": "An unexpected error occurred." } }`                 |
 
 ## 8. Rozważania dotyczące wydajności
+
 - **Indeksowanie**: Należy upewnić się, że kolumny `user_id`, `created_at`, `updated_at` i `title` w tabeli `notes` są zindeksowane, aby przyspieszyć operacje filtrowania i sortowania.
 - **Złożone filtrowanie**: Filtrowanie po wielu `entities` może być kosztowne. Należy zoptymalizować to zapytanie, potencjalnie tworząc dedykowaną funkcję PostgreSQL (RPC), aby zminimalizować liczbę złączeń po stronie klienta.
 - **Paginacja**: Paginacja jest kluczowa dla wydajności i musi być stosowana domyślnie, aby unikać pobierania dużych zbiorów danych.
 - **Zapytanie o `count`**: Zapytanie o całkowitą liczbę rekordów powinno być wykonane z tymi samymi filtrami co główne zapytanie, ale bez sortowania i limitowania, aby zapewnić spójność.
 
 ## 9. Etapy wdrożenia
+
 1.  **Walidacja**: W pliku `src/lib/validation.ts` (utwórz, jeśli nie istnieje) zdefiniuj schemat Zod do walidacji parametrów zapytania `GET /api/notes`.
 2.  **Serwis**: Utwórz plik `src/lib/services/notes.service.ts` (utwórz katalog, jeśli nie istnieje).
 3.  **Implementacja `getNotes`**: W `notes.service.ts` zaimplementuj funkcję `async function getNotes(supabase: SupabaseClient, userId: string, params: ValidatedParams)`.

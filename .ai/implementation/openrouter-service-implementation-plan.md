@@ -19,7 +19,7 @@ export class OpenRouterService {
     // API Key is loaded from environment variables for security.
     // Ensure `OPENROUTER_API_KEY` is set in your .env file.
     this.apiKey = import.meta.env.OPENROUTER_API_KEY;
-    this.apiBaseUrl = 'https://openrouter.ai/api/v1';
+    this.apiBaseUrl = "https://openrouter.ai/api/v1";
 
     if (!this.apiKey) {
       // Throw an error during initialization if the key is missing.
@@ -37,36 +37,43 @@ export class OpenRouterService {
 
 This is the primary method for interacting with the LLM when a structured JSON output is required.
 
--   **`params`**: An object containing all necessary information for the API call.
-    -   `systemPrompt` (string): The system-level instruction for the model.
-    -   `userPrompt` (string): The user's query or input.
-    -   `schema` (Zod schema): The Zod schema that defines the desired JSON output structure.
-    -   `model` (string, optional): The name of the model to use (e.g., `'anthropic/claude-3.5-sonnet'`). Defaults to a sensible value.
-    -   `params` (object, optional): Additional model parameters like `temperature`, `max_tokens`.
--   **Returns**: A promise that resolves to an object conforming to the provided Zod schema.
--   **Throws**: Custom errors (`APIError`, `ValidationError`, etc.) on failure.
+- **`params`**: An object containing all necessary information for the API call.
+  - `systemPrompt` (string): The system-level instruction for the model.
+  - `userPrompt` (string): The user's query or input.
+  - `schema` (Zod schema): The Zod schema that defines the desired JSON output structure.
+  - `model` (string, optional): The name of the model to use (e.g., `'anthropic/claude-3.5-sonnet'`). Defaults to a sensible value.
+  - `params` (object, optional): Additional model parameters like `temperature`, `max_tokens`.
+- **Returns**: A promise that resolves to an object conforming to the provided Zod schema.
+- **Throws**: Custom errors (`APIError`, `ValidationError`, etc.) on failure.
 
 **Example Usage:**
 
 ```typescript
-import { z } from 'zod';
-import { OpenRouterService } from './ai.service'; // Adjust path
+import { z } from "zod";
+import { OpenRouterService } from "./ai.service"; // Adjust path
 
 const aiService = new OpenRouterService();
 
 const NoteEntitiesSchema = z.object({
-  entities: z.array(z.object({
-    name: z.string().describe("The name of the identified entity"),
-    type: z.enum(["person", "place", "organization", "concept"]).describe("The type of the entity"),
-  })).describe("A list of entities found in the note.")
+  entities: z
+    .array(
+      z.object({
+        name: z.string().describe("The name of the identified entity"),
+        type: z
+          .enum(["person", "place", "organization", "concept"])
+          .describe("The type of the entity"),
+      })
+    )
+    .describe("A list of entities found in the note."),
 });
 
 try {
   const result = await aiService.getStructuredResponse({
-    systemPrompt: "You are an expert at identifying named entities in text. Extract them according to the provided JSON schema.",
+    systemPrompt:
+      "You are an expert at identifying named entities in text. Extract them according to the provided JSON schema.",
     userPrompt: "John Doe visited Paris to meet with representatives from OpenAI.",
     schema: NoteEntitiesSchema,
-    model: 'anthropic/claude-3.5-sonnet'
+    model: "anthropic/claude-3.5-sonnet",
   });
   console.log(result.entities);
   // Output: [{ name: "John Doe", type: "person" }, { name: "Paris", type: "place" }, { name: "OpenAI", type: "organization" }]
@@ -79,36 +86,36 @@ try {
 
 ### `private async executeRequest(body: Record<string, any>): Promise<any>`
 
--   Handles the actual `fetch` call to the OpenRouter API.
--   Adds the required `Authorization`, `Content-Type`, and other necessary headers.
--   Manages network-level errors and timeouts.
--   Parses the initial JSON response and checks for API-level errors before returning the body.
+- Handles the actual `fetch` call to the OpenRouter API.
+- Adds the required `Authorization`, `Content-Type`, and other necessary headers.
+- Manages network-level errors and timeouts.
+- Parses the initial JSON response and checks for API-level errors before returning the body.
 
 ### `private buildRequestPayload<T extends z.ZodTypeAny>(params: StructuredResponseParams<T>): Record<string, any>`
 
--   Constructs the complete request body for the API call.
--   Transforms the Zod schema into the `json_schema` format required by the OpenRouter API using the `zod-to-json-schema` library.
--   Formats the `systemPrompt` and `userPrompt` into the correct `messages` array structure.
--   Merges default model parameters with any user-provided overrides.
+- Constructs the complete request body for the API call.
+- Transforms the Zod schema into the `json_schema` format required by the OpenRouter API using the `zod-to-json-schema` library.
+- Formats the `systemPrompt` and `userPrompt` into the correct `messages` array structure.
+- Merges default model parameters with any user-provided overrides.
 
 ### `private parseAndValidateResponse<T extends z.ZodTypeAny>(schema: T, response: any): z.infer<T>`
 
--   Takes the raw response content from the API and the original Zod schema.
--   Attempts to parse the string content into a JavaScript object.
--   Uses the Zod schema's `.safeParse()` method to validate the object's structure.
--   Returns the validated data or throws a `ResponseValidationError` if parsing or validation fails.
+- Takes the raw response content from the API and the original Zod schema.
+- Attempts to parse the string content into a JavaScript object.
+- Uses the Zod schema's `.safeParse()` method to validate the object's structure.
+- Returns the validated data or throws a `ResponseValidationError` if parsing or validation fails.
 
 ## 5. Error Handling
 
 The service will implement a robust error handling strategy using custom error classes to provide clear and actionable feedback. All custom errors should extend a base `AIError` class.
 
--   `AuthenticationError (401)`: Thrown if the API key is invalid or missing.
--   `BadRequestError (400)`: Thrown for malformed requests (e.g., invalid model parameters).
--   `RateLimitError (429)`: Thrown when the API rate limit is exceeded. The application should handle this with a backoff strategy.
--   `NotFoundError (404)`: Thrown if the requested model is not found.
--   `APIError (5xx)`: A generic error for server-side issues on OpenRouter's end.
--   `NetworkError`: Thrown for network connectivity issues or timeouts.
--   `ResponseValidationError`: Thrown if the model's output is not valid JSON or does not conform to the requested Zod schema.
+- `AuthenticationError (401)`: Thrown if the API key is invalid or missing.
+- `BadRequestError (400)`: Thrown for malformed requests (e.g., invalid model parameters).
+- `RateLimitError (429)`: Thrown when the API rate limit is exceeded. The application should handle this with a backoff strategy.
+- `NotFoundError (404)`: Thrown if the requested model is not found.
+- `APIError (5xx)`: A generic error for server-side issues on OpenRouter's end.
+- `NetworkError`: Thrown for network connectivity issues or timeouts.
+- `ResponseValidationError`: Thrown if the model's output is not valid JSON or does not conform to the requested Zod schema.
 
 ## 6. Security Considerations
 
@@ -191,11 +198,11 @@ export interface StructuredResponseParams<T extends z.ZodTypeAny> {
 export class OpenRouterService {
   private apiKey: string;
   private apiBaseUrl: string;
-  private defaultModel = 'anthropic/claude-3.5-sonnet';
+  private defaultModel = "anthropic/claude-3.5-sonnet";
 
   constructor() {
     this.apiKey = import.meta.env.OPENROUTER_API_KEY;
-    this.apiBaseUrl = 'https://openrouter.ai/api/v1';
+    this.apiBaseUrl = "https://openrouter.ai/api/v1";
 
     if (!this.apiKey) {
       throw new AuthenticationError("OPENROUTER_API_KEY is not set in environment variables.");
@@ -228,7 +235,7 @@ export class OpenRouterService {
     params,
   }: StructuredResponseParams<T>): Record<string, any> {
     const jsonSchema = zodToJsonSchema(schema, {
-      $refStrategy: 'none' // Use this strategy to avoid $ref issues
+      $refStrategy: "none", // Use this strategy to avoid $ref issues
     });
 
     const { $schema, ...rest } = jsonSchema; // Remove top-level $schema if present
@@ -250,11 +257,8 @@ export class OpenRouterService {
       ...params,
     };
   }
-  
-  private parseAndValidateResponse<T extends z.ZodTypeAny>(
-    schema: T,
-    content: string
-  ): z.infer<T> {
+
+  private parseAndValidateResponse<T extends z.ZodTypeAny>(schema: T, content: string): z.infer<T> {
     try {
       const parsedJson = JSON.parse(content);
       const validationResult = schema.safeParse(parsedJson);
@@ -274,33 +278,39 @@ export class OpenRouterService {
   private async executeRequest(body: Record<string, any>): Promise<any> {
     try {
       const response = await fetch(`${this.apiBaseUrl}/chat/completions`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://classic-insights.com', // Replace with your app's URL
-          'X-Title': 'Classic Insights', // Replace with your app's name
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://classic-insights.com", // Replace with your app's URL
+          "X-Title": "Classic Insights", // Replace with your app's name
         },
         body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        const errorMessage = errorBody.error?.message || `API request failed with status ${response.status}`;
+        const errorMessage =
+          errorBody.error?.message || `API request failed with status ${response.status}`;
 
         switch (response.status) {
-          case 400: throw new BadRequestError(errorMessage);
-          case 401: throw new AuthenticationError(errorMessage);
-          case 429: throw new RateLimitError(errorMessage);
-          case 404: throw new NotFoundError(errorMessage);
-          default: throw new APIError(errorMessage);
+          case 400:
+            throw new BadRequestError(errorMessage);
+          case 401:
+            throw new AuthenticationError(errorMessage);
+          case 429:
+            throw new RateLimitError(errorMessage);
+          case 404:
+            throw new NotFoundError(errorMessage);
+          default:
+            throw new APIError(errorMessage);
         }
       }
 
       return await response.json();
     } catch (error) {
-        if (error instanceof AIError) throw error;
-        throw new NetworkError(`Network request to OpenRouter failed: ${(error as Error).message}`);
+      if (error instanceof AIError) throw error;
+      throw new NetworkError(`Network request to OpenRouter failed: ${(error as Error).message}`);
     }
   }
 }
@@ -312,4 +322,3 @@ export class OpenRouterService {
 2.  **Define Zod Schemas**: For each specific use case, define a clear Zod schema for the expected output.
 3.  **Call the Service**: Use the `getStructuredResponse` method with your prompts and schema, wrapping the call in a try-catch block to handle potential errors gracefully.
 4.  **Refine Prompts**: Test and refine your system and user prompts to get the most accurate and reliable structured data from the models.
-

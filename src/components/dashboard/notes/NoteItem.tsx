@@ -133,7 +133,8 @@ export function NoteItem({ note, isSelected = false, onSelect, onDelete }: NoteI
           <AlertDialogHeader>
             <AlertDialogTitle>Czy na pewno chcesz usunąć tę notatkę?</AlertDialogTitle>
             <AlertDialogDescription>
-              Ta akcja jest nieodwracalna. Notatka &quot;{note.title}&quot; zostanie trwale usunięta z bazy danych.
+              Ta akcja jest nieodwracalna. Notatka &quot;{note.title}&quot; zostanie trwale usunięta
+              z bazy danych.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

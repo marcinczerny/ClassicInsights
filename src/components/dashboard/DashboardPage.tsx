@@ -43,7 +43,10 @@ export function DashboardPage() {
 
   // Onboarding modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [onboardingDismissed, setOnboardingDismissed] = useSessionStorage("onboardingDismissed", false);
+  const [onboardingDismissed, setOnboardingDismissed] = useSessionStorage(
+    "onboardingDismissed",
+    false
+  );
 
   // Show onboarding modal for new users with no notes
   useEffect(() => {
@@ -101,7 +104,11 @@ export function DashboardPage() {
       </div>
 
       {/* Onboarding Modal */}
-      <OnboardingModal isOpen={isModalOpen} onClose={handleModalClose} onCtaClick={handleCtaClick} />
+      <OnboardingModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onCtaClick={handleCtaClick}
+      />
     </div>
   );
 }
