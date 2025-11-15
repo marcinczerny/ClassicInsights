@@ -41,6 +41,27 @@ export const findEntityByName = async (
   return data;
 };
 
+export const searchEntities = async (
+  supabase: SupabaseClient,
+  userId: string,
+  searchTerm: string,
+  limit: number = 10
+): Promise<EntityDTO[]> => {
+  const { data, error } = await supabase
+    .from("entities")
+    .select("*")
+    .eq("user_id", userId)
+    .ilike("name", `%${searchTerm}%`)
+    .order("name", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    handleSupabaseError(error);
+  }
+
+  return data || [];
+};
+
 export const createEntity = async (
   supabase: SupabaseClient,
   userId: string,

@@ -1,17 +1,31 @@
-import { getEntities, createEntity } from "@/lib/services/entities.service";
+import { getEntities, createEntity, searchEntities } from "@/lib/services/entities.service";
 import { createEntitySchema } from "@/lib/validation";
 import type { APIRoute } from "astro";
 import { z } from "zod";
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ locals, url }) => {
   const { user, supabase } = locals;
   if (!user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   try {
-    const entities = await getEntities(supabase, user.id);
-    return new Response(JSON.stringify(entities), {
+    const searchParams = url.searchParams;
+    const search = searchParams.get("search");
+    const limit = searchParams.get("limit");
+
+    let entities;
+
+    if (search) {
+      // If search parameter is provided, use search functionality
+      const limitNum = limit ? parseInt(limit, 10) : 10;
+      entities = await searchEntities(supabase, user.id, search, limitNum);
+    } else {
+      // Otherwise, return all entities
+      entities = await getEntities(supabase, user.id);
+    }
+
+    return new Response(JSON.stringify({ data: entities }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
