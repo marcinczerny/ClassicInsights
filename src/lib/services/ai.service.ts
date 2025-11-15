@@ -31,10 +31,10 @@ export class OpenRouterService {
   private apiBaseUrl: string;
   private defaultModel = "anthropic/claude-3.5-sonnet";
 
-  constructor() {
+  constructor(apiKey: string) {
     // API Key is loaded from environment variables for security
     // Ensure `OPENROUTER_API_KEY` is set in your .env file
-    this.apiKey = import.meta.env.OPENROUTER_API_KEY;
+    this.apiKey = apiKey;
     this.apiBaseUrl = "https://openrouter.ai/api/v1";
 
     if (!this.apiKey) {

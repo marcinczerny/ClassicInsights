@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import type {
   NoteViewModel,
   NoteEntityViewModel,
@@ -280,7 +281,7 @@ export function useNoteEditor(noteId: string | "new") {
       }
 
       const result = await response.json();
-      const suggestions: SuggestionViewModel[] = result.suggestions.map((dto: SuggestionDTO) => ({
+      const suggestions: SuggestionViewModel[] = result.map((dto: SuggestionDTO) => ({
         ...dto,
         isSubmitting: false,
       }));
@@ -323,6 +324,10 @@ export function useNoteEditor(noteId: string | "new") {
         if (!response.ok) {
           throw new Error("Failed to accept suggestion");
         }
+
+        toast.success("Suggestion accepted", {
+          description: "The note has been updated with the suggestion.",
+        });
 
         // Remove suggestion from list
         setState((prev) => ({
@@ -370,6 +375,8 @@ export function useNoteEditor(noteId: string | "new") {
       if (!response.ok) {
         throw new Error("Failed to reject suggestion");
       }
+
+      toast.info("Suggestion rejected");
 
       // Remove suggestion from list
       setState((prev) => ({
