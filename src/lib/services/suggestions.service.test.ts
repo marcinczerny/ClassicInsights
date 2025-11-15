@@ -227,9 +227,7 @@ describe("Suggestions Service - Business Rules", () => {
         select: vi.fn().mockResolvedValueOnce({ data: expectedSavedSuggestions, error: null }),
       };
 
-      mockSupabaseClient.from
-        .mockReturnValueOnce(fromMockGet)
-        .mockReturnValueOnce(fromMockInsert);
+      mockSupabaseClient.from.mockReturnValueOnce(fromMockGet).mockReturnValueOnce(fromMockInsert);
 
       const result = await generateSuggestionsForNote(
         mockSupabaseClient,
