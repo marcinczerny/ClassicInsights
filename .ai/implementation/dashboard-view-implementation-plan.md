@@ -145,11 +145,12 @@ Logika zarządzania stanem, pobierania danych i obsługi efektów ubocznych zost
 - **Zarządzany stan**: `notes`, `pagination`, `graphData`, `searchTerm`, `graphCenterNode`, `isLoadingNotes`, `isLoadingGraph`, stany błędów.
 - **Udostępniane funkcje**:
   - `fetchNotes(page, search)`: Pobiera notatki.
-  - `fetchGraph(centerNode)`: Pobiera dane grafu.
-  - `handleSearchChange(term)`: Aktualizuje stan wyszukiwania.
-  - `handlePageChange(page)`: Aktualizuje stronę.
-  - `handleNodeSelect(node)`: Zmienia centrum grafu.
+  - `fetchGraphData()`: Pobiera dane grafu w oparciu o `graphCenterNode`.
+  - `handleNodeSelect(node)`: Ustawia `graphCenterNode`, co powoduje przeładowanie i wycentrowanie grafu.
+  - `handleNodeSelection(nodeId)`: Ustawia `selectedNodeId`, co powoduje podświetlenie węzła i wyświetlenie przycisku do centrowania.
   - `handleCreateRelationship(command)`: Tworzy nową relację.
+  - `handleRelationshipDelete(id)`: Usuwa relację i odświeża graf.
+  - `handleNoteEntityDelete(noteId, entityId)`: Usuwa powiązanie i odświeża graf.
   - `setGraphPanelState(state)`: Zarządza układem panelu grafu.
 
 ## 7. Integracja API
@@ -181,7 +182,7 @@ Komponenty będą komunikować się z czterema głównymi endpointami API:
 - **Wyszukiwanie notatek**: Użytkownik wpisuje frazę w `SearchBar`. Po krótkiej chwili (debouncing) wyświetlane są sugestie. Zatwierdzenie wyszukiwania filtruje listę notatek.
 - **Nawigacja po notatkach**: Kliknięcie `NoteItem` przenosi do widoku `/notes/:id`. Kliknięcie przycisku "Nowa notatka" przenosi do `/notes/new`.
 - **Paginacja**: Kliknięcie przycisku paginacji ładuje kolejną stronę notatek.
-- **Eksploracja grafu**: Kliknięcie węzła w `GraphView` powoduje przeładowanie grafu z wybranym węzłem jako centrum.
+- **Eksploracja grafu**: Kliknięcie węzła w `GraphView` zaznacza go i wyświetla przycisk "Ustaw jako centrum". Dopiero kliknięcie tego przycisku powoduje przeładowanie grafu z wybranym węzłem jako centrum.
 - **Zmiana układu**: Użytkownik może zwinąć, rozwinąć lub otworzyć `GraphPanel` w trybie pełnoekranowym.
 - **Tworzenie relacji**: Użytkownik aktywuje "tryb łączenia", klika dwa węzły bytów, a następnie w modalu wybiera typ relacji i zatwierdza jej utworzenie.
 

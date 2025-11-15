@@ -23,13 +23,17 @@ interface GraphPanelProps {
   panelState: "collapsed" | "open" | "fullscreen";
   hasNotes: boolean;
   graphCenterNode: { id: string; type: "note" | "entity" } | null;
+  selectedNodeId: string | null;
   onNodeSelect: (node: { id: string; type: "note" | "entity" }) => void;
+  onNodeSelection: (nodeId: string | null) => void;
   onCreateRelationship: (command: CreateRelationshipCommand) => void;
   onCreateNoteEntity: (
     noteId: string,
     entityId: string,
     relationshipType: Enums<"relationship_type">
   ) => void;
+  onRelationshipDelete: (relationshipId: string) => void;
+  onNoteEntityDelete: (noteId: string, entityId: string) => void;
   onPanelStateChange: (state: "collapsed" | "open" | "fullscreen") => void;
 }
 
@@ -40,9 +44,13 @@ export function GraphPanel({
   panelState,
   hasNotes,
   graphCenterNode,
+  selectedNodeId,
   onNodeSelect,
+  onNodeSelection,
   onCreateRelationship,
   onCreateNoteEntity,
+  onRelationshipDelete,
+  onNoteEntityDelete,
   onPanelStateChange,
 }: GraphPanelProps) {
   const [isConnectionMode, setIsConnectionMode] = useState(false);
@@ -254,27 +262,10 @@ export function GraphPanel({
    */
   const handleRelationshipDelete = useCallback(
     async (relationshipId: string) => {
-      try {
-        const response = await fetch(`/api/relationships/${relationshipId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to delete relationship");
-        }
-
-        // Refresh graph
-        if (graphCenterNode) {
-          onNodeSelect(graphCenterNode);
-        }
-
-        setEditingEdge(null);
-      } catch (error) {
-        console.error("Error deleting relationship:", error);
-        // TODO: Show error toast
-      }
+      await onRelationshipDelete(relationshipId);
+      setEditingEdge(null);
     },
-    [graphCenterNode, onNodeSelect]
+    [onRelationshipDelete]
   );
 
   /**
@@ -335,27 +326,10 @@ export function GraphPanel({
    */
   const handleNoteEntityDelete = useCallback(
     async (noteId: string, entityId: string) => {
-      try {
-        const response = await fetch(`/api/notes/${noteId}/entities/${entityId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to delete note-entity association");
-        }
-
-        // Refresh graph
-        if (graphCenterNode) {
-          onNodeSelect(graphCenterNode);
-        }
-
-        setEditingNoteEntity(null);
-      } catch (error) {
-        console.error("Error deleting note-entity association:", error);
-        // TODO: Show error toast
-      }
+      await onNoteEntityDelete(noteId, entityId);
+      setEditingNoteEntity(null);
     },
-    [graphCenterNode, onNodeSelect]
+    [onNoteEntityDelete]
   );
 
   /**
@@ -441,8 +415,12 @@ export function GraphPanel({
             hasNotes={hasNotes}
             selectedSourceNode={selectedSourceNode}
             graphCenterNode={graphCenterNode}
+            selectedNodeId={selectedNodeId}
+            onNodeSelect={onNodeSelect}
             onNodeClick={
-              isConnectionMode ? (node) => handleNodeClickInConnectionMode(node.id) : onNodeSelect
+              isConnectionMode
+                ? (node) => handleNodeClickInConnectionMode(node.id)
+                : (node) => onNodeSelection(node.id)
             }
             onEdgeClick={!isConnectionMode ? handleEdgeClick : undefined}
           />

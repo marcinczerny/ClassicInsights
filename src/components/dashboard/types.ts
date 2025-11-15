@@ -30,6 +30,7 @@ export interface DashboardState {
    * Node that the graph is currently centered on
    */
   graphCenterNode: { id: string; type: "note" | "entity" } | null;
+  selectedNodeId: string | null;
 
   /**
    * Current search term (for note title)
@@ -62,8 +63,15 @@ export interface DashboardViewController extends DashboardState {
 
   // Graph actions
   handleNodeSelect: (node: { id: string; type: "note" | "entity" }) => void;
+  handleNodeSelection: (nodeId: string | null) => void;
   handleCreateRelationship: (command: CreateRelationshipCommand) => Promise<void>;
-  handleCreateNoteEntity: (noteId: string, entityName: string) => Promise<void>;
+  handleCreateNoteEntity: (
+    noteId: string,
+    entityId: string,
+    relationshipType: any
+  ) => Promise<void>;
+  handleRelationshipDelete: (relationshipId: string) => Promise<void>;
+  handleNoteEntityDelete: (noteId: string, entityId: string) => Promise<void>;
   setGraphPanelState: (state: "collapsed" | "open" | "fullscreen") => void;
 }
 

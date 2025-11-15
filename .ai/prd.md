@@ -184,9 +184,11 @@ Następujące funkcjonalności nie wchodzą w zakres wersji MVP i mogą zostać 
 - Tytuł: Eksploracja grafu
 - Opis: Jako użytkownik, chcę móc interaktywnie eksplorować graf, klikając na poszczególne węzły, aby zobaczyć ich własne połączenia.
 - Kryteria akceptacji:
-  1. Kliknięcie na dowolny węzeł centruje widok grafu na nim.
-  2. Graf przeładowuje się, aby pokazać połączenia pierwszego i drugiego stopnia od nowo wybranego węzła.
-  3. Nawigacja po grafie jest płynna i intuicyjna (np. możliwość przesuwania i przybliżania widoku).
+  1. Kliknięcie na dowolny węzeł zaznacza go i wyświetla przycisk "Ustaw jako centrum".
+  2. Graf przeładowuje się i centruje na nowo wybranym węźle dopiero po kliknięciu tego przycisku.
+  3. Po przeładowaniu graf pokazuje połączenia pierwszego i drugiego stopnia od nowo wybranego węzła.
+  4. Widok grafu automatycznie dopasowuje się, aby pokazać wszystkie widoczne węzły.
+  5. Nawigacja po grafie jest płynna i intuicyjna (np. możliwość przesuwania i przybliżania widoku).
 
 - ID: US-013
 - Tytuł: Definiowanie typu relacji

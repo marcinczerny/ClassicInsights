@@ -10,6 +10,7 @@ const INITIAL_STATE: Omit<DashboardState, "notes"> = {
   isLoadingGraph: true,
   graphError: null,
   graphCenterNode: null,
+  selectedNodeId: null,
   searchTerm: "",
   selectedEntityIds: [],
   graphPanelState: "open" as const,
@@ -22,9 +23,11 @@ export function useDashboard(): DashboardViewController {
     id: string;
     type: "note" | "entity";
   } | null>(null);
+  const [graphPanelState, setGraphPanelState] = useState<"collapsed" | "open" | "fullscreen">("open");
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const fetchAllData = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoadingNotes: true, isLoadingGraph: true }));
+    setState((prev) => ({ ...prev, isLoadingNotes: true }));
     try {
       const params = new URLSearchParams({
         page: state.pagination.page.toString(),
@@ -35,40 +38,96 @@ export function useDashboard(): DashboardViewController {
         ...(state.selectedEntityIds.length > 0 && { entities: state.selectedEntityIds.join(",") }),
       });
 
-      const [notesRes, graphRes] = await Promise.all([
-        fetch(`/api/notes?${params}`),
-        fetch("/api/graph"),
-      ]);
-
+      const notesRes = await fetch(`/api/notes?${params}`);
       if (!notesRes.ok) throw new Error("Failed to fetch notes");
-      if (!graphRes.ok) throw new Error("Failed to fetch graph data");
-
       const notesResponse = await notesRes.json();
-      const graphData = await graphRes.json();
-
       setAllNotes(notesResponse.data);
       setState((prev) => ({
         ...prev,
         pagination: notesResponse.pagination,
-        graphData,
         isLoadingNotes: false,
-        isLoadingGraph: false,
       }));
     } catch (error) {
       const err = error instanceof Error ? error : new Error("An unknown error occurred");
       setState((prev) => ({
         ...prev,
         notesError: err,
-        graphError: err,
         isLoadingNotes: false,
-        isLoadingGraph: false,
       }));
     }
   }, [state.pagination.page, state.pagination.limit, state.searchTerm, state.selectedEntityIds]);
 
+  const fetchGraphData = useCallback(async () => {
+    if (!graphCenterNode) {
+      setState((prev) => ({ ...prev, graphData: { nodes: [], edges: [] } }));
+      return;
+    }
+    setState((prev) => ({ ...prev, isLoadingGraph: true }));
+    try {
+      const res = await fetch(`/api/graph?centerNodeId=${graphCenterNode.id}`);
+      if (!res.ok) throw new Error("Failed to fetch graph data");
+      const graphData = await res.json();
+      setState((prev) => ({ ...prev, graphData, isLoadingGraph: false, graphError: null }));
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("An unknown error occurred");
+      setState((prev) => ({
+        ...prev,
+        graphError: err,
+        isLoadingGraph: false,
+      }));
+    }
+  }, [graphCenterNode]);
+
   useEffect(() => {
     fetchAllData();
-  }, [fetchAllData]);
+  }, [state.pagination.page, state.pagination.limit, state.searchTerm, state.selectedEntityIds]);
+
+  useEffect(() => {
+    // If there's no center node yet, and we have notes, set the first note as the center.
+    if (!graphCenterNode && allNotes.length > 0) {
+      setGraphCenterNode({ id: allNotes[0].id, type: "note" });
+    }
+  }, [allNotes, graphCenterNode]);
+
+  useEffect(() => {
+    fetchGraphData();
+  }, [graphCenterNode, fetchGraphData]);
+
+  const handleRelationshipDelete = useCallback(
+    async (relationshipId: string) => {
+      try {
+        const response = await fetch(`/api/relationships/${relationshipId}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to delete relationship");
+        }
+        await fetchGraphData();
+      } catch (error) {
+        console.error("Error deleting relationship:", error);
+        // TODO: show error toast
+      }
+    },
+    [fetchGraphData]
+  );
+
+  const handleNoteEntityDelete = useCallback(
+    async (noteId: string, entityId: string) => {
+      try {
+        const response = await fetch(`/api/notes/${noteId}/entities/${entityId}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to delete note-entity association");
+        }
+        await fetchGraphData();
+      } catch (error) {
+        console.error("Error deleting note-entity association:", error);
+        // TODO: show error toast
+      }
+    },
+    [fetchGraphData]
+  );
 
   const filteredNotes = useMemo(() => {
     if (!state.searchTerm) return allNotes;
@@ -127,6 +186,7 @@ export function useDashboard(): DashboardViewController {
 
     // Graph actions
     handleNodeSelect,
+    handleNodeSelection: setSelectedNodeId,
     handleCreateRelationship: async (command: CreateRelationshipCommand) => {
       try {
         const response = await fetch("/api/relationships", {
@@ -142,22 +202,39 @@ export function useDashboard(): DashboardViewController {
         }
 
         // Refresh graph data after creating relationship
-        await fetchAllData();
+        await fetchGraphData();
       } catch (error) {
         console.error("Error creating relationship:", error);
         throw error;
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    handleCreateNoteEntity: async (_noteId: string, _entityName: string) => {
-      // TODO: Implement note-entity creation
-      throw new Error("handleCreateNoteEntity not implemented");
+    handleCreateNoteEntity: async (noteId: string, entityId: string, relationshipType: any) => {
+      try {
+        const response = await fetch(`/api/notes/${noteId}/entities`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            entity_id: entityId,
+            relationship_type: relationshipType,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create note-entity association");
+        }
+
+        // Refresh graph data after creating association
+        await fetchGraphData();
+      } catch (error) {
+        console.error("Error creating note-entity association:", error);
+        throw error;
+      }
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    setGraphPanelState: (_state: "collapsed" | "open" | "fullscreen") => {
-      // TODO: Implement graph panel state management
-      throw new Error("setGraphPanelState not implemented");
-    },
+    handleRelationshipDelete,
+    handleNoteEntityDelete,
+    setGraphPanelState,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     handleEntitySelectionChange: (_entityIds: string[]) => {
       // TODO: Implement entity selection change handling
@@ -166,7 +243,8 @@ export function useDashboard(): DashboardViewController {
 
     // State
     graphCenterNode,
+    selectedNodeId,
     selectedEntityIds: [],
-    graphPanelState: "open",
+    graphPanelState,
   };
 }

@@ -952,9 +952,7 @@ Get a visualization-ready graph of entities and notes, centered on a specified e
 
 **Query Parameters**:
 
-- `center_id` (uuid, required): The ID of the center node (can be either an entity or a note). The node type is determined automatically.
-- `center_type` ("entity" | "note", required): The type of the center node. Must be either `"entity"` or `"note"`.
-- `levels` (integer, optional, default: 2, min: 1, max: 3): Number of steps away from the center to include in the graph.
+- `centerNodeId` (uuid, optional): The ID of the center node (can be either an entity or a note). If not provided, an empty graph is returned.
 
 **Request Body**: None
 
@@ -998,10 +996,9 @@ Get a visualization-ready graph of entities and notes, centered on a specified e
 
 **Business Logic**:
 
-- The center of the graph may be either an entity or a note, determined by `center_type`.
-- If an invalid or unsupported `center_type` is provided, return 400.
-- Traverse the graph up to the specified number of `levels` from the center, including both relationships (entity-entity) and note-entity associations.
-- Always include all relevant note nodes within the graph (even if no entity is specified as center).
+- If `centerNodeId` is provided, the graph is centered on that node. The node type is determined automatically by the backend.
+- If `centerNodeId` is not provided, an empty graph (`{ "nodes": [], "edges": [] }`) is returned.
+- The traversal depth is fixed to two levels from the center node.
 - The structure of edges will reflect both entity-entity relationships and note-entity relationships, both using the same `relationship_type` enum for the `type` field.
 
 ---

@@ -19,14 +19,9 @@ The `GET /api/graph` endpoint returns a visualization graph of nodes (entities a
 
 ### Query Parameters:
 
-**Required:**
-
-- `center_id` (string, format: UUID): ID of the central node (can be entity or note)
-- `center_type` (string, enum: "entity" | "note"): Type of the central node
-
 **Optional:**
 
-- `levels` (number, integer, min: 1, max: 3, default: 2): Number of graph levels from center
+- `centerNodeId` (string, format: UUID): ID of the central node (can be entity or note). If not provided, an empty graph is returned.
 
 **URL Examples:**
 
@@ -61,16 +56,7 @@ GET /api/graph?center_id=f6541be6-ef08-43bc-9d96-4ba20f6be97a&center_type=note&l
 ```typescript
 // In API endpoint file
 const graphQuerySchema = z.object({
-  center_id: z.string().uuid({ message: "center_id must be a valid UUID" }),
-  center_type: z.enum(["entity", "note"], {
-    errorMap: () => ({ message: "center_type must be either 'entity' or 'note'" }),
-  }),
-  levels: z.coerce
-    .number()
-    .int({ message: "levels must be an integer" })
-    .min(1, { message: "levels must be at least 1" })
-    .max(3, { message: "levels cannot exceed 3" })
-    .default(2),
+  centerNodeId: z.string().uuid({ message: "centerNodeId must be a valid UUID" }).optional(),
 });
 
 type GraphQueryParams = z.infer<typeof graphQuerySchema>;
@@ -184,17 +170,15 @@ Middleware (Auth Check) → 401 if no auth
      ↓
 Query Parameters Validation (Zod) → 400 if invalid
      ↓
-GraphService.getGraph(supabase, userId, params)
+GraphService.getGraph(supabase, userId, params.centerNodeId)
      ↓
 ┌─────────────────────────────────────┐
 │ Graph Service Logic:                │
-│ 1. Verify center node exists        │ → 404 if doesn't exist
-│ 2. Verify node ownership            │ → 403 if doesn't belong to user
-│ 3. Build graph recursively          │
-│    - Level 0: center node           │
-│    - Level 1-N: traverse neighbors  │
-│ 4. Collect unique nodes & edges     │
-│ 5. Transform to DTO format          │
+│ 1. If no centerNodeId, return empty │
+│ 2. Fetch all user nodes and edges   │
+│ 3. Filter graph to 2-degree         │
+│    subgraph around center node      │
+│ 4. Transform to DTO format          │
 └─────────────────────────────────────┘
      ↓
 Return GraphDTO → 200 OK
@@ -202,36 +186,7 @@ Return GraphDTO → 200 OK
 
 ### Graph Building Details:
 
-**Traversal Algorithm (BFS - Breadth-First Search):**
-
-```
-1. Initialize:
-   - nodesMap = new Map<string, GraphNodeDTO>()
-   - edgesMap = new Map<string, GraphEdgeDTO>()
-   - visitedNodes = new Set<string>()
-   - currentLevel = [{ id: center_id, type: center_type }]
-
-2. For each level (0 to levels):
-   a. For each node in currentLevel:
-      - If already visited, skip
-      - Add to visitedNodes
-      - Fetch node details from DB
-      - Add to nodesMap
-
-   b. Find neighbors:
-      - If node is entity:
-        * Find relationships where source_entity_id = node.id
-        * Find relationships where target_entity_id = node.id
-        * Find note_entities where entity_id = node.id
-      - If node is note:
-        * Find note_entities where note_id = node.id
-
-   c. Add edges to edgesMap
-   d. Add neighbor nodes to nextLevel
-   e. currentLevel = nextLevel
-
-3. Return { nodes: Array.from(nodesMap.values()), edges: Array.from(edgesMap.values()) }
-```
+The service first fetches all nodes and edges for the user, then filters this complete graph to a subgraph containing only nodes and edges within two degrees of the `centerNodeId`. This ensures a consistent and performant view without complex recursive queries.
 
 ## 6. Security Considerations
 

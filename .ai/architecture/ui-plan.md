@@ -94,7 +94,7 @@ The primary user journey is designed to be a seamless flow from content creation
 3.  **Knowledge Exploration**:
     - From the **Main Dashboard**, the user views the integrated `GraphPanel` alongside their notes list.
     - The graph is initially centered on the most recent note. For a more focused experience, the user can expand the panel into a full-screen "explorer mode".
-    - The user clicks on an entity node (e.g., "Plato"). The graph re-centers, fetching and displaying connections up to two levels deep via a call to the `/api/graph` endpoint.
+    - The user clicks on an entity node (e.g., "Plato"), which selects it and shows a "Set as Center" button. After clicking the button, the graph re-centers, fetching and displaying connections up to two levels deep via a call to the `/api/graph` endpoint.
     - The user activates "Connect Mode", clicks two entity nodes, and defines the relationship between them in a modal (e.g., Socrates `is_student_of` Plato).
 
 ## 4. Layout and Navigation Structure
@@ -118,8 +118,8 @@ Navigation is designed to be simple and predictable, centered around a persisten
 
 - **`AuthForm`**: A standardized form for sign-in and sign-up, handling validation and submission state.
 - **`NotesList`**: Displays a list of notes with search and filter capabilities. Handles its own empty and loading states.
-- **`GraphPanel`**: A container component for the `GraphView`. It manages the layout (e.g., side panel or full-screen mode), and its state (collapsed/expanded) is controlled from the top navigation bar. It allows the graph to be viewed side-by-side with notes or in a full-screen, focused mode.
-- **`GraphView`**: An interactive component responsible for rendering nodes and edges, handling user interactions like panning, zooming, and node selection.
+- **`GraphPanel`**: A container component for the `GraphView`. It manages the layout (e.g., side panel or full-screen mode), and its state (collapsed/expanded) is controlled from the top navigation bar. It allows the graph to be viewed side-by-side with notes or in a full-screen, focused mode. It also manages the selection state (`selectedNodeId`) for the two-step centering interaction and passes the appropriate handlers to `GraphView`.
+- **`GraphView`**: An interactive component responsible for rendering nodes and edges. It handles user interactions like panning and zooming, and differentiates between a click to select a node versus a click on the "Set as Center" button to re-center the graph.
 - **`EntityTagInput`**: A specialized input for the Note Editor that allows users to add entities, provides autocomplete suggestions from existing entities, and triggers a creation modal for new ones. Includes a dropdown for setting the relationship type.
 - **`AISuggestionCard`**: A card component to display a single AI suggestion with its type, content, and action buttons (`Accept`/`Reject`).
 - **`ConfirmationModal`**: A generic modal used across the app to confirm destructive actions (e.g., Delete Note, Delete Entity, Delete Account), reducing the risk of accidental data loss.

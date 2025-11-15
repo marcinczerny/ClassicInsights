@@ -1,53 +1,55 @@
 import type { SupabaseClient } from "@/db/supabase.client";
 import type { GraphDTO, GraphNodeDTO, GraphEdgeDTO } from "@/types";
 
-export async function getGraphData(supabase: SupabaseClient, userId: string): Promise<GraphDTO> {
-  const nodes: GraphNodeDTO[] = [];
-  const edges: GraphEdgeDTO[] = [];
+export async function getGraphData(
+  supabase: SupabaseClient,
+  userId: string,
+  centerNodeId: string | null
+): Promise<GraphDTO> {
+  if (!centerNodeId) {
+    return { nodes: [], edges: [] };
+  }
+
+  // First, fetch all graph data for the user, as the relationships are complex
+  const allNodes: GraphNodeDTO[] = [];
+  const allEdges: GraphEdgeDTO[] = [];
   const nodeIds = new Set<string>();
 
-  // Fetch all entities for the user
   const { data: entities, error: entitiesError } = await supabase
     .from("entities")
     .select("*")
     .eq("user_id", userId);
-
-  if (entitiesError) {
-    console.error("Error fetching entities for graph:", entitiesError);
-    throw new Error("Failed to fetch entities.");
-  }
+  if (entitiesError) throw new Error("Failed to fetch entities.");
 
   entities.forEach((entity) => {
     if (!nodeIds.has(entity.id)) {
-      nodes.push({
+      const entityDescription = entity.description
+        ? entity.description.substring(0, 100) + (entity.description.length > 100 ? "..." : "")
+        : undefined;
+      allNodes.push({
         id: entity.id,
         type: "entity",
         name: entity.name,
         entity_type: entity.type,
-        description: entity.description,
+        description: entityDescription ?? null,
         created_at: entity.created_at,
       });
       nodeIds.add(entity.id);
     }
   });
 
-  // Fetch all notes for the user
   const { data: notes, error: notesError } = await supabase
     .from("notes")
     .select("*")
     .eq("user_id", userId);
-
-  if (notesError) {
-    console.error("Error fetching notes for graph:", notesError);
-    throw new Error("Failed to fetch notes.");
-  }
+  if (notesError) throw new Error("Failed to fetch notes.");
 
   notes.forEach((note) => {
     if (!nodeIds.has(note.id)) {
       const notePreview = note.content
         ? note.content.substring(0, 100) + (note.content.length > 100 ? "..." : "")
         : undefined;
-      nodes.push({
+      allNodes.push({
         id: note.id,
         type: "note",
         name: note.title,
@@ -58,21 +60,15 @@ export async function getGraphData(supabase: SupabaseClient, userId: string): Pr
     }
   });
 
-  // Fetch all note-entity relationships for the user's notes
   const noteIdsList = notes.map((n) => n.id);
   if (noteIdsList.length > 0) {
     const { data: noteEntityLinks, error: noteEntityLinksError } = await supabase
       .from("note_entities")
       .select("*")
       .in("note_id", noteIdsList);
-
-    if (noteEntityLinksError) {
-      console.error("Error fetching note-entity links:", noteEntityLinksError);
-      throw new Error("Failed to fetch note-entity links.");
-    }
-
+    if (noteEntityLinksError) throw new Error("Failed to fetch note-entity links.");
     noteEntityLinks.forEach((link) => {
-      edges.push({
+      allEdges.push({
         id: `ne-${link.note_id}-${link.entity_id}`,
         source_id: link.note_id,
         target_id: link.entity_id,
@@ -82,21 +78,15 @@ export async function getGraphData(supabase: SupabaseClient, userId: string): Pr
     });
   }
 
-  // Fetch all entity-entity relationships for the user's entities
   const entityIdsList = entities.map((e) => e.id);
   if (entityIdsList.length > 0) {
     const { data: relationships, error: relationshipsError } = await supabase
       .from("relationships")
       .select("*")
       .in("source_entity_id", entityIdsList);
-
-    if (relationshipsError) {
-      console.error("Error fetching relationships:", relationshipsError);
-      throw new Error("Failed to fetch relationships.");
-    }
-
+    if (relationshipsError) throw new Error("Failed to fetch relationships.");
     relationships.forEach((rel) => {
-      edges.push({
+      allEdges.push({
         id: rel.id,
         source_id: rel.source_entity_id,
         target_id: rel.target_entity_id,
@@ -106,5 +96,37 @@ export async function getGraphData(supabase: SupabaseClient, userId: string): Pr
     });
   }
 
-  return { nodes, edges };
+  // Now, filter the graph to only include nodes and edges within 2 degrees of the center node
+  const centerNode = allNodes.find((n) => n.id === centerNodeId);
+  if (!centerNode) {
+    return { nodes: [], edges: [] };
+  }
+
+  const firstDegreeNodeIds = new Set<string>();
+  allEdges.forEach((edge) => {
+    if (edge.source_id === centerNodeId) {
+      firstDegreeNodeIds.add(edge.target_id);
+    }
+    if (edge.target_id === centerNodeId) {
+      firstDegreeNodeIds.add(edge.source_id);
+    }
+  });
+
+  const secondDegreeNodeIds = new Set<string>();
+  allEdges.forEach((edge) => {
+    if (firstDegreeNodeIds.has(edge.source_id) && edge.target_id !== centerNodeId) {
+      secondDegreeNodeIds.add(edge.target_id);
+    }
+    if (firstDegreeNodeIds.has(edge.target_id) && edge.source_id !== centerNodeId) {
+      secondDegreeNodeIds.add(edge.source_id);
+    }
+  });
+
+  const subgraphNodeIds = new Set([centerNodeId, ...firstDegreeNodeIds, ...secondDegreeNodeIds]);
+  const subgraphNodes = allNodes.filter((n) => subgraphNodeIds.has(n.id));
+  const subgraphEdges = allEdges.filter(
+    (e) => subgraphNodeIds.has(e.source_id) && subgraphNodeIds.has(e.target_id)
+  );
+
+  return { nodes: subgraphNodes, edges: subgraphEdges };
 }
