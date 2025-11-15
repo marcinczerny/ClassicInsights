@@ -52,6 +52,7 @@ describe("Suggestions Service - Business Rules", () => {
   const mockNoteId = "note-456";
   const mockSuggestionId = "suggestion-789";
   const mockEntityId = "entity-999";
+  const mockOpenRouterApiKey = "test-api-key";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockSupabaseClient: any;
@@ -93,7 +94,7 @@ describe("Suggestions Service - Business Rules", () => {
       });
 
       await expect(
-        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)
+        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId, mockOpenRouterApiKey)
       ).rejects.toThrow("User has not agreed to AI data processing.");
 
       expect(mockGetProfile).toHaveBeenCalledWith(mockSupabaseClient, mockUserId);
@@ -103,7 +104,7 @@ describe("Suggestions Service - Business Rules", () => {
       mockGetProfile.mockResolvedValueOnce(null);
 
       await expect(
-        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)
+        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId, mockOpenRouterApiKey)
       ).rejects.toThrow("User has not agreed to AI data processing.");
     });
   });
@@ -117,7 +118,7 @@ describe("Suggestions Service - Business Rules", () => {
       mockFindNoteById.mockResolvedValueOnce(null);
 
       await expect(
-        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)
+        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId, mockOpenRouterApiKey)
       ).rejects.toThrow("Note not found or access denied.");
     });
 
@@ -134,7 +135,7 @@ describe("Suggestions Service - Business Rules", () => {
       });
 
       await expect(
-        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)
+        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId, mockOpenRouterApiKey)
       ).rejects.toThrow("Note not found or access denied.");
     });
   });
@@ -153,7 +154,7 @@ describe("Suggestions Service - Business Rules", () => {
       });
 
       await expect(
-        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId)
+        generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId, mockOpenRouterApiKey)
       ).rejects.toThrow("Note content must be at least 10 characters long.");
     });
   });
@@ -215,13 +216,25 @@ describe("Suggestions Service - Business Rules", () => {
         generation_duration_ms: null,
       }));
 
-      const fromMock = {
+      const fromMockGet = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValueOnce({ data: [], error: null }),
+      };
+
+      const fromMockInsert = {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValueOnce({ data: expectedSavedSuggestions, error: null }),
       };
-      mockSupabaseClient.from.mockReturnValue(fromMock);
 
-      const result = await generateSuggestionsForNote(mockSupabaseClient, mockNoteId, mockUserId);
+      mockSupabaseClient.from.mockReturnValueOnce(fromMockGet).mockReturnValueOnce(fromMockInsert);
+
+      const result = await generateSuggestionsForNote(
+        mockSupabaseClient,
+        mockNoteId,
+        mockUserId,
+        mockOpenRouterApiKey
+      );
 
       expect(result).toEqual(expectedSavedSuggestions);
       expect(mockGetStructuredResponse).toHaveBeenCalledTimes(1);
