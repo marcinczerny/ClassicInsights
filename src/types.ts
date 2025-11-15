@@ -242,6 +242,13 @@ export interface ResetPasswordDTO {
   email: string;
 }
 
+/**
+ * DTO for the password update request
+ */
+export interface UpdatePasswordDTO {
+  password?: string;
+}
+
 // ============================================================================
 // AI SUGGESTION TYPES
 // ============================================================================
