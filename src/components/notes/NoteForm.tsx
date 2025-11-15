@@ -18,14 +18,20 @@ interface NoteFormProps {
   onEntitiesChange: (entities: NoteEntityViewModel[]) => void;
 }
 
-export function NoteForm({ note, onTitleChange, onContentChange, onEntitiesChange }: NoteFormProps) {
+export function NoteForm({
+  note,
+  onTitleChange,
+  onContentChange,
+  onEntitiesChange,
+}: NoteFormProps) {
   // Validation state
   const titleError = !note.title.trim()
     ? "Tytuł jest wymagany"
     : note.title.length > 255
       ? "Tytuł nie może przekraczać 255 znaków"
       : null;
-  const contentError = note.content.length > 10000 ? "Treść nie może przekraczać 10 000 znaków" : null;
+  const contentError =
+    note.content.length > 10000 ? "Treść nie może przekraczać 10 000 znaków" : null;
 
   return (
     <div className="space-y-6">

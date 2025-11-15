@@ -25,7 +25,11 @@ interface GraphPanelProps {
   graphCenterNode: { id: string; type: "note" | "entity" } | null;
   onNodeSelect: (node: { id: string; type: "note" | "entity" }) => void;
   onCreateRelationship: (command: CreateRelationshipCommand) => void;
-  onCreateNoteEntity: (noteId: string, entityId: string, relationshipType: Enums<"relationship_type">) => void;
+  onCreateNoteEntity: (
+    noteId: string,
+    entityId: string,
+    relationshipType: Enums<"relationship_type">
+  ) => void;
   onPanelStateChange: (state: "collapsed" | "open" | "fullscreen") => void;
 }
 
@@ -375,7 +379,9 @@ export function GraphPanel({
   }
 
   return (
-    <div className={`flex h-full flex-col bg-background ${panelState === "fullscreen" ? "fixed inset-0 z-50" : ""}`}>
+    <div
+      className={`flex h-full flex-col bg-background ${panelState === "fullscreen" ? "fixed inset-0 z-50" : ""}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between border-b p-4">
         <h2 className="text-lg font-semibold">Graf myśli</h2>
@@ -435,7 +441,9 @@ export function GraphPanel({
             hasNotes={hasNotes}
             selectedSourceNode={selectedSourceNode}
             graphCenterNode={graphCenterNode}
-            onNodeClick={isConnectionMode ? (node) => handleNodeClickInConnectionMode(node.id) : onNodeSelect}
+            onNodeClick={
+              isConnectionMode ? (node) => handleNodeClickInConnectionMode(node.id) : onNodeSelect
+            }
             onEdgeClick={!isConnectionMode ? handleEdgeClick : undefined}
           />
         )}

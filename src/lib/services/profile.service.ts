@@ -1,8 +1,15 @@
 import { handleSupabaseError, type SupabaseClient } from "@/db/supabase.client";
 import type { ProfileDTO, UpdateProfileCommand } from "@/types";
 
-export async function getProfile(supabase: SupabaseClient, userId: string): Promise<ProfileDTO | null> {
-  const { data, error } = await supabase.from("profiles").select("*").eq("user_id", userId).single();
+export async function getProfile(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<ProfileDTO | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
 
   if (error) {
     if (error.code === "PGRST116") {
@@ -19,7 +26,12 @@ export async function updateProfile(
   userId: string,
   updateData: UpdateProfileCommand
 ): Promise<ProfileDTO> {
-  const { data, error } = await supabase.from("profiles").update(updateData).eq("user_id", userId).select().single();
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updateData)
+    .eq("user_id", userId)
+    .select()
+    .single();
 
   if (error) {
     handleSupabaseError(error);

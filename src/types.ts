@@ -405,7 +405,9 @@ export function isNoteNode(node: GraphNodeDTO): node is GraphNodeDTO & { type: "
  * Note: This requires additional context beyond the edge type alone,
  * as both relationship and note-entity edges now use relationship_type enum
  */
-export function isRelationshipEdge(edge: GraphEdgeDTO): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
+export function isRelationshipEdge(
+  edge: GraphEdgeDTO
+): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
   // This type guard is now primarily for semantic clarity
   // Additional logic may be needed based on source/target node types
   return true;
@@ -416,7 +418,9 @@ export function isRelationshipEdge(edge: GraphEdgeDTO): edge is GraphEdgeDTO & {
  * Note: This requires additional context beyond the edge type alone,
  * as both relationship and note-entity edges now use relationship_type enum
  */
-export function isNoteEntityEdge(edge: GraphEdgeDTO): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
+export function isNoteEntityEdge(
+  edge: GraphEdgeDTO
+): edge is GraphEdgeDTO & { type: Enums<"relationship_type"> } {
   // This type guard is now primarily for semantic clarity
   // Additional logic may be needed based on source/target node types
   return true;

@@ -4,7 +4,14 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ResetPasswordDTO } from "@/types";
@@ -67,7 +74,7 @@ const ResetPasswordForm = () => {
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold">Reset Your Password</CardTitle>
         <CardDescription className="mt-2">
-          Enter your email and we'll send you a link to get back into your account.
+          Enter your email and we&apos;ll send you a link to get back into your account.
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -83,7 +90,9 @@ const ResetPasswordForm = () => {
               onChange={handleInputChange}
               disabled={isLoading}
             />
-            {getErrorForField("email") && <p className="text-sm text-red-500">{getErrorForField("email")}</p>}
+            {getErrorForField("email") && (
+              <p className="text-sm text-red-500">{getErrorForField("email")}</p>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch">

@@ -1,4 +1,9 @@
-import type { CreateEntityCommand, EntityDTO, EntityWithCountDTO, UpdateEntityCommand } from "@/types";
+import type {
+  CreateEntityCommand,
+  EntityDTO,
+  EntityWithCountDTO,
+  UpdateEntityCommand,
+} from "@/types";
 
 import type { EntitiesSortColumn, SortOrder } from "@/components/entities/types";
 
@@ -69,7 +74,10 @@ export async function createEntityRequest(payload: CreateEntityCommand): Promise
   return handleResponse<EntityDTO>(response);
 }
 
-export async function updateEntityRequest(entityId: string, payload: UpdateEntityCommand): Promise<EntityDTO> {
+export async function updateEntityRequest(
+  entityId: string,
+  payload: UpdateEntityCommand
+): Promise<EntityDTO> {
   const response = await fetch(`/api/entities/${entityId}`, {
     method: "PATCH",
     headers: {

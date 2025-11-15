@@ -6,7 +6,12 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import type { NoteViewModel, NoteEntityViewModel, SuggestionViewModel, NoteEditorState } from "../types";
+import type {
+  NoteViewModel,
+  NoteEntityViewModel,
+  SuggestionViewModel,
+  NoteEditorState,
+} from "../types";
 import type { NoteDTO, CreateNoteCommand, UpdateNoteCommand, SuggestionDTO } from "@/types";
 
 const INITIAL_STATE: NoteEditorState = {
@@ -303,7 +308,9 @@ export function useNoteEditor(noteId: string | "new") {
       // Mark suggestion as submitting
       setState((prev) => ({
         ...prev,
-        suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: true } : s)),
+        suggestions: prev.suggestions.map((s) =>
+          s.id === suggestionId ? { ...s, isSubmitting: true } : s
+        ),
       }));
 
       try {
@@ -331,7 +338,9 @@ export function useNoteEditor(noteId: string | "new") {
         // Reset submitting state on error
         setState((prev) => ({
           ...prev,
-          suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: false } : s)),
+          suggestions: prev.suggestions.map((s) =>
+            s.id === suggestionId ? { ...s, isSubmitting: false } : s
+          ),
         }));
         throw error;
       }
@@ -346,7 +355,9 @@ export function useNoteEditor(noteId: string | "new") {
     // Mark suggestion as submitting
     setState((prev) => ({
       ...prev,
-      suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: true } : s)),
+      suggestions: prev.suggestions.map((s) =>
+        s.id === suggestionId ? { ...s, isSubmitting: true } : s
+      ),
     }));
 
     try {
@@ -369,7 +380,9 @@ export function useNoteEditor(noteId: string | "new") {
       // Reset submitting state on error
       setState((prev) => ({
         ...prev,
-        suggestions: prev.suggestions.map((s) => (s.id === suggestionId ? { ...s, isSubmitting: false } : s)),
+        suggestions: prev.suggestions.map((s) =>
+          s.id === suggestionId ? { ...s, isSubmitting: false } : s
+        ),
       }));
       throw error;
     }

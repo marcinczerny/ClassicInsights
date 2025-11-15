@@ -10,7 +10,9 @@ export const registerSchema = z
     email: z.string().email("Nieprawidłowy adres email."),
     password: z.string().min(8, "Hasło musi mieć co najmniej 8 znaków."),
     confirmPassword: z.string().min(1, "Powtórzenie hasła jest wymagane."),
-    aiConsent: z.boolean().refine((val) => val === true, "Zgoda na analizę notatek przez AI jest wymagana."),
+    aiConsent: z
+      .boolean()
+      .refine((val) => val === true, "Zgoda na analizę notatek przez AI jest wymagana."),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Hasła nie są takie same.",
@@ -166,7 +168,15 @@ export type UpdateSuggestionCommand = z.infer<typeof updateSuggestionSchema>;
 // ENTITY SCHEMAS
 // ============================================================================
 
-export const entityTypes = ["person", "work", "epoch", "idea", "school", "system", "other"] as const;
+export const entityTypes = [
+  "person",
+  "work",
+  "epoch",
+  "idea",
+  "school",
+  "system",
+  "other",
+] as const;
 
 export const getEntitiesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -187,9 +197,11 @@ export const getEntitySchema = z.object({
   id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),
 });
 
-export const updateEntitySchema = createEntitySchema.partial().refine((data) => Object.keys(data).length > 0, {
-  message: "At least one field to update must be provided.",
-});
+export const updateEntitySchema = createEntitySchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field to update must be provided.",
+  });
 
 export const deleteEntitySchema = z.object({
   id: z.string().uuid({ message: "Entity ID must be a valid UUID." }),

@@ -4,7 +4,14 @@
  * This file contains ViewModel types that extend DTOs with UI-specific state
  */
 
-import type { NoteDTO, PaginationDTO, GraphDTO, GraphNodeDTO, GraphEdgeDTO, CreateRelationshipCommand } from "@/types";
+import type {
+  NoteDTO,
+  PaginationDTO,
+  GraphDTO,
+  GraphNodeDTO,
+  GraphEdgeDTO,
+  CreateRelationshipCommand,
+} from "@/types";
 
 /**
  * Main state type for the entire Dashboard view

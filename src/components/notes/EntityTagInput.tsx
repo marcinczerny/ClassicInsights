@@ -10,7 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { CreateEntityModal } from "./CreateEntityModal";
 import type { NoteEntityViewModel } from "./types";
@@ -96,7 +102,10 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
   /**
    * Add entity to the list
    */
-  const handleAddEntity = (entity: EntityDTO, relationshipType: Enums<"relationship_type"> = "is_related_to") => {
+  const handleAddEntity = (
+    entity: EntityDTO,
+    relationshipType: Enums<"relationship_type"> = "is_related_to"
+  ) => {
     // Check if entity already exists
     const exists = entities.some((e) => e.id === entity.id);
     if (exists) return;
@@ -124,8 +133,13 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
   /**
    * Update relationship type for an entity
    */
-  const handleUpdateRelationshipType = (entityId: string, relationshipType: Enums<"relationship_type">) => {
-    onEntitiesChange(entities.map((e) => (e.id === entityId ? { ...e, relationship_type: relationshipType } : e)));
+  const handleUpdateRelationshipType = (
+    entityId: string,
+    relationshipType: Enums<"relationship_type">
+  ) => {
+    onEntitiesChange(
+      entities.map((e) => (e.id === entityId ? { ...e, relationship_type: relationshipType } : e))
+    );
   };
 
   /**
@@ -157,7 +171,9 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
   /**
    * Get filtered suggestions (exclude already added entities)
    */
-  const filteredSuggestions = suggestions.filter((suggestion) => !entities.some((e) => e.id === suggestion.id));
+  const filteredSuggestions = suggestions.filter(
+    (suggestion) => !entities.some((e) => e.id === suggestion.id)
+  );
 
   /**
    * Cleanup timeout on unmount
@@ -178,14 +194,19 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
       {entities.length > 0 && (
         <div className="space-y-2">
           {entities.map((entity) => (
-            <div key={entity.id} className="flex items-center gap-2 rounded-md border p-2 bg-muted/50">
+            <div
+              key={entity.id}
+              className="flex items-center gap-2 rounded-md border p-2 bg-muted/50"
+            >
               <Badge variant="secondary" className="flex-shrink-0">
                 {entity.name}
               </Badge>
 
               <Select
                 value={entity.relationship_type}
-                onValueChange={(value) => handleUpdateRelationshipType(entity.id, value as Enums<"relationship_type">)}
+                onValueChange={(value) =>
+                  handleUpdateRelationshipType(entity.id, value as Enums<"relationship_type">)
+                }
               >
                 <SelectTrigger className="h-7 text-xs flex-1">
                   <SelectValue />
@@ -250,7 +271,9 @@ export function EntityTagInput({ entities, onEntitiesChange }: EntityTagInputPro
               ))}
             </div>
           ) : searchTerm.trim() ? (
-            <div className="p-4 text-sm text-muted-foreground text-center">Nie znaleziono bytów</div>
+            <div className="p-4 text-sm text-muted-foreground text-center">
+              Nie znaleziono bytów
+            </div>
           ) : null}
 
           {/* Create new entity button */}

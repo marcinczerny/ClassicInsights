@@ -2,7 +2,13 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import type { JSX } from "react";
 import { Plus, Search as SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { entityTypes } from "@/lib/validation";
 import type { EntitiesFilterState } from "@/components/entities/types.ts";

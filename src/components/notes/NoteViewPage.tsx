@@ -108,7 +108,9 @@ export function NoteViewPage({ noteId }: NoteViewPageProps) {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Notatka nie została znaleziona</h1>
-          <p className="text-muted-foreground">Notatka, której szukasz, nie istnieje lub została usunięta.</p>
+          <p className="text-muted-foreground">
+            Notatka, której szukasz, nie istnieje lub została usunięta.
+          </p>
           <Button asChild>
             <a href="/">Powrót do listy notatek</a>
           </Button>
@@ -202,7 +204,8 @@ export function NoteViewPage({ noteId }: NoteViewPageProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Czy na pewno chcesz usunąć tę notatkę?</AlertDialogTitle>
             <AlertDialogDescription>
-              Ta akcja jest nieodwracalna. Notatka &quot;{note.title}&quot; zostanie trwale usunięta z bazy danych.
+              Ta akcja jest nieodwracalna. Notatka &quot;{note.title}&quot; zostanie trwale usunięta
+              z bazy danych.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

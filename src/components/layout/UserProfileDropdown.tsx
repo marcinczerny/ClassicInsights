@@ -73,7 +73,6 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-56">
-
         <DropdownMenuItem onClick={handleProfileClick} className="cursor-pointer">
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profil</span>

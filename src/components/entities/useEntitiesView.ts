@@ -6,7 +6,11 @@ import {
   fetchEntities,
   updateEntityRequest,
 } from "@/lib/services/entities.api";
-import type { EntitiesFilterState, EntitiesSortState, EntitiesViewController } from "@/components/entities/types.ts";
+import type {
+  EntitiesFilterState,
+  EntitiesSortState,
+  EntitiesViewController,
+} from "@/components/entities/types.ts";
 import type { CreateEntityCommand, EntityWithCountDTO, UpdateEntityCommand } from "@/types";
 import type { Enums } from "@/db/database.types";
 

@@ -115,7 +115,9 @@ ${JSON.stringify(rest, null, 2)}`;
       const validationResult = schema.safeParse(parsedJson);
 
       if (!validationResult.success) {
-        throw new ResponseValidationError(`AI response validation failed: ${validationResult.error.message}`);
+        throw new ResponseValidationError(
+          `AI response validation failed: ${validationResult.error.message}`
+        );
       }
       return validationResult.data;
     } catch (error) {
@@ -144,7 +146,8 @@ ${JSON.stringify(rest, null, 2)}`;
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        const errorMessage = errorBody.error?.message || `API request failed with status ${response.status}`;
+        const errorMessage =
+          errorBody.error?.message || `API request failed with status ${response.status}`;
 
         switch (response.status) {
           case 400:

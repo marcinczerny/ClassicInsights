@@ -138,7 +138,9 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Notatka nie została znaleziona</h1>
-          <p className="text-muted-foreground">Notatka, której szukasz, nie istnieje lub została usunięta.</p>
+          <p className="text-muted-foreground">
+            Notatka, której szukasz, nie istnieje lub została usunięta.
+          </p>
           <Button asChild>
             <a href="/">Powrót do listy notatek</a>
           </Button>
@@ -170,7 +172,9 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
       <div className="container max-w-7xl mx-auto py-8 px-4">
         {/* Header with actions */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">{note.id === "new" ? "Nowa notatka" : "Edycja notatki"}</h1>
+          <h1 className="text-3xl font-bold">
+            {note.id === "new" ? "Nowa notatka" : "Edycja notatki"}
+          </h1>
 
           <div className="flex gap-2">
             <Button
@@ -187,7 +191,11 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
             </Button>
 
             {note.id !== "new" && (
-              <Button variant="destructive" onClick={() => setShowDeleteConfirmation(true)} disabled={isDeleting}>
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteConfirmation(true)}
+                disabled={isDeleting}
+              >
                 {isDeleting ? "Usuwanie..." : "Usuń"}
               </Button>
             )}

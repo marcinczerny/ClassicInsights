@@ -9,7 +9,12 @@ import type { ErrorDTO } from "../types";
  * @param details - Optional additional error details
  * @returns Response object with JSON error body
  */
-export function createErrorResponse(code: string, message: string, status: number, details?: unknown): Response {
+export function createErrorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: unknown
+): Response {
   const errorBody: ErrorDTO = {
     error: {
       code,
@@ -51,7 +56,11 @@ export function handleServiceError(error: unknown): Response {
 
     // Check constraint violation
     if (pgError.code === "23514") {
-      return createErrorResponse("VALIDATION_ERROR", "Data does not meet database constraints", 400);
+      return createErrorResponse(
+        "VALIDATION_ERROR",
+        "Data does not meet database constraints",
+        400
+      );
     }
   }
 
@@ -155,7 +164,12 @@ export function createValidationErrorResponse(zodError: z.ZodError): Response {
     {} as Record<string, string[]>
   );
 
-  return createErrorResponse("VALIDATION_ERROR", "Invalid request parameters", 400, formattedErrors);
+  return createErrorResponse(
+    "VALIDATION_ERROR",
+    "Invalid request parameters",
+    400,
+    formattedErrors
+  );
 }
 
 /**

@@ -14,7 +14,10 @@ const AISuggestionSchema = z.object({
   name: z.string(),
   content: z.string(),
   suggested_entity_id: z.string().uuid().nullable(),
-  entity_type: z.enum(["person", "work", "epoch", "idea", "school", "system", "other"]).nullable().optional(),
+  entity_type: z
+    .enum(["person", "work", "epoch", "idea", "school", "system", "other"])
+    .nullable()
+    .optional(),
 });
 
 const AISuggestionsResponseSchema = z.object({
@@ -25,7 +28,12 @@ async function generateSuggestionsFromAI(
   supabase: SupabaseClient,
   userId: string,
   noteContent: string,
-  noteEntities: { id: string; name: string; type: Enums<"entity_type">; description: string | null }[]
+  noteEntities: {
+    id: string;
+    name: string;
+    type: Enums<"entity_type">;
+    description: string | null;
+  }[]
 ): Promise<z.infer<typeof AISuggestionsResponseSchema>["suggestions"]> {
   const userEntities = await getEntities(supabase, userId);
 
@@ -72,7 +80,12 @@ export async function generateSuggestionsForNote(
     throw new Error(`Note content must be at least ${MIN_CONTENT_LENGTH} characters long.`);
   }
 
-  const aiSuggestions = await generateSuggestionsFromAI(supabase, userId, noteContent, note.entities || []);
+  const aiSuggestions = await generateSuggestionsFromAI(
+    supabase,
+    userId,
+    noteContent,
+    note.entities || []
+  );
 
   const suggestionsToInsert = aiSuggestions.map((suggestion) => ({
     user_id: userId,
@@ -84,7 +97,10 @@ export async function generateSuggestionsForNote(
     suggested_entity_id: suggestion.suggested_entity_id,
   }));
 
-  const { data: savedSuggestions, error } = await supabase.from("ai_suggestions").insert(suggestionsToInsert).select();
+  const { data: savedSuggestions, error } = await supabase
+    .from("ai_suggestions")
+    .insert(suggestionsToInsert)
+    .select();
 
   if (error) {
     handleSupabaseError(error);
@@ -99,7 +115,11 @@ export async function getSuggestionsForNote(
   userId: string,
   status?: Enums<"suggestion_status"> | Enums<"suggestion_status">[]
 ): Promise<SuggestionDTO[]> {
-  let query = supabase.from("ai_suggestions").select("*").eq("note_id", noteId).eq("user_id", userId);
+  let query = supabase
+    .from("ai_suggestions")
+    .select("*")
+    .eq("note_id", noteId)
+    .eq("user_id", userId);
 
   if (status) {
     if (Array.isArray(status)) {
@@ -133,7 +153,9 @@ async function executeAcceptanceLogic(
     case "new_entity": {
       if (!suggestion.name) throw new Error("Suggestion name is required for new_entity");
 
-      const entityName = suggestion.name.includes(":") ? suggestion.name.split(":")[1].trim() : suggestion.name;
+      const entityName = suggestion.name.includes(":")
+        ? suggestion.name.split(":")[1].trim()
+        : suggestion.name;
 
       let entity = await findEntityByName(supabase, userId, entityName);
 
@@ -160,7 +182,13 @@ async function executeAcceptanceLogic(
 
       const isAlreadyLinked = note.entities.some((e) => e.id === suggestion.suggested_entity_id);
       if (!isAlreadyLinked) {
-        await addEntityToNote(supabase, noteId, suggestion.suggested_entity_id, userId, "is_related_to");
+        await addEntityToNote(
+          supabase,
+          noteId,
+          suggestion.suggested_entity_id,
+          userId,
+          "is_related_to"
+        );
       }
       break;
     }

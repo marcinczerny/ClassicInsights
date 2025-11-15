@@ -68,7 +68,7 @@ W pliku `src/layouts/Layout.astro`:
 // Zalogowany użytkownik (domyślnie)
 const user = {
   id: "mock-user-id",
-  email: "user@example.com"
+  email: "user@example.com",
 };
 
 // Niezalogowany użytkownik
@@ -146,17 +146,17 @@ interface User {
 
 ## 🎯 Status implementacji
 
-| Komponent | Status | Uwagi |
-|-----------|--------|-------|
-| TopNavigationBar | ✅ Gotowy | Pełna funkcjonalność layoutu |
-| NavLinks | ✅ Gotowy | Responsywny, z active state |
-| GraphControls | ✅ Gotowy | Przełącza stan, panel TODO |
-| ThemeToggle | ✅ Gotowy | Z localStorage i system prefs |
-| UserProfileDropdown | 🔄 Placeholder | UI gotowy, logika TODO |
-| Nano Stores | ✅ Gotowy | Globalny stan działa |
-| Responsywność | ✅ Gotowy | Desktop + Mobile |
-| Dark mode | ✅ Gotowy | Pełna funkcjonalność |
-| Autoryzacja | 🔄 TODO | Mock data na razie |
+| Komponent           | Status         | Uwagi                         |
+| ------------------- | -------------- | ----------------------------- |
+| TopNavigationBar    | ✅ Gotowy      | Pełna funkcjonalność layoutu  |
+| NavLinks            | ✅ Gotowy      | Responsywny, z active state   |
+| GraphControls       | ✅ Gotowy      | Przełącza stan, panel TODO    |
+| ThemeToggle         | ✅ Gotowy      | Z localStorage i system prefs |
+| UserProfileDropdown | 🔄 Placeholder | UI gotowy, logika TODO        |
+| Nano Stores         | ✅ Gotowy      | Globalny stan działa          |
+| Responsywność       | ✅ Gotowy      | Desktop + Mobile              |
+| Dark mode           | ✅ Gotowy      | Pełna funkcjonalność          |
+| Autoryzacja         | 🔄 TODO        | Mock data na razie            |
 
 ## 🚀 Kolejne kroki
 

@@ -12,6 +12,7 @@ To encapsulate database logic and promote code reuse, a new service file will be
 
 **Note on `note_entities` Table Structure:**
 The `note_entities` junction table has been enhanced with the following columns:
+
 - `note_id` (UUID, PRIMARY KEY part)
 - `entity_id` (UUID, PRIMARY KEY part)
 - `type` (relationship_type enum, NOT NULL, DEFAULT 'is_related_to') - defines the relationship type between note and entity
@@ -32,6 +33,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 ### 3.1. List Entities
 
 #### **Request Details**
+
 - **Endpoint**: `GET /api/entities`
 - **File**: `src/pages/api/entities/index.ts`
 - **Method**: `GET`
@@ -44,6 +46,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 - **Request Body**: None
 
 #### **Response Details**
+
 - **Success (200 OK)**:
   ```json
   {
@@ -64,6 +67,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 - **Used Types**: `EntitiesListResponseDTO`, `EntityWithCountDTO`.
 
 #### **Data Flow & Logic**
+
 1. Authenticate the user via `Astro.locals.session`.
 2. Validate query parameters using a Zod schema, applying default values.
 3. Call `entities.service.ts#getEntities` with the user ID and validated options.
@@ -77,6 +81,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 5. The endpoint returns the result from the service, formatted as `EntitiesListResponseDTO`.
 
 #### **Implementation Steps**
+
 1. Create `src/lib/services/entities.service.ts` and implement the `getEntities` function.
 2. Create `src/pages/api/entities/index.ts`.
 3. Implement the `GET` handler function.
@@ -89,23 +94,26 @@ The `note_entities` junction table has been enhanced with the following columns:
 ### 3.2. Create Entity
 
 #### **Request Details**
+
 - **Endpoint**: `POST /api/entities`
 - **File**: `src/pages/api/entities/index.ts`
 - **Method**: `POST`
 - **Request Body**:
   ```json
   {
-    "name": "string",         // required, max 100
-    "type": "string",         // required, entity_type enum
-    "description": "string"   // optional, max 1000
+    "name": "string", // required, max 100
+    "type": "string", // required, entity_type enum
+    "description": "string" // optional, max 1000
   }
   ```
 
 #### **Response Details**
+
 - **Success (201 Created)**: Returns the newly created `EntityDTO` object.
 - **Used Types**: `CreateEntityCommand`, `EntityDTO`.
 
 #### **Data Flow & Logic**
+
 1. Authenticate the user.
 2. Validate the request body using a Zod schema for `CreateEntityCommand`.
 3. Call `entities.service.ts#createEntity` with the user ID and validated body.
@@ -115,6 +123,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 7. The endpoint returns the entity with a 201 status code.
 
 #### **Implementation Steps**
+
 1. Implement the `createEntity` function in `entities.service.ts`.
 2. In `src/pages/api/entities/index.ts`, implement the `POST` handler.
 3. Authenticate the user.
@@ -126,6 +135,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 ### 3.3. Get Entity by ID
 
 #### **Request Details**
+
 - **Endpoint**: `GET /api/entities/[id]`
 - **File**: `src/pages/api/entities/[id].ts`
 - **Method**: `GET`
@@ -133,19 +143,19 @@ The `note_entities` junction table has been enhanced with the following columns:
 - **Request Body**: None
 
 #### **Response Details**
+
 - **Success (200 OK)**:
   ```json
   {
     "id": "uuid",
     // ...entity fields
-    "notes": [
-      { "id": "uuid", "title": "string", "created_at": "timestamp" }
-    ]
+    "notes": [{ "id": "uuid", "title": "string", "created_at": "timestamp" }]
   }
   ```
 - **Used Types**: `EntityWithNotesDTO`.
 
 #### **Data Flow & Logic**
+
 1. Authenticate the user.
 2. Validate the `id` URL parameter is a valid UUID.
 3. Call `entities.service.ts#getEntityById` with the user ID and entity ID.
@@ -154,6 +164,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 6. The endpoint checks the service result. If `null`, it returns a 404. Otherwise, it returns the entity data.
 
 #### **Implementation Steps**
+
 1. Implement `getEntityById` in `entities.service.ts`. The Supabase query should look like: `supabase.from('entities').select('*, note_entities(type, notes(id, title, created_at))').eq('id', entityId).eq('user_id', userId).single()`.
    - Note: The `note_entities` table now includes `type` (relationship_type enum) and `created_at` columns.
    - The join through `note_entities` allows access to the relationship type between the entity and each note.
@@ -168,6 +179,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 ### 3.4. Update Entity
 
 #### **Request Details**
+
 - **Endpoint**: `PATCH /api/entities/[id]`
 - **File**: `src/pages/api/entities/[id].ts`
 - **Method**: `PATCH`
@@ -175,17 +187,19 @@ The `note_entities` junction table has been enhanced with the following columns:
 - **Request Body**:
   ```json
   {
-    "name": "string",         // optional, max 100
-    "type": "string",         // optional, entity_type enum
-    "description": "string"   // optional, max 1000
+    "name": "string", // optional, max 100
+    "type": "string", // optional, entity_type enum
+    "description": "string" // optional, max 1000
   }
   ```
 
 #### **Response Details**
+
 - **Success (200 OK)**: Returns the updated `EntityDTO` object.
 - **Used Types**: `UpdateEntityCommand`, `EntityDTO`.
 
 #### **Data Flow & Logic**
+
 1. Authenticate the user.
 2. Validate the `id` URL parameter and the request body.
 3. Call `entities.service.ts#updateEntity` with user ID, entity ID, and validated data.
@@ -193,6 +207,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 5. The endpoint returns the updated entity data.
 
 #### **Implementation Steps**
+
 1. Implement `updateEntity` in `entities.service.ts`.
 2. In `src/pages/api/entities/[id].ts`, implement the `PATCH` handler.
 3. Authenticate the user.
@@ -205,6 +220,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 ### 3.5. Delete Entity
 
 #### **Request Details**
+
 - **Endpoint**: `DELETE /api/entities/[id]`
 - **File**: `src/pages/api/entities/[id].ts`
 - **Method**: `DELETE`
@@ -212,9 +228,11 @@ The `note_entities` junction table has been enhanced with the following columns:
 - **Request Body**: None
 
 #### **Response Details**
+
 - **Success (204 No Content)**: Empty response body.
 
 #### **Data Flow & Logic**
+
 1. Authenticate the user.
 2. Validate the `id` URL parameter.
 3. Call `entities.service.ts#deleteEntity` with user ID and entity ID.
@@ -224,6 +242,7 @@ The `note_entities` junction table has been enhanced with the following columns:
 7. If count is 0, it means the entity was not found (or didn't belong to the user), so a 404 should be returned.
 
 #### **Implementation Steps**
+
 1. Implement `deleteEntity` in `entities.service.ts`.
 2. In `src/pages/api/entities/[id].ts`, implement the `DELETE` handler.
 3. Authenticate the user.
@@ -233,11 +252,13 @@ The `note_entities` junction table has been enhanced with the following columns:
 7. If successful, return a 204 status.
 
 ## 4. Security
+
 - **Authentication**: All endpoints must verify a valid session from `Astro.locals.session` and return 401 if missing.
 - **Authorization**: All database queries within the service layer must be scoped with `.eq('user_id', userId)`. This leverages Supabase RLS for data isolation. Returning 404 for resources not found or not owned by the user is preferred to prevent ID enumeration attacks, though the spec suggests 403 in some cases which should be followed.
 - **Input Validation**: Use Zod to strictly validate all incoming data (URL params, query params, and request bodies) to prevent invalid data from reaching the service layer.
 
 ## 5. Error Handling
+
 - A centralized error handler or utility function should be used to create consistent JSON error responses (`ErrorDTO`).
 - **400 Bad Request**: For Zod validation failures or business logic errors (e.g., duplicate name). The response should include details about the validation error.
 - **401 Unauthorized**: When `Astro.locals.session` is null.

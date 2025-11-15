@@ -38,8 +38,8 @@ export function DeleteConfirmationModal({
         <AlertDialogHeader>
           <AlertDialogTitle>Usuń byt</AlertDialogTitle>
           <AlertDialogDescription>
-            Czy na pewno chcesz usunąć {entity?.name ? `byt "${entity.name}"` : "wybrany byt"}? Ta operacja jest
-            nieodwracalna i usunie powiązania z notatkami.
+            Czy na pewno chcesz usunąć {entity?.name ? `byt "${entity.name}"` : "wybrany byt"}? Ta
+            operacja jest nieodwracalna i usunie powiązania z notatkami.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

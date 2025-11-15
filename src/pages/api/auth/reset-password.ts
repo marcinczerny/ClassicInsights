@@ -19,7 +19,11 @@ export const POST: APIRoute = async ({ request, url, cookies, locals }) => {
       });
     }
 
-    const supabase = createSupabaseServerInstance({ cookies, headers: request.headers, runtime: locals.runtime });
+    const supabase = createSupabaseServerInstance({
+      cookies,
+      headers: request.headers,
+      runtime: locals.runtime,
+    });
 
     const { email } = result.data;
 
@@ -42,7 +46,7 @@ export const POST: APIRoute = async ({ request, url, cookies, locals }) => {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   } catch (error) {
     console.error("Reset password endpoint error:", error);
@@ -54,7 +58,7 @@ export const POST: APIRoute = async ({ request, url, cookies, locals }) => {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   }
 };

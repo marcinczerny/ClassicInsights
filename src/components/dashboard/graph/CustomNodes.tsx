@@ -26,13 +26,17 @@ export function EntityNode({ data }: NodeProps<EntityNodeData>) {
   const bgColor = typeColors[entity_type ?? ""] || "bg-gray-500";
 
   return (
-    <div className={`min-w-[150px] rounded-lg border-2 border-white bg-indigo-500 px-4 py-3 shadow-lg ${bgColor}`}>
+    <div
+      className={`min-w-[150px] rounded-lg border-2 border-white bg-indigo-500 px-4 py-3 shadow-lg ${bgColor}`}
+    >
       <Handle type="target" position={Position.Top} className="!bg-white" />
 
       <div className="text-center">
         <div className="mb-1 text-xs font-semibold uppercase text-white/70">{entity_type}</div>
         <div className="font-semibold text-white">{label}</div>
-        {description && <div className="mt-1 line-clamp-2 text-xs text-white/80">{description}</div>}
+        {description && (
+          <div className="mt-1 line-clamp-2 text-xs text-white/80">{description}</div>
+        )}
       </div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-white" />
@@ -55,7 +59,9 @@ export function NoteNode({ data }: NodeProps<NoteNodeData>) {
       <div className="text-center">
         <div className="mb-1 text-xs font-semibold uppercase text-amber-700">Notatka</div>
         <div className="font-semibold text-amber-900">{label}</div>
-        {note_preview && <div className="mt-1 text-xs text-amber-700 line-clamp-2">{note_preview}</div>}
+        {note_preview && (
+          <div className="mt-1 text-xs text-amber-700 line-clamp-2">{note_preview}</div>
+        )}
       </div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-amber-500" />

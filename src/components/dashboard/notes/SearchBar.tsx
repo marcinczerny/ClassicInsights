@@ -64,7 +64,8 @@ export function SearchBar({
    */
   const filteredEntities = availableEntities.filter(
     (entity) =>
-      !selectedEntityIds.includes(entity.id) && entity.name.toLowerCase().includes(entitySearchInput.toLowerCase())
+      !selectedEntityIds.includes(entity.id) &&
+      entity.name.toLowerCase().includes(entitySearchInput.toLowerCase())
   );
 
   /**

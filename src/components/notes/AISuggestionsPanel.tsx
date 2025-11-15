@@ -61,7 +61,12 @@ export function AISuggestionsPanel({
       {!isAnalyzing && suggestions.length > 0 && (
         <div className="space-y-3">
           {suggestions.map((suggestion) => (
-            <AISuggestionCard key={suggestion.id} suggestion={suggestion} onAccept={onAccept} onReject={onReject} />
+            <AISuggestionCard
+              key={suggestion.id}
+              suggestion={suggestion}
+              onAccept={onAccept}
+              onReject={onReject}
+            />
           ))}
         </div>
       )}

@@ -5,7 +5,14 @@
  * Shows loading state during submission.
  */
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { SuggestionViewModel } from "./types";
 
@@ -43,7 +50,9 @@ export function AISuggestionCard({ suggestion, onAccept, onReject }: AISuggestio
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-base">{suggestion.name || formatType(suggestion.type)}</CardTitle>
+        <CardTitle className="text-base">
+          {suggestion.name || formatType(suggestion.type)}
+        </CardTitle>
         <CardDescription className="text-xs">{formatType(suggestion.type)}</CardDescription>
       </CardHeader>
 
@@ -52,10 +61,20 @@ export function AISuggestionCard({ suggestion, onAccept, onReject }: AISuggestio
       </CardContent>
 
       <CardFooter className="flex gap-2 justify-end">
-        <Button variant="outline" size="sm" onClick={handleReject} disabled={suggestion.isSubmitting}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleReject}
+          disabled={suggestion.isSubmitting}
+        >
           Odrzuć
         </Button>
-        <Button variant="default" size="sm" onClick={handleAccept} disabled={suggestion.isSubmitting}>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={handleAccept}
+          disabled={suggestion.isSubmitting}
+        >
           {suggestion.isSubmitting ? "Przetwarzanie..." : "Akceptuj"}
         </Button>
       </CardFooter>

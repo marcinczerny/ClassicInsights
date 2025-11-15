@@ -21,8 +21,9 @@ export function OnboardingModal({ isOpen, onClose, onCtaClick }: OnboardingModal
         <DialogHeader>
           <DialogTitle>Witaj w ClassicInsights!</DialogTitle>
           <DialogDescription>
-            Aplikacja ClassicInsights pomaga organizować Twoje myśli i wiedzę poprzez tworzenie notatek połączonych z
-            encjami. Zacznij od stworzenia swojej pierwszej notatki, aby poznać możliwości systemu.
+            Aplikacja ClassicInsights pomaga organizować Twoje myśli i wiedzę poprzez tworzenie
+            notatek połączonych z encjami. Zacznij od stworzenia swojej pierwszej notatki, aby
+            poznać możliwości systemu.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

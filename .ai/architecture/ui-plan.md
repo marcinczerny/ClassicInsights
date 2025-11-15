@@ -11,6 +11,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 ### 2.1. Authentication Views
 
 #### a. Sign Up View
+
 - **Path**: `/sign-up`
 - **Purpose**: To allow new users to register for the service.
 - **Key Information**: Email address, password, password confirmation, and a mandatory checkbox for AI data processing consent.
@@ -18,6 +19,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 - **UX/Accessibility/Security**: Form validation will provide real-time feedback. The consent checkbox will link to a privacy policy. All password fields will be type `password`.
 
 #### b. Sign In View
+
 - **Path**: `/sign-in`
 - **Purpose**: To allow registered users to log into their account.
 - **Key Information**: Email address, password, and a link to the password reset flow.
@@ -25,6 +27,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 - **UX/Accessibility/Security**: Provides clear error messages for invalid credentials.
 
 #### c. Password Reset View
+
 - **Path**: `/forgot-password`
 - **Purpose**: To enable users who have forgotten their password to reset it.
 - **Key Information**: An input for the user's email address. Subsequent steps are handled via an email link.
@@ -34,6 +37,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 ### 2.2. Core Application Views
 
 #### a. Onboarding View
+
 - **Path**: Displayed as a modal over the Main Dashboard on the first visit.
 - **Purpose**: To welcome new users and guide them towards their first action.
 - **Key Information**: A welcome message and a primary Call-to-Action (CTA) to create a new note.
@@ -41,6 +45,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 - **UX/Accessibility/Security**: This view is only shown once. The modal will be dismissible.
 
 #### b. Main Dashboard View
+
 - **Path**: `/`
 - **Purpose**: To serve as the user's main hub, displaying all their notes and providing access to the thought graph.
 - **Key Information**: A list of all user notes (title, modification date), a search bar for filtering notes by entities, and a button to create a new note.
@@ -48,6 +53,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 - **UX/Accessibility/Security**: An "empty state" will be shown if the user has no notes, guiding them to create one. The notes list will be paginated to handle large numbers of notes.
 
 #### c. Note Editor View
+
 - **Path**: `/notes/:id` (e.g., `/notes/new`, `/notes/uuid-1234`)
 - **Purpose**: To allow for the creation, viewing, and editing of notes, as well as interacting with AI suggestions.
 - **Key Information**: Note title, content editor (Markdown), a list of attached entities (tags), a button to trigger AI analysis, and a section for AI-generated suggestions.
@@ -55,6 +61,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 - **UX/Accessibility/Security**: Saving is auto-triggered or manual with clear status indicators. The "Analyze" button is disabled if consent isn't given. User-generated content is sanitized on display if rendered as HTML.
 
 #### d. Global Entity Management View
+
 - **Path**: `/entities`
 - **Purpose**: To provide a centralized place for users to manage all their created entities (tags).
 - **Key Information**: A filterable and searchable list of all entities, showing name, type, and the number of notes it's associated with.
@@ -62,6 +69,7 @@ The core layout consists of a persistent top navigation bar providing access to 
 - **UX/Accessibility/Security**: Provides a clear overview of the user's knowledge base structure. Destructive actions are confirmed via a modal.
 
 #### e. Profile Management View
+
 - **Path**: `/profile`
 - **Purpose**: To allow users to manage their account settings and data.
 - **Key Information**: AI data processing consent setting, password change options, and an account deletion option.
@@ -93,26 +101,26 @@ The primary user journey is designed to be a seamless flow from content creation
 
 Navigation is designed to be simple and predictable, centered around a persistent top navigation bar.
 
--   **Application Shell**: A persistent layout component that includes the top navigation bar and wraps all authenticated views.
--   **Top Navigation Bar**: A standard header present on all pages, containing:
-    -   **App Logo and Name**: Positioned on the far left, linking to the Main Dashboard (`/`).
-    -   **Navigation Links**: A central group of links for major sections:
-        -   **Notes**: Links to the Main Dashboard (`/`).
-        -   **Entities**: Links to the Global Entity Management View (`/entities`).
-    -   **Graph Controls**: A button or toggle to show/hide the `GraphPanel` as a side panel or expand it to full-screen.
-    -   **Light/Dark mode switch**: A toggle to trigger light/dark mode of app
-    -   **User Profile Dropdown**: Positioned on the far right, providing access to:
-        -   **Profile Management View** (`/profile`).
-        -   **Sign Out** action.
--   **Contextual Navigation**: Navigation within a view, such as clicking a note in the `NotesList` to go to the `Note Editor View`, or clicking the "New Note" button.
+- **Application Shell**: A persistent layout component that includes the top navigation bar and wraps all authenticated views.
+- **Top Navigation Bar**: A standard header present on all pages, containing:
+  - **App Logo and Name**: Positioned on the far left, linking to the Main Dashboard (`/`).
+  - **Navigation Links**: A central group of links for major sections:
+    - **Notes**: Links to the Main Dashboard (`/`).
+    - **Entities**: Links to the Global Entity Management View (`/entities`).
+  - **Graph Controls**: A button or toggle to show/hide the `GraphPanel` as a side panel or expand it to full-screen.
+  - **Light/Dark mode switch**: A toggle to trigger light/dark mode of app
+  - **User Profile Dropdown**: Positioned on the far right, providing access to:
+    - **Profile Management View** (`/profile`).
+    - **Sign Out** action.
+- **Contextual Navigation**: Navigation within a view, such as clicking a note in the `NotesList` to go to the `Note Editor View`, or clicking the "New Note" button.
 
 ## 5. Key Reusable Components
 
--   **`AuthForm`**: A standardized form for sign-in and sign-up, handling validation and submission state.
--   **`NotesList`**: Displays a list of notes with search and filter capabilities. Handles its own empty and loading states.
--   **`GraphPanel`**: A container component for the `GraphView`. It manages the layout (e.g., side panel or full-screen mode), and its state (collapsed/expanded) is controlled from the top navigation bar. It allows the graph to be viewed side-by-side with notes or in a full-screen, focused mode.
--   **`GraphView`**: An interactive component responsible for rendering nodes and edges, handling user interactions like panning, zooming, and node selection.
--   **`EntityTagInput`**: A specialized input for the Note Editor that allows users to add entities, provides autocomplete suggestions from existing entities, and triggers a creation modal for new ones. Includes a dropdown for setting the relationship type.
--   **`AISuggestionCard`**: A card component to display a single AI suggestion with its type, content, and action buttons (`Accept`/`Reject`).
--   **`ConfirmationModal`**: A generic modal used across the app to confirm destructive actions (e.g., Delete Note, Delete Entity, Delete Account), reducing the risk of accidental data loss.
--   **`SearchBar`**: A reusable search input component with debouncing for performance.
+- **`AuthForm`**: A standardized form for sign-in and sign-up, handling validation and submission state.
+- **`NotesList`**: Displays a list of notes with search and filter capabilities. Handles its own empty and loading states.
+- **`GraphPanel`**: A container component for the `GraphView`. It manages the layout (e.g., side panel or full-screen mode), and its state (collapsed/expanded) is controlled from the top navigation bar. It allows the graph to be viewed side-by-side with notes or in a full-screen, focused mode.
+- **`GraphView`**: An interactive component responsible for rendering nodes and edges, handling user interactions like panning, zooming, and node selection.
+- **`EntityTagInput`**: A specialized input for the Note Editor that allows users to add entities, provides autocomplete suggestions from existing entities, and triggers a creation modal for new ones. Includes a dropdown for setting the relationship type.
+- **`AISuggestionCard`**: A card component to display a single AI suggestion with its type, content, and action buttons (`Accept`/`Reject`).
+- **`ConfirmationModal`**: A generic modal used across the app to confirm destructive actions (e.g., Delete Note, Delete Entity, Delete Account), reducing the risk of accidental data loss.
+- **`SearchBar`**: A reusable search input component with debouncing for performance.

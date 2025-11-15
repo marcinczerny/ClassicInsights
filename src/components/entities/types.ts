@@ -1,4 +1,9 @@
-import type { CreateEntityCommand, EntityWithCountDTO, PaginationDTO, UpdateEntityCommand } from "@/types";
+import type {
+  CreateEntityCommand,
+  EntityWithCountDTO,
+  PaginationDTO,
+  UpdateEntityCommand,
+} from "@/types";
 import type { Enums } from "@/db/database.types";
 
 export type EntityType = Enums<"entity_type"> | "other";

@@ -13,7 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import type { Enums } from "@/db/database.types";
 
@@ -93,7 +99,8 @@ export function EditRelationshipModal({
         <DialogHeader>
           <DialogTitle>Edytuj relację</DialogTitle>
           <DialogDescription>
-            Zmień typ relacji między bytami &quot;{sourceEntityName}&quot; i &quot;{targetEntityName}&quot;
+            Zmień typ relacji między bytami &quot;{sourceEntityName}&quot; i &quot;
+            {targetEntityName}&quot;
           </DialogDescription>
         </DialogHeader>
 
@@ -101,7 +108,10 @@ export function EditRelationshipModal({
           <label htmlFor="edit-relationship-type-select" className="mb-2 block text-sm font-medium">
             Typ relacji
           </label>
-          <Select value={selectedType} onValueChange={(value) => setSelectedType(value as Enums<"relationship_type">)}>
+          <Select
+            value={selectedType}
+            onValueChange={(value) => setSelectedType(value as Enums<"relationship_type">)}
+          >
             <SelectTrigger id="edit-relationship-type-select">
               <SelectValue />
             </SelectTrigger>

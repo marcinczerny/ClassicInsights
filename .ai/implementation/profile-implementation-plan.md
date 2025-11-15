@@ -3,6 +3,7 @@
 ## 1. Przegląd punktu końcowego
 
 Profile Management API składa się z trzech endpointów umożliwiających użytkownikom:
+
 - Pobranie informacji o swoim profilu
 - Aktualizację zgody na przetwarzanie danych przez AI
 - Usunięcie konta wraz z wszystkimi powiązanymi danymi (notatki, byty, relacje)
@@ -12,6 +13,7 @@ Wszystkie endpointy wymagają uwierzytelnienia i działają wyłącznie na profi
 ## 2. Szczegóły żądania
 
 ### GET /api/profile
+
 - **Metoda HTTP**: GET
 - **Struktura URL**: `/api/profile`
 - **Parametry**:
@@ -21,6 +23,7 @@ Wszystkie endpointy wymagają uwierzytelnienia i działają wyłącznie na profi
 - **Uwierzytelnienie**: Wymagane (sprawdzane przez middleware)
 
 ### PATCH /api/profile
+
 - **Metoda HTTP**: PATCH
 - **Struktura URL**: `/api/profile`
 - **Parametry**:
@@ -35,6 +38,7 @@ Wszystkie endpointy wymagają uwierzytelnienia i działają wyłącznie na profi
 - **Uwierzytelnienie**: Wymagane (sprawdzane przez middleware)
 
 ### DELETE /api/profile
+
 - **Metoda HTTP**: DELETE
 - **Struktura URL**: `/api/profile`
 - **Parametry**:
@@ -48,10 +52,13 @@ Wszystkie endpointy wymagają uwierzytelnienia i działają wyłącznie na profi
 Wszystkie typy są już zdefiniowane w `src/types.ts`:
 
 ### ProfileDTO
+
 ```typescript
 export type ProfileDTO = Tables<"profiles">;
 ```
+
 Mapuje bezpośrednio do tabeli `profiles` i zawiera:
+
 - `id`: UUID (klucz główny)
 - `user_id`: UUID (referencja do auth.users)
 - `has_agreed_to_ai_data_processing`: boolean
@@ -59,14 +66,17 @@ Mapuje bezpośrednio do tabeli `profiles` i zawiera:
 - `updated_at`: timestamp
 
 ### UpdateProfileCommand
+
 ```typescript
 export type UpdateProfileCommand = {
   has_agreed_to_ai_data_processing?: boolean;
 };
 ```
+
 Używany do walidacji żądania PATCH.
 
 ### ErrorDTO
+
 ```typescript
 export type ErrorDTO = {
   error: {
@@ -76,6 +86,7 @@ export type ErrorDTO = {
   };
 };
 ```
+
 Standardowy format odpowiedzi błędu.
 
 ## 4. Szczegóły odpowiedzi
@@ -83,6 +94,7 @@ Standardowy format odpowiedzi błędu.
 ### GET /api/profile
 
 **Success (200 OK)**:
+
 ```json
 {
   "id": "uuid",
@@ -94,6 +106,7 @@ Standardowy format odpowiedzi błędu.
 ```
 
 **Errors**:
+
 - `401 Unauthorized`: Użytkownik nie jest uwierzytelniony
 - `404 Not Found`: Profil nie istnieje (nie powinno się zdarzyć w normalnych warunkach)
 - `500 Internal Server Error`: Błąd bazy danych
@@ -101,6 +114,7 @@ Standardowy format odpowiedzi błędu.
 ### PATCH /api/profile
 
 **Success (200 OK)**:
+
 ```json
 {
   "id": "uuid",
@@ -112,6 +126,7 @@ Standardowy format odpowiedzi błędu.
 ```
 
 **Errors**:
+
 - `400 Bad Request`: Nieprawidłowe dane wejściowe (walidacja Zod nie powiodła się)
 - `401 Unauthorized`: Użytkownik nie jest uwierzytelniony
 - `404 Not Found`: Profil nie istnieje
@@ -122,12 +137,14 @@ Standardowy format odpowiedzi błędu.
 **Success (204 No Content)**: Brak treści odpowiedzi
 
 **Errors**:
+
 - `401 Unauthorized`: Użytkownik nie jest uwierzytelniony
 - `500 Internal Server Error`: Błąd podczas usuwania konta
 
 ## 5. Przepływ danych
 
 ### GET /api/profile
+
 1. Middleware sprawdza uwierzytelnienie i dodaje `supabase` do `context.locals`
 2. Endpoint pobiera `user_id` z sesji użytkownika
 3. Service wywołuje Supabase: `SELECT * FROM profiles WHERE user_id = ?`
@@ -135,6 +152,7 @@ Standardowy format odpowiedzi błędu.
 5. Zwrócenie profilu lub błędu 404 jeśli nie istnieje
 
 ### PATCH /api/profile
+
 1. Middleware sprawdza uwierzytelnienie
 2. Endpoint waliduje body za pomocą Zod schema
 3. Jeśli walidacja się nie powiodła → 400 Bad Request
@@ -143,6 +161,7 @@ Standardowy format odpowiedzi błędu.
 6. Zwrócenie zaktualizowanego profilu
 
 ### DELETE /api/profile
+
 1. Middleware sprawdza uwierzytelnienie
 2. Service wywołuje Supabase Auth: `supabase.auth.admin.deleteUser(userId)`
 3. CASCADE w bazie danych automatycznie usuwa:
@@ -157,11 +176,13 @@ Standardowy format odpowiedzi błędu.
 ## 6. Względy bezpieczeństwa
 
 ### Uwierzytelnienie
+
 - Wszystkie endpointy wymagają uwierzytelnienia przez Supabase
 - Middleware Astro weryfikuje sesję użytkownika przed dostępem do endpointów
 - `context.locals.supabase` zawiera klienta Supabase z kontekstem użytkownika
 
 ### Autoryzacja
+
 - Row-Level Security (RLS) w Supabase zapewnia, że:
   ```sql
   CREATE POLICY "Users can view and manage their own profile"
@@ -172,12 +193,14 @@ Standardowy format odpowiedzi błędu.
 - Nie ma ryzyka dostępu do danych innych użytkowników
 
 ### Walidacja danych
+
 - Zod schema dla PATCH weryfikuje:
   - `has_agreed_to_ai_data_processing` jest boolean (jeśli podane)
   - Przynajmniej jedno pole jest wysłane w request body
 - Walidacja typu na poziomie TypeScript i runtime (Zod)
 
 ### Usuwanie konta
+
 - DELETE /api/profile jest operacją nieodwracalną
 - Supabase Auth API zarządza usuwaniem użytkownika
 - CASCADE w bazie danych gwarantuje spójność danych
@@ -187,16 +210,17 @@ Standardowy format odpowiedzi błędu.
 
 ### Scenariusze błędów i kody statusu
 
-| Kod | Scenariusz | Endpoint | Akcja |
-|-----|-----------|----------|-------|
-| 400 | Nieprawidłowe dane wejściowe (Zod validation) | PATCH | Zwróć szczegóły błędu walidacji |
-| 400 | Brak pól w request body | PATCH | "At least one field must be provided" |
-| 401 | Brak sesji użytkownika | ALL | "Unauthorized" |
-| 404 | Profil nie istnieje | GET, PATCH | "Profile not found" |
-| 500 | Błąd bazy danych | ALL | Log błąd, zwróć ogólny komunikat |
-| 500 | Błąd usuwania konta | DELETE | Log błąd, zwróć "Failed to delete account" |
+| Kod | Scenariusz                                    | Endpoint   | Akcja                                      |
+| --- | --------------------------------------------- | ---------- | ------------------------------------------ |
+| 400 | Nieprawidłowe dane wejściowe (Zod validation) | PATCH      | Zwróć szczegóły błędu walidacji            |
+| 400 | Brak pól w request body                       | PATCH      | "At least one field must be provided"      |
+| 401 | Brak sesji użytkownika                        | ALL        | "Unauthorized"                             |
+| 404 | Profil nie istnieje                           | GET, PATCH | "Profile not found"                        |
+| 500 | Błąd bazy danych                              | ALL        | Log błąd, zwróć ogólny komunikat           |
+| 500 | Błąd usuwania konta                           | DELETE     | Log błąd, zwróć "Failed to delete account" |
 
 ### Format odpowiedzi błędu
+
 ```typescript
 {
   error: {
@@ -208,6 +232,7 @@ Standardowy format odpowiedzi błędu.
 ```
 
 ### Kody błędów
+
 - `VALIDATION_ERROR` - błąd walidacji Zod (400)
 - `NOT_FOUND` - profil nie istnieje (404)
 - `UNAUTHORIZED` - brak uwierzytelnienia (401)
@@ -216,24 +241,29 @@ Standardowy format odpowiedzi błędu.
 ## 8. Rozważania dotyczące wydajności
 
 ### Optymalizacje
+
 - **Indeksy**: Tabela `profiles` ma już indeks na `user_id` (zgodnie z db-plan.md)
 - **RLS**: Polityki RLS są proste (sprawdzenie `auth.uid() = user_id`) - minimalny overhead
 - **Pojedyncze zapytania**: Każdy endpoint wykonuje tylko jedno zapytanie do bazy
 - **Brak N+1**: Nie ma powiązanych tabel do pobrania (profile jest płaską strukturą)
 
 ### Potencjalne wąskie gardła
+
 - **DELETE**: Usuwanie konta może być wolne jeśli użytkownik ma dużo danych (CASCADE):
   - Rozwiązanie: Operacja jest rzadka, można dodać timeout
   - Alternatywa: Background job dla dużych kont (future enhancement)
 
 ### Caching
+
 - Profile nie wymaga agresywnego cachingu (rzadko czytane)
 - Można dodać cache w przyszłości jeśli będzie używany często w UI
 
 ## 9. Etapy wdrożenia
 
 ### Krok 1: Utworzenie schematu walidacji Zod
+
 **Plik**: `src/lib/validation/profile.schemas.ts`
+
 ```typescript
 import { z } from "zod";
 
@@ -247,9 +277,11 @@ export const updateProfileSchema = z
 ```
 
 ### Krok 2: Utworzenie service layer
+
 **Plik**: `src/lib/services/profile.service.ts`
 
 Funkcje do zaimplementowania:
+
 - `getProfile(supabase: SupabaseClient, userId: string): Promise<ProfileDTO | null>`
   - Query: `from('profiles').select('*').eq('user_id', userId).single()`
   - Zwraca profil lub null
@@ -265,6 +297,7 @@ Funkcje do zaimplementowania:
 **Uwaga**: DELETE może wymagać specjalnego admin klienta Supabase lub funkcji RPC po stronie bazy.
 
 ### Krok 3: Implementacja GET /api/profile
+
 **Plik**: `src/pages/api/profile.ts`
 
 ```typescript
@@ -308,6 +341,7 @@ export async function GET(context: APIContext) {
 ```
 
 ### Krok 4: Implementacja PATCH /api/profile
+
 W tym samym pliku `src/pages/api/profile.ts`:
 
 ```typescript
@@ -357,6 +391,7 @@ export async function PATCH(context: APIContext) {
 ```
 
 ### Krok 5: Implementacja DELETE /api/profile
+
 W tym samym pliku `src/pages/api/profile.ts`:
 
 ```typescript
@@ -394,6 +429,7 @@ export async function DELETE(context: APIContext) {
 ```
 
 ### Krok 6: Obsługa błędów w service layer
+
 - Zdefiniować custom error classes (opcjonalnie):
   - `ProfileNotFoundError` dla 404
   - `ProfileUpdateError` dla błędów aktualizacji
@@ -401,13 +437,16 @@ export async function DELETE(context: APIContext) {
 - Dodać logging błędów (console.error dla development)
 
 ### Krok 7: Aktualizacja pliku testowego endpoints.http
+
 Dodać sekcję testowania Profile Management API z przykładami:
+
 - GET /api/profile
 - PATCH /api/profile (akceptacja zgody)
 - PATCH /api/profile (odrzucenie zgody)
 - DELETE /api/profile
 
 ### Krok 8: Testy manualne
+
 1. Przetestować GET bez uwierzytelnienia → 401
 2. Przetestować GET z uwierzytelnieniem → 200
 3. Przetestować PATCH z pustym body → 400
@@ -416,6 +455,7 @@ Dodać sekcję testowania Profile Management API z przykładami:
 6. Przetestować DELETE → 204 i weryfikacja usunięcia konta
 
 ### Krok 9: Dokumentacja
+
 - Upewnić się, że API jest zgodne ze specyfikacją
 - Dodać komentarze JSDoc do funkcji service
 - Zaktualizować dokumentację API (jeśli istnieje)
@@ -423,13 +463,17 @@ Dodać sekcję testowania Profile Management API z przykładami:
 ## 10. Dodatkowe uwagi
 
 ### Bezpieczeństwo DELETE
+
 DELETE /api/profile jest operacją krytyczną. Warto rozważyć:
+
 - **Confirmation step**: Wymaganie potwierdzenia przez UI (np. wpisanie hasła)
 - **Email notification**: Wysłanie emaila po usunięciu konta
 - **Grace period**: Soft delete z możliwością odzyskania w ciągu X dni (future enhancement)
 
 ### Admin Client dla DELETE
+
 Supabase Auth API `deleteUser()` wymaga admin klienta. Rozwiązania:
+
 1. **Opcja A**: Utworzyć admin klienta z service role key (bezpieczne tylko server-side)
 2. **Opcja B**: Utworzyć Supabase Edge Function/RPC function do usuwania użytkownika
 3. **Opcja C**: Używać `supabase.rpc('delete_user_account')` jeśli funkcja istnieje w bazie
@@ -437,10 +481,13 @@ Supabase Auth API `deleteUser()` wymaga admin klienta. Rozwiązania:
 **Rekomendacja**: Opcja B/C jest bezpieczniejsza i zgodna z best practices.
 
 ### Profil podczas rejestracji
+
 Według db-plan.md, profil jest tworzony automatycznie dla nowego użytkownika (trigger lub hook w Supabase). Należy upewnić się, że ten mechanizm działa poprawnie.
 
 ### GDPR Compliance
+
 Implementacja DELETE spełnia wymagania GDPR:
+
 - Usunięcie wszystkich danych osobowych (CASCADE)
 - Anonimizacja danych analitycznych AI (SET NULL)
 - Pełne usunięcie konta z auth.users

@@ -5,8 +5,14 @@
 
 import type { APIRoute } from "astro";
 import { ZodError } from "zod";
-import { updateRelationship, deleteRelationship } from "../../../lib/services/relationships.service";
-import { updateRelationshipSchema, relationshipIdSchema } from "../../../lib/validation/relationships.validation";
+import {
+  updateRelationship,
+  deleteRelationship,
+} from "../../../lib/services/relationships.service";
+import {
+  updateRelationshipSchema,
+  relationshipIdSchema,
+} from "../../../lib/validation/relationships.validation";
 import type { ErrorDTO } from "../../../types";
 
 export const prerender = false;
@@ -30,7 +36,12 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const validatedData = updateRelationshipSchema.parse(body);
 
     // Update relationship via service
-    const relationship = await updateRelationship(supabase, user.id, validatedParams.id, validatedData);
+    const relationship = await updateRelationship(
+      supabase,
+      user.id,
+      validatedParams.id,
+      validatedData
+    );
 
     return new Response(JSON.stringify(relationship), {
       status: 200,
