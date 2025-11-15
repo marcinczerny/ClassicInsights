@@ -86,7 +86,7 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Hasło</Label>
-              <a href="/reset-password" tabIndex={-1} className="text-sm underline">
+              <a href="/reset-password" className="text-sm underline">
                 Zapomniałeś hasła?
               </a>
             </div>

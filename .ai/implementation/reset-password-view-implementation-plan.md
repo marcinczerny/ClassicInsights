@@ -29,9 +29,8 @@ Hierarchia komponentów dla tego widoku będzie prosta i skupiona na renderowani
 ### `ResetPasswordForm` (`src/components/auth/ResetPasswordForm.tsx`)
 - **Opis komponentu**: Komponent React, który zarządza stanem i logiką formularza resetowania hasła. Odpowiada za walidację danych wejściowych, komunikację z API oraz wyświetlanie informacji zwrotnej dla użytkownika (ładowanie, sukces, błąd).
 - **Główne elementy**:
-  - `<Form>` z Shadcn/ui, wykorzystujący `react-hook-form` i `zod` do zarządzania stanem i walidacją.
-  - `<FormField>` z polem `<Input type="email">` do wprowadzenia adresu e-mail.
-  - `<Button type="submit">` do przesłania formularza.
+  - Komponenty UI z biblioteki Shadcn (`Card`, `Input`, `Button`).
+  - Standardowy element `<form>` do obsługi wysyłania.
   - Elementy do wyświetlania komunikatów o sukcesie lub błędzie (np. przy użyciu istniejącego `ToastProvider`).
 - **Obsługiwane interakcje**:
   - `onSubmit`: Uruchamia walidację i wysyła zapytanie do API.
@@ -63,9 +62,7 @@ interface ResetPasswordViewModel {
 ```
 
 ## 6. Zarządzanie stanem
-Stan będzie zarządzany lokalnie w komponencie `ResetPasswordForm.tsx`.
-- Biblioteka `react-hook-form` posłuży do zarządzania stanem pól formularza (wartości, błędy walidacji).
-- Zwykły hook `useState` będzie użyty do śledzenia stanu ładowania (`isLoading`) oraz komunikatów o powodzeniu lub błędzie operacji, które będą przekazywane do globalnego `ToastProvider`.
+Stan będzie zarządzany lokalnie w komponencie `ResetPasswordForm.tsx` przy użyciu hooka `useState`. Będzie on śledził wartości pól formularza, błędy walidacji oraz stan ładowania (`isLoading`), zapewniając spójność z innymi formularzami w aplikacji, takimi jak `LoginForm`.
 
 ## 7. Integracja API
 Komponent będzie komunikował się z nowo utworzonym punktem końcowym API.
@@ -104,7 +101,7 @@ Komponent będzie komunikował się z nowo utworzonym punktem końcowym API.
 - **Warunki**:
   - Adres e-mail nie może być pusty.
   - Adres e-mail musi być zgodny ze standardowym formatem.
-- **Implementacja**: Walidacja będzie zaimplementowana po stronie klienta przy użyciu biblioteki `zod`, zintegrowanej z `react-hook-form`. Schemat walidacji będzie wyglądał następująco:
+- **Implementacja**: Walidacja będzie zaimplementowana po stronie klienta przy użyciu biblioteki `zod`. Schemat walidacji zostanie sprawdzony manualnie wewnątrz funkcji obsługującej `onSubmit`, a ewentualne błędy zostaną zapisane w stanie komponentu i wyświetlone użytkownikowi.
   ```typescript
   import { z } from "zod";
 
@@ -124,8 +121,8 @@ Komponent będzie komunikował się z nowo utworzonym punktem końcowym API.
 1.  **Stworzenie endpointu API**: Utwórz plik `src/pages/api/auth/reset-password.ts`. Zaimplementuj w nim logikę wywołującą `supabase.auth.resetPasswordForEmail()` z `redirectTo` ustawionym na `${Astro.url.origin}/update-password`.
 2.  **Stworzenie strony widoku**: Utwórz plik `src/pages/reset-password.astro`, który będzie importował i renderował komponent `ResetPasswordForm`.
 3.  **Stworzenie komponentu formularza**: Utwórz plik `src/components/auth/ResetPasswordForm.tsx`.
-4.  **Budowa UI formularza**: Użyj komponentów z Shadcn/ui (`Form`, `Input`, `Button`), aby zbudować interfejs formularza.
-5.  **Implementacja walidacji**: Zdefiniuj schemat walidacji `zod` i zintegruj go z formularzem przy pomocy `react-hook-form`.
+4.  **Budowa UI formularza**: Użyj komponentów z Shadcn/ui (`Card`, `Input`, `Button`), aby zbudować interfejs formularza, zachowując spójność z `LoginForm.tsx`.
+5.  **Implementacja walidacji**: Zdefiniuj schemat walidacji `zod` i zaimplementuj ręczną obsługę walidacji w handlerze `onSubmit`.
 6.  **Implementacja logiki `onSubmit`**: Napisz funkcję obsługującą wysyłkę formularza, która będzie wywoływać `fetch` do nowo utworzonego endpointu API.
-7.  **Zarządzanie stanem UI**: Dodaj obsługę stanu ładowania (np. blokowanie przycisku) oraz wyświetlanie powiadomień o sukcesie lub błędzie za pomocą `ToastProvider`.
+7.  **Zarządzanie stanem UI**: Dodaj obsługę stanu ładowania oraz wyświetlanie powiadomień o sukcesie lub błędzie przy użyciu `useState` i `ToastProvider`.
 8.  **Dodanie nawigacji**: W komponencie `LoginForm.tsx` (`src/components/auth/LoginForm.tsx`) dodaj link nawigacyjny do strony `/reset-password`.
