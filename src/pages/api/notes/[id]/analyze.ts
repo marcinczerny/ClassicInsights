@@ -13,7 +13,11 @@ export const POST: APIRoute = async ({ params, locals }) => {
   }
 
   try {
-    const suggestions = await generateSuggestionsForNote(supabase, noteId, user.id);
+    const openRouterApiKey = locals.runtime?.env?.OPENROUTER_API_KEY;
+    if (!openRouterApiKey) {
+      throw new Error("OPENROUTER_API_KEY is not set.");
+    }
+    const suggestions = await generateSuggestionsForNote(supabase, noteId, user.id, openRouterApiKey);
     return new Response(JSON.stringify(suggestions), {
       status: 201,
       headers: { "Content-Type": "application/json" },

@@ -33,7 +33,9 @@ async function generateSuggestionsFromAI(
     name: string;
     type: Enums<"entity_type">;
     description: string | null;
-  }[]
+  }[],
+  openRouterApiKey: string,
+  existingSuggestions: SuggestionDTO[]
 ): Promise<z.infer<typeof AISuggestionsResponseSchema>["suggestions"]> {
   const userEntities = await getEntities(supabase, userId);
 
@@ -47,11 +49,16 @@ async function generateSuggestionsFromAI(
       ? noteEntities.map((e) => `- ${e.name} (${e.type})`).join("\n")
       : "No entities linked to this note yet.";
 
+  const existingSuggestionsContext =
+    existingSuggestions.length > 0
+      ? existingSuggestions.map((s) => `- ${s.name} (${s.type})`).join("\n")
+      : "No suggestions have been generated for this note yet.";
+
   const systemPrompt = `You are an expert assistant. Generate 2-5 helpful suggestions based on the note content. Types can be 'quote', 'summary', 'new_entity', or 'existing_entity_link'. For 'existing_entity_link', you MUST use the provided UUID for 'suggested_entity_id'. For all other types, 'suggested_entity_id' MUST be null.`;
 
-  const userPrompt = `**Note Content:**\n${noteContent}\n\n**Entities already linked:**\n${noteEntitiesContext}\n\n**User's existing entities (for linking):**\n${existingEntitiesContext}\n\nGenerate suggestions.`;
+  const userPrompt = `**Note Content:**\n${noteContent}\n\n**Entities already linked:**\n${noteEntitiesContext}\n\n**User's existing entities (for linking):**\n${existingEntitiesContext}\n\n**Existing Suggestions (DO NOT generate these again):**\n${existingSuggestionsContext}\n\nGenerate new, unique suggestions.`;
 
-  const aiService = new OpenRouterService();
+  const aiService = new OpenRouterService(openRouterApiKey);
   const response = await aiService.getStructuredResponse({
     systemPrompt,
     userPrompt,
@@ -63,7 +70,8 @@ async function generateSuggestionsFromAI(
 export async function generateSuggestionsForNote(
   supabase: SupabaseClient,
   noteId: string,
-  userId: string
+  userId: string,
+  openRouterApiKey: string
 ): Promise<SuggestionDTO[]> {
   const profile = await getProfile(supabase, userId);
   if (!profile?.has_agreed_to_ai_data_processing) {
@@ -80,11 +88,15 @@ export async function generateSuggestionsForNote(
     throw new Error(`Note content must be at least ${MIN_CONTENT_LENGTH} characters long.`);
   }
 
+  const existingSuggestions = await getSuggestionsForNote(supabase, noteId, userId);
+
   const aiSuggestions = await generateSuggestionsFromAI(
     supabase,
     userId,
     noteContent,
-    note.entities || []
+    note.entities || [],
+    openRouterApiKey,
+    existingSuggestions
   );
 
   const suggestionsToInsert = aiSuggestions.map((suggestion) => ({
