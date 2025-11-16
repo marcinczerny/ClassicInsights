@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, UserIcon, ChevronDown } from "lucide-react";
+import { LogOut, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,12 +52,6 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
     }
   };
 
-  // Placeholder for profile navigation
-  const handleProfileClick = () => {
-    console.log("Profile clicked - navigation pending");
-    // TODO: Implement actual profile navigation
-    // window.location.href = "/profile";
-  };
 
   return (
     <DropdownMenu>
@@ -73,13 +67,6 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={handleProfileClick} className="cursor-pointer">
-          <UserIcon className="mr-2 h-4 w-4" />
-          <span>Profil</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
         <DropdownMenuItem
           onClick={handleSignOut}
           disabled={isLoggingOut}
