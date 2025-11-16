@@ -24,9 +24,21 @@ export const createSupabaseServerInstance = (context: {
   cookies: AstroCookies;
   runtime?: { env: Record<string, string> };
 }) => {
-  // For Cloudflare Pages runtime, use runtime.env, otherwise fallback to import.meta.env
-  const supabaseUrl = context.runtime?.env?.SUPABASE_URL ?? import.meta.env.SUPABASE_URL;
-  const supabaseKey = context.runtime?.env?.SUPABASE_KEY ?? import.meta.env.SUPABASE_KEY;
+  // In test mode, prioritize import.meta.env (which has .env.test values) over runtime.env
+  // Otherwise, use runtime.env for Cloudflare Pages, fallback to import.meta.env
+  let supabaseUrl: string;
+  let supabaseKey: string;
+
+  if (import.meta.env.MODE === 'test') {
+    // In test mode, use import.meta.env which has .env.test loaded by Vite
+    supabaseUrl = import.meta.env.SUPABASE_URL;
+    supabaseKey = import.meta.env.SUPABASE_KEY;
+  } else {
+    // Normal mode: runtime.env (Cloudflare) takes precedence, then import.meta.env
+    supabaseUrl = context.runtime?.env?.SUPABASE_URL ?? import.meta.env.SUPABASE_URL;
+    supabaseKey = context.runtime?.env?.SUPABASE_KEY ?? import.meta.env.SUPABASE_KEY;
+  }
+
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,
