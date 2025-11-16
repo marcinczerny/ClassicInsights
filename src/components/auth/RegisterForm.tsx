@@ -56,6 +56,7 @@ export function RegisterForm() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          aiConsent: formData.aiConsent,
         }),
       });
 
