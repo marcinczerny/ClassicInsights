@@ -4,7 +4,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
       setIsLoggingOut(false);
     }
   };
-
 
   return (
     <DropdownMenu>
