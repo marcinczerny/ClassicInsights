@@ -24,6 +24,7 @@ interface GraphViewProps {
   graphCenterNode?: { id: string; type: "note" | "entity" } | null;
   hasNotes: boolean;
   graphData: GraphDTO | null;
+  selectedNodeId?: string | null;
 }
 
 export function GraphView({
@@ -37,8 +38,9 @@ export function GraphView({
   graphCenterNode,
   hasNotes,
   graphData,
+  selectedNodeId,
 }: GraphViewProps) {
-  const { fitView } = useReactFlow();
+  const { fitView, setNodes } = useReactFlow();
   const prevCenterNodeIdRef = useRef<string | null | undefined>(null);
 
   /**
@@ -58,6 +60,18 @@ export function GraphView({
     }
     prevCenterNodeIdRef.current = graphCenterNode?.id;
   }, [graphCenterNode, nodes, fitView]);
+
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isSelectedForCentering: node.id === selectedNodeId,
+        },
+      }))
+    );
+  }, [selectedNodeId, setNodes]);
 
   /**
    * Handle node click - reload graph centered on clicked node
@@ -153,7 +167,11 @@ export function GraphView({
             if (node.type === "note") return "#f59e0b";
             return "#94a3b8";
           }}
-          className="!bg-background !border !border-border"
+          className={
+            "!bg-background !border !border-border " +
+            "!w-28 !h-20 " + // <-- Mobile size (e.g., 112px x 80px)
+            "md:!w-48 md:!h-36" // <-- Desktop size (e.g., 192px x 144px)
+          }
         />
       </ReactFlow>
     </div>

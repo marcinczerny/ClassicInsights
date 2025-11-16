@@ -201,4 +201,12 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
+
+  /* Force the minimap's inner SVG to scale and fit
+     the dimensions of its parent div (which is controlled by Tailwind)
+  */
+  .react-flow__minimap svg {
+    width: 100% !important;
+    height: 100% !important;
+  }
 }
