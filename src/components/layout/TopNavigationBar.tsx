@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import { NavLinks } from "./NavLinks";
-import { GraphControls } from "./GraphControls";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserProfileDropdown } from "./UserProfileDropdown";
 import { $user } from "@/stores/app-store";
@@ -49,9 +48,6 @@ export function TopNavigationBar({ user, currentPath }: TopNavigationBarProps) {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2">
-          {/* Graph Controls - only for authenticated users */}
-          {isAuthenticated && <GraphControls />}
-
           {/* Theme Toggle - always visible */}
           <ThemeToggle />
 
