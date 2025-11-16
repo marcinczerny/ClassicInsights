@@ -12,8 +12,21 @@ import { GraphPanel } from "./graph/GraphPanel";
 import { OnboardingModal } from "../onboarding/OnboardingModal";
 import { useSessionStorage } from "../onboarding/useSessionStorage";
 import { ReactFlowProvider } from "@xyflow/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ThemeToggle } from "../layout/ThemeToggle";
+import { UserProfileDropdown } from "../layout/UserProfileDropdown";
+import { EntitiesPage } from "../entities/EntitiesPage";
 
-export function DashboardPage() {
+// This temporary user type is based on Astro.locals and what TopNavigationBar expects
+interface User {
+  email?: string;
+  id: string;
+}
+interface DashboardPageProps {
+  user: User | null;
+}
+
+export function DashboardPage({ user }: DashboardPageProps) {
   const {
     // Notes state
     notes,
@@ -75,45 +88,103 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
-      {/* Notes Panel - Left side */}
-      <div className="w-96 flex-shrink-0">
-        <NotesPanel
-          notes={notes}
-          pagination={pagination}
-          isLoading={isLoadingNotes}
-          error={notesError}
-          searchTerm={searchTerm}
-          selectedEntityIds={selectedEntityIds}
-          selectedNoteId={graphCenterNode?.type === "note" ? graphCenterNode.id : undefined}
-          onSearchChange={handleSearchChange}
-          onEntitySelectionChange={handleEntitySelectionChange}
-          onPageChange={handlePageChange}
-          onNoteSelect={handleNoteSelect}
-          onNoteDelete={handleNoteDelete}
-        />
+    <>
+      {/* Desktop view */}
+      <div className="hidden h-screen w-full overflow-hidden md:flex">
+        {/* Notes Panel - Left side */}
+        <div className="w-96 flex-shrink-0">
+          <NotesPanel
+            notes={notes}
+            pagination={pagination}
+            isLoading={isLoadingNotes}
+            error={notesError}
+            searchTerm={searchTerm}
+            selectedEntityIds={selectedEntityIds}
+            selectedNoteId={graphCenterNode?.type === "note" ? graphCenterNode.id : undefined}
+            onSearchChange={handleSearchChange}
+            onEntitySelectionChange={handleEntitySelectionChange}
+            onPageChange={handlePageChange}
+            onNoteSelect={handleNoteSelect}
+            onNoteDelete={handleNoteDelete}
+          />
+        </div>
+
+        {/* Graph Panel - Right side */}
+        <div className="flex-1">
+          <ReactFlowProvider>
+            <GraphPanel
+              graphData={graphData}
+              isLoading={isLoadingGraph}
+              error={graphError}
+              panelState={graphPanelState}
+              hasNotes={notes.length > 0}
+              graphCenterNode={graphCenterNode}
+              selectedNodeId={selectedNodeId}
+              onNodeSelect={handleNodeSelect}
+              onNodeSelection={handleNodeSelection}
+              onCreateRelationship={handleCreateRelationship}
+              onCreateNoteEntity={handleCreateNoteEntity}
+              onRelationshipDelete={handleRelationshipDelete}
+              onNoteEntityDelete={handleNoteEntityDelete}
+              onPanelStateChange={setGraphPanelState}
+            />
+          </ReactFlowProvider>
+        </div>
       </div>
 
-      {/* Graph Panel - Right side */}
-      <div className="flex-1">
-        <ReactFlowProvider>
-          <GraphPanel
-            graphData={graphData}
-            isLoading={isLoadingGraph}
-            error={graphError}
-            panelState={graphPanelState}
-            hasNotes={notes.length > 0}
-            graphCenterNode={graphCenterNode}
-            selectedNodeId={selectedNodeId}
-            onNodeSelect={handleNodeSelect}
-            onNodeSelection={handleNodeSelection}
-            onCreateRelationship={handleCreateRelationship}
-            onCreateNoteEntity={handleCreateNoteEntity}
-            onRelationshipDelete={handleRelationshipDelete}
-            onNoteEntityDelete={handleNoteEntityDelete}
-            onPanelStateChange={setGraphPanelState}
-          />
-        </ReactFlowProvider>
+      {/* Mobile view */}
+      <div className="flex h-dvh w-full flex-col md:hidden">
+        {/* Mobile header */}
+        <div className="container flex h-14 flex-shrink-0 items-center justify-between px-4">
+          <ThemeToggle />
+          {user && <UserProfileDropdown user={user} />}
+        </div>
+        <Tabs defaultValue="notes" className="flex w-full flex-grow flex-col overflow-hidden">
+          <TabsContent value="notes" className="flex-grow overflow-auto">
+            <NotesPanel
+              notes={notes}
+              pagination={pagination}
+              isLoading={isLoadingNotes}
+              error={notesError}
+              searchTerm={searchTerm}
+              selectedEntityIds={selectedEntityIds}
+              selectedNoteId={graphCenterNode?.type === "note" ? graphCenterNode.id : undefined}
+              onSearchChange={handleSearchChange}
+              onEntitySelectionChange={handleEntitySelectionChange}
+              onPageChange={handlePageChange}
+              onNoteSelect={handleNoteSelect}
+              onNoteDelete={handleNoteDelete}
+            />
+          </TabsContent>
+          <TabsContent value="graph" className="h-full flex-grow">
+            <ReactFlowProvider>
+              <GraphPanel
+                graphData={graphData}
+                isLoading={isLoadingGraph}
+                error={graphError}
+                panelState={graphPanelState}
+                hasNotes={notes.length > 0}
+                graphCenterNode={graphCenterNode}
+                selectedNodeId={selectedNodeId}
+                onNodeSelect={handleNodeSelect}
+                onNodeSelection={handleNodeSelection}
+                onCreateRelationship={handleCreateRelationship}
+                onCreateNoteEntity={handleCreateNoteEntity}
+                onRelationshipDelete={handleRelationshipDelete}
+                onNoteEntityDelete={handleNoteEntityDelete}
+                onPanelStateChange={setGraphPanelState}
+              />
+            </ReactFlowProvider>
+          </TabsContent>
+          <TabsContent value="entities" className="h-full flex-grow overflow-auto">
+            <EntitiesPage />
+          </TabsContent>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="notes">Notatki</TabsTrigger>
+            <TabsTrigger value="graph">Graf</TabsTrigger>
+            <TabsTrigger value="entities">Encje</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Onboarding Modal */}
@@ -122,6 +193,6 @@ export function DashboardPage() {
         onClose={handleModalClose}
         onCtaClick={handleCtaClick}
       />
-    </div>
+    </>
   );
 }

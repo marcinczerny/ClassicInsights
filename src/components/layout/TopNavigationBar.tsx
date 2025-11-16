@@ -4,6 +4,7 @@ import { NavLinks } from "./NavLinks";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserProfileDropdown } from "./UserProfileDropdown";
 import { $user } from "@/stores/app-store";
+import { cn } from "@/lib/utils";
 
 // Temporary user type for layout purposes
 // Will be replaced with proper auth implementation later
@@ -19,6 +20,7 @@ interface TopNavigationBarProps {
 
 export function TopNavigationBar({ user, currentPath }: TopNavigationBarProps) {
   const isAuthenticated = user !== null;
+  const isDashboardPage = currentPath === "/";
 
   // Hydrate global state with user session on mount
   useEffect(() => {
@@ -26,8 +28,13 @@ export function TopNavigationBar({ user, currentPath }: TopNavigationBarProps) {
   }, [user]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 w-full items-center px-4 sm:px-6 lg:px-8">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        isDashboardPage ? "hidden md:block" : "block"
+      )}
+    >
+      <div className="flex h-14 w-full max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <a href="/" className="flex items-center gap-2">

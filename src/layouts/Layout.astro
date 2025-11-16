@@ -9,6 +9,7 @@ interface Props {
 
 const { title = "ClassicInsights" } = Astro.props;
 const { user } = Astro.locals;
+const isDashboardPage = Astro.url.pathname === "/";
 ---
 
 <!doctype html>

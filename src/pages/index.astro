@@ -1,8 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { DashboardPage } from "../components/dashboard/DashboardPage";
+const { user } = Astro.locals;
 ---
 
 <Layout>
-  <DashboardPage client:load />
+  <DashboardPage client:load user={user} />
 </Layout>
