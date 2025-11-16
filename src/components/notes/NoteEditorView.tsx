@@ -155,7 +155,7 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
   }
 
   // Validation for save button
-  const isSaveDisabled = !isDirty || !note.title.trim() || isSaving;
+  const isSaveDisabled = !isDirty || !note.title.trim() || !note.content.trim() || isSaving;
 
   // Validation for analyze button
   const isAnalyzeDisabled = note.id === "new" || !note.content.trim() || note.content.length < 10;

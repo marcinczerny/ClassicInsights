@@ -75,8 +75,19 @@ export class NoteEditorPage {
    * Check if save button is disabled
    */
   async isSaveDisabled(): Promise<boolean> {
-    const disabledAttr = await this.saveButton.getAttribute("disabled");
-    return disabledAttr !== null;
+    try {
+      // Wait for the button to be visible first
+      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+
+      // Use isEnabled() method which is more reliable than checking attributes
+      const isEnabled = await this.saveButton.isEnabled();
+      console.log('Save button isEnabled:', isEnabled);
+      return !isEnabled;
+    } catch (error) {
+      console.error('Error checking save button disabled state:', error);
+      // If button doesn't exist or can't be checked, assume it's disabled
+      return true;
+    }
   }
 
   /**

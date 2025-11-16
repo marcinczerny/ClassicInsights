@@ -91,6 +91,8 @@ export class DashboardPage {
    * Check if dashboard is loaded and visible
    */
   async isDashboardVisible(): Promise<boolean> {
+    // Wait for the notes panel to be visible and notes to finish loading
+    await this.page.waitForSelector('[data-testid="create-note-button"]', { timeout: 10000 });
     return await this.createNoteButton.isVisible();
   }
 }

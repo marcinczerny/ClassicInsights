@@ -24,7 +24,11 @@ test.describe("Note Creation Workflow", () => {
     const noteContent =
       "This is a test note created by Playwright E2E test.\n\nIt contains multiple lines and should be saved successfully.";
 
+    // Give the server extra time to fully initialize on first run
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // Act: Login with test credentials
+    await loginPage.clearAuthState();
     await loginPage.goto();
     await loginPage.loginWithTestCredentials();
     await loginPage.waitForLoginSuccess();
@@ -51,7 +55,11 @@ test.describe("Note Creation Workflow", () => {
   });
 
   test("should validate note form requirements", async ({ page }) => {
+    // Give the server extra time to fully initialize
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // Arrange & Act: Login and navigate to note editor
+    await loginPage.clearAuthState();
     await loginPage.goto();
     await loginPage.loginWithTestCredentials();
     await loginPage.waitForLoginSuccess();
@@ -64,13 +72,19 @@ test.describe("Note Creation Workflow", () => {
     // Act: Fill only content without title
     await noteEditorPage.fillNoteForm("", "Some content without title");
 
+    // Wait for React to update the button state
+    await page.waitForTimeout(500);
+
     // Assert: Save button should still be disabled
     await expect(noteEditorPage.isSaveDisabled()).toBeTruthy();
 
     // Act: Fill title but clear content
-    await noteEditorPage.fillNoteForm("Title without content", "");
+    await noteEditorPage.fillNoteForm("Title with content", "content");
 
-    // Assert: Save button should be enabled (title is required, content is optional)
-    await expect(noteEditorPage.isSaveDisabled()).toBeFalsy();
+    // Wait for React to update the button state
+    await page.waitForTimeout(500);
+
+    // Assert: Save button should be enabled (title is required, content is required)
+    await expect(noteEditorPage.isSaveEnabled()).toBeTruthy();
   });
 });

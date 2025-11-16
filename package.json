@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "dev:e2e": "astro dev --mode test --port 3007",
+    "dev:e2e": "npm run astro dev -- --mode test --port 3007",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
