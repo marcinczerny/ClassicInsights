@@ -25,7 +25,7 @@ test.describe("Note Creation Workflow", () => {
       "This is a test note created by Playwright E2E test.\n\nIt contains multiple lines and should be saved successfully.";
 
     // Give the server extra time to fully initialize on first run
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Act: Login with test credentials
     await loginPage.clearAuthState();
@@ -56,7 +56,7 @@ test.describe("Note Creation Workflow", () => {
 
   test("should validate note form requirements", async ({ page }) => {
     // Give the server extra time to fully initialize
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Arrange & Act: Login and navigate to note editor
     await loginPage.clearAuthState();

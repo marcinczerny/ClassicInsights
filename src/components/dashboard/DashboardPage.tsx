@@ -56,7 +56,7 @@ export function DashboardPage() {
   // Show onboarding modal for new users with no notes
   // Skip onboarding in E2E test environments (localhost:3007)
   useEffect(() => {
-    const isE2eTest = typeof window !== 'undefined' && window.location.port === '3007';
+    const isE2eTest = typeof window !== "undefined" && window.location.port === "3007";
     if (!onboardingDismissed && !isLoadingNotes && notes.length === 0 && !isE2eTest) {
       setIsModalOpen(true);
     }

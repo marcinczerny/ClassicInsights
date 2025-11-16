@@ -77,14 +77,14 @@ export class NoteEditorPage {
   async isSaveDisabled(): Promise<boolean> {
     try {
       // Wait for the button to be visible first
-      await this.saveButton.waitFor({ state: 'visible', timeout: 5000 });
+      await this.saveButton.waitFor({ state: "visible", timeout: 5000 });
 
       // Use isEnabled() method which is more reliable than checking attributes
       const isEnabled = await this.saveButton.isEnabled();
-      console.log('Save button isEnabled:', isEnabled);
+      console.log("Save button isEnabled:", isEnabled);
       return !isEnabled;
     } catch (error) {
-      console.error('Error checking save button disabled state:', error);
+      console.error("Error checking save button disabled state:", error);
       // If button doesn't exist or can't be checked, assume it's disabled
       return true;
     }

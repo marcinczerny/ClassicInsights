@@ -26,11 +26,13 @@ export class LoginPage {
    */
   async goto(): Promise<void> {
     await this.page.goto("/login");
-    await this.page.waitForLoadState('load', { timeout: 5000 });
+    await this.page.waitForLoadState("load", { timeout: 5000 });
 
     const currentUrl = this.page.url();
-    if (!currentUrl.includes('/login')) {
-      throw new Error(`Expected to be on login page, but got: ${currentUrl}. User might already be authenticated.`);
+    if (!currentUrl.includes("/login")) {
+      throw new Error(
+        `Expected to be on login page, but got: ${currentUrl}. User might already be authenticated.`
+      );
     }
   }
 
@@ -41,10 +43,10 @@ export class LoginPage {
     // First, try to logout via API if we're on a page that can make requests
     try {
       const currentUrl = this.page.url();
-      if (currentUrl.includes('localhost:3007')) {
-        await this.page.request.post('/api/auth/logout');
+      if (currentUrl.includes("localhost:3007")) {
+        await this.page.request.post("/api/auth/logout");
       }
-    } catch (error) {
+    } catch {
       // Ignore logout failures (normal if not logged in)
     }
 
@@ -57,18 +59,18 @@ export class LoginPage {
         // Clear any Supabase-related storage
         for (let i = localStorage.length - 1; i >= 0; i--) {
           const key = localStorage.key(i);
-          if (key && (key.includes('supabase') || key.includes('auth'))) {
+          if (key && (key.includes("supabase") || key.includes("auth"))) {
             localStorage.removeItem(key);
           }
         }
         for (let i = sessionStorage.length - 1; i >= 0; i--) {
           const key = sessionStorage.key(i);
-          if (key && (key.includes('supabase') || key.includes('auth'))) {
+          if (key && (key.includes("supabase") || key.includes("auth"))) {
             sessionStorage.removeItem(key);
           }
         }
       });
-    } catch (error) {
+    } catch {
       // Ignore security errors when accessing storage
     }
 
@@ -116,7 +118,7 @@ export class LoginPage {
     await this.page.waitForURL("/", { timeout: 15000 });
 
     // Additional wait for the dashboard to fully load
-    await this.page.waitForLoadState('networkidle', { timeout: 5000 });
+    await this.page.waitForLoadState("networkidle", { timeout: 5000 });
   }
 
   /**
