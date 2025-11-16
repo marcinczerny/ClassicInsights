@@ -32,12 +32,12 @@ async function globalTeardown() {
     // Authenticate as the E2E test user
     console.log("Authenticating as E2E test user...");
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: process.env.E2E_USERNAME!,
-      password: process.env.E2E_PASSWORD!,
+      email: process.env.E2E_USERNAME || "",
+      password: process.env.E2E_PASSWORD || "",
     });
 
     if (signInError) {
-      console.error('Error signing in:', signInError);
+      console.error("Error signing in:", signInError);
       throw signInError;
     }
 
@@ -47,33 +47,35 @@ async function globalTeardown() {
 
     // First, let's count how many notes exist for this user
     const { data: existingNotes, error: countError } = await supabase
-      .from('notes')
-      .select('id, title')
-      .eq('user_id', e2eUsernameId);
+      .from("notes")
+      .select("id, title")
+      .eq("user_id", e2eUsernameId);
 
     if (countError) {
-      console.error('Error counting notes:', countError);
+      console.error("Error counting notes:", countError);
     } else {
       console.log(`Found ${existingNotes?.length || 0} notes for E2E user`);
       if (existingNotes && existingNotes.length > 0) {
-        console.log('Notes to delete:', existingNotes.map(n => ({ id: n.id, title: n.title })));
+        console.log(
+          "Notes to delete:",
+          existingNotes.map((n) => ({ id: n.id, title: n.title }))
+        );
       }
     }
 
     // Delete all notes created by the E2E test user
     const { data: deleteData, error: deleteError } = await supabase
-      .from('notes')
+      .from("notes")
       .delete()
-      .eq('user_id', e2eUsernameId)
-      .select('id, title');
+      .eq("user_id", e2eUsernameId)
+      .select("id, title");
 
     if (deleteError) {
-      console.error('Error deleting notes during teardown:', deleteError);
+      console.error("Error deleting notes during teardown:", deleteError);
       throw deleteError;
     }
 
     console.log(`Successfully deleted ${deleteData?.length || 0} notes from database`);
-
   } catch (error) {
     console.error("Error during E2E teardown:", error);
     process.exit(1);

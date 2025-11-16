@@ -29,7 +29,7 @@ export const createSupabaseServerInstance = (context: {
   let supabaseUrl: string;
   let supabaseKey: string;
 
-  if (import.meta.env.MODE === 'test') {
+  if (import.meta.env.MODE === "test") {
     // In test mode, use import.meta.env which has .env.test loaded by Vite
     supabaseUrl = import.meta.env.SUPABASE_URL;
     supabaseKey = import.meta.env.SUPABASE_KEY;
@@ -38,7 +38,6 @@ export const createSupabaseServerInstance = (context: {
     supabaseUrl = context.runtime?.env?.SUPABASE_URL ?? import.meta.env.SUPABASE_URL;
     supabaseKey = context.runtime?.env?.SUPABASE_KEY ?? import.meta.env.SUPABASE_KEY;
   }
-
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,
