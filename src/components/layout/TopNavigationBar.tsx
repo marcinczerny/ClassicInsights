@@ -20,7 +20,11 @@ interface TopNavigationBarProps {
 
 export function TopNavigationBar({ user, currentPath }: TopNavigationBarProps) {
   const isAuthenticated = user !== null;
-  const isDashboardPage = currentPath === "/";
+  const isSpecialMobilePage =
+    currentPath === "/" ||
+    currentPath === "/notes/new" ||
+    /^\/notes\/.*\/edit$/.test(currentPath) ||
+    /^\/notes\/[^/]+$/.test(currentPath); // Matches /notes/some-id
 
   // Hydrate global state with user session on mount
   useEffect(() => {
@@ -31,10 +35,10 @@ export function TopNavigationBar({ user, currentPath }: TopNavigationBarProps) {
     <header
       className={cn(
         "sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-        isDashboardPage ? "hidden md:block" : "block"
+        isSpecialMobilePage ? "hidden md:block" : "block"
       )}
     >
-      <div className="flex h-14 w-full max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8">
+      <div className="flex h-14 w-full items-center px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <a href="/" className="flex items-center gap-2">
