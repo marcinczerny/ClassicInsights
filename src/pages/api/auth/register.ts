@@ -23,6 +23,9 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
     password,
     options: {
       emailRedirectTo: `${new URL(request.url).origin}/login`,
+      data: {
+        ai_consent: aiConsent,
+      },
     },
   });
 
