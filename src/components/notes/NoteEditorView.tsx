@@ -22,12 +22,19 @@ import { NoteForm } from "./NoteForm";
 import { AISuggestionsPanel } from "./AISuggestionsPanel";
 import { useNoteEditor } from "./hooks/useNoteEditor";
 import { toast } from "sonner";
+import { ThemeToggle } from "../layout/ThemeToggle";
+import { UserProfileDropdown } from "../layout/UserProfileDropdown";
 
+interface User {
+  email?: string;
+  id: string;
+}
 interface NoteEditorViewProps {
   noteId: string | "new";
+  user: User | null;
 }
 
-export function NoteEditorView({ noteId }: NoteEditorViewProps) {
+export function NoteEditorView({ noteId, user }: NoteEditorViewProps) {
   const {
     note,
     suggestions,
@@ -168,97 +175,104 @@ export function NoteEditorView({ noteId }: NoteEditorViewProps) {
         : undefined;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto py-8 px-4">
-        {/* Header with actions */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">
-            {note.id === "new" ? "Nowa notatka" : "Edycja notatki"}
-          </h1>
+    <div className="flex h-dvh w-full flex-col">
+      {/* Mobile header */}
+      <div className="container flex h-14 flex-shrink-0 items-center justify-between md:hidden px-4">
+        <ThemeToggle />
+        {user && <UserProfileDropdown user={user} />}
+      </div>
+      <div className="flex-grow overflow-auto">
+        <div className="container max-w-7xl mx-auto py-8 px-4">
+          {/* Header with actions */}
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold">
+              {note.id === "new" ? "Nowa notatka" : "Edycja notatki"}
+            </h1>
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (note.id === "new") {
-                  window.location.href = "/";
-                } else {
-                  window.location.href = `/notes/${note.id}`;
-                }
-              }}
-            >
-              Anuluj
-            </Button>
-
-            {note.id !== "new" && (
+            <div className="flex gap-2">
               <Button
-                variant="destructive"
-                onClick={() => setShowDeleteConfirmation(true)}
+                variant="outline"
+                onClick={() => {
+                  if (note.id === "new") {
+                    window.location.href = "/";
+                  } else {
+                    window.location.href = `/notes/${note.id}`;
+                  }
+                }}
+              >
+                Anuluj
+              </Button>
+
+              {note.id !== "new" && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteConfirmation(true)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Usuwanie..." : "Usuń"}
+                </Button>
+              )}
+
+              <Button onClick={handleSave} disabled={isSaveDisabled} data-testid="save-note-button">
+                {isSaving ? "Zapisywanie..." : "Zapisz"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Main content - two column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Note form - left side (2/3) */}
+            <div className="lg:col-span-2">
+              <div className="bg-card rounded-lg border p-6">
+                <NoteForm
+                  note={note}
+                  onTitleChange={(title) => setNoteField("title", title)}
+                  onContentChange={(content) => setNoteField("content", content)}
+                  onEntitiesChange={setNoteEntities}
+                />
+              </div>
+            </div>
+
+            {/* AI Suggestions panel - right side (1/3) */}
+            <div className="lg:col-span-1">
+              <div className="bg-card rounded-lg border p-6 sticky top-8">
+                <AISuggestionsPanel
+                  noteId={note.id}
+                  suggestions={suggestions}
+                  isAnalyzing={isAnalyzing}
+                  isAnalyzeDisabled={isAnalyzeDisabled}
+                  analyzeDisabledReason={analyzeDisabledReason}
+                  onAnalyze={handleAnalyze}
+                  onAccept={handleAcceptSuggestion}
+                  onReject={handleRejectSuggestion}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Delete confirmation dialog */}
+        <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Czy na pewno chcesz usunąć tę notatkę?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ta akcja jest nieodwracalna. Notatka zostanie trwale usunięta z bazy danych.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Anuluj</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
                 disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {isDeleting ? "Usuwanie..." : "Usuń"}
-              </Button>
-            )}
-
-            <Button onClick={handleSave} disabled={isSaveDisabled} data-testid="save-note-button">
-              {isSaving ? "Zapisywanie..." : "Zapisz"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Main content - two column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Note form - left side (2/3) */}
-          <div className="lg:col-span-2">
-            <div className="bg-card rounded-lg border p-6">
-              <NoteForm
-                note={note}
-                onTitleChange={(title) => setNoteField("title", title)}
-                onContentChange={(content) => setNoteField("content", content)}
-                onEntitiesChange={setNoteEntities}
-              />
-            </div>
-          </div>
-
-          {/* AI Suggestions panel - right side (1/3) */}
-          <div className="lg:col-span-1">
-            <div className="bg-card rounded-lg border p-6 sticky top-8">
-              <AISuggestionsPanel
-                noteId={note.id}
-                suggestions={suggestions}
-                isAnalyzing={isAnalyzing}
-                isAnalyzeDisabled={isAnalyzeDisabled}
-                analyzeDisabledReason={analyzeDisabledReason}
-                onAnalyze={handleAnalyze}
-                onAccept={handleAcceptSuggestion}
-                onReject={handleRejectSuggestion}
-              />
-            </div>
-          </div>
-        </div>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Czy na pewno chcesz usunąć tę notatkę?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ta akcja jest nieodwracalna. Notatka zostanie trwale usunięta z bazy danych.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Anuluj</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Usuwanie..." : "Usuń"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

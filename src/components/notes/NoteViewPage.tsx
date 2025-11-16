@@ -22,12 +22,20 @@ import { Edit, Trash2, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import type { NoteDTO } from "@/types";
+import { ThemeToggle } from "../layout/ThemeToggle";
+import { UserProfileDropdown } from "../layout/UserProfileDropdown";
+
+interface User {
+  email?: string;
+  id: string;
+}
 
 interface NoteViewPageProps {
   noteId: string;
+  user: User | null;
 }
 
-export function NoteViewPage({ noteId }: NoteViewPageProps) {
+export function NoteViewPage({ noteId, user }: NoteViewPageProps) {
   const [note, setNote] = useState<NoteDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -133,93 +141,102 @@ export function NoteViewPage({ noteId }: NoteViewPageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto py-8 px-4">
-        {/* Header with actions */}
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" asChild>
-            <a href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Powrót
-            </a>
-          </Button>
-
-          <div className="flex gap-2">
-            <Button variant="destructive" onClick={() => setShowDeleteConfirmation(true)}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Usuń
-            </Button>
-
-            <Button asChild>
-              <a href={`/notes/${noteId}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edytuj
+    <div className="flex h-dvh w-full flex-col">
+      {/* Mobile header */}
+      <div className="container flex h-14 flex-shrink-0 items-center justify-between px-4 md:hidden">
+        <ThemeToggle />
+        {user && <UserProfileDropdown user={user} />}
+      </div>
+      <div className="flex-grow overflow-auto">
+        <div className="container max-w-4xl mx-auto py-8 px-4">
+          {/* Header with actions */}
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" asChild>
+              <a href="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Powrót
               </a>
             </Button>
-          </div>
-        </div>
 
-        {/* Note content card */}
-        <div className="bg-card rounded-lg border p-8 space-y-6">
-          {/* Title */}
-          <div>
-            <h1 className="text-4xl font-bold mb-2">{note.title}</h1>
-            <p className="text-sm text-muted-foreground">Zaktualizowano: {formattedDate}</p>
-          </div>
+            <div className="flex gap-2">
+              <Button variant="destructive" onClick={() => setShowDeleteConfirmation(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Usuń
+              </Button>
 
-          {/* Entities */}
-          {note.entities.length > 0 && (
-            <div>
-              <h2 className="text-sm font-semibold mb-3 text-muted-foreground">Powiązane byty</h2>
-              <div className="flex flex-wrap gap-2">
-                {note.entities.map((entity) => (
-                  <Badge key={entity.id} variant="secondary" className="text-sm">
-                    {entity.name}
-                    {entity.relationship_type && (
-                      <span className="ml-1 text-xs opacity-70">({entity.relationship_type})</span>
-                    )}
-                  </Badge>
-                ))}
-              </div>
+              <Button asChild>
+                <a href={`/notes/${noteId}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edytuj
+                </a>
+              </Button>
             </div>
-          )}
+          </div>
 
-          {/* Divider */}
-          <div className="border-t"></div>
+          {/* Note content card */}
+          <div className="bg-card rounded-lg border p-8 space-y-6">
+            {/* Title */}
+            <div>
+              <h1 className="text-4xl font-bold mb-2">{note.title}</h1>
+              <p className="text-sm text-muted-foreground">Zaktualizowano: {formattedDate}</p>
+            </div>
 
-          {/* Markdown content */}
-          <div className="prose prose-neutral dark:prose-invert max-w-none">
-            {note.content ? (
-              <ReactMarkdown>{note.content}</ReactMarkdown>
-            ) : (
-              <p className="text-muted-foreground italic">Brak treści</p>
+            {/* Entities */}
+            {note.entities.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold mb-3 text-muted-foreground">Powiązane byty</h2>
+                <div className="flex flex-wrap gap-2">
+                  {note.entities.map((entity) => (
+                    <Badge key={entity.id} variant="secondary" className="text-sm">
+                      {entity.name}
+                      {entity.relationship_type && (
+                        <span className="ml-1 text-xs opacity-70">
+                          ({entity.relationship_type})
+                        </span>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
+
+            {/* Divider */}
+            <div className="border-t"></div>
+
+            {/* Markdown content */}
+            <div className="prose prose-neutral dark:prose-invert max-w-none">
+              {note.content ? (
+                <ReactMarkdown>{note.content}</ReactMarkdown>
+              ) : (
+                <p className="text-muted-foreground italic">Brak treści</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Czy na pewno chcesz usunąć tę notatkę?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ta akcja jest nieodwracalna. Notatka &quot;{note.title}&quot; zostanie trwale usunięta
-              z bazy danych.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Anuluj</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Usuwanie..." : "Usuń"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Delete confirmation dialog */}
+        <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Czy na pewno chcesz usunąć tę notatkę?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ta akcja jest nieodwracalna. Notatka &quot;{note.title}&quot; zostanie trwale
+                usunięta z bazy danych.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Anuluj</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? "Usuwanie..." : "Usuń"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }

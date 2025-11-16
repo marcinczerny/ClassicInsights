@@ -6,6 +6,7 @@ export const prerender = false;
 
 // Extract note ID from URL params
 const { id } = Astro.params;
+const { user } = Astro.locals;
 
 // Redirect to home if no ID
 if (!id) {
@@ -14,5 +15,5 @@ if (!id) {
 ---
 
 <Layout>
-  <NoteViewPage client:load noteId={id} />
+  <NoteViewPage client:load noteId={id} user={user || null} />
 </Layout>
